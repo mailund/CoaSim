@@ -1,0 +1,900 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet type="text/xsl" href="guile-bindings.xsl"?>
+
+<guile-bindings>
+
+
+<method name="interval-start">
+  <brief>Returns the start position of an interval.</brief>
+  <prototype>(interval-start interval)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
+(map interval-start intervals)</example>
+  <description>
+    <p>
+     Returns the start position of an interval.
+    </p>
+  </description>
+</method>
+
+
+<method name="interval-end">
+  <brief>Returns the end position of an interval.</brief>
+  <prototype>(interval-end interval)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
+(map interval-end intervals)</example>
+  <description>
+    <p>
+     Returns the end position of an interval.
+    </p>
+  </description>
+</method>
+
+
+<method name="total-branch-length">
+  <brief>Returns the total tree branch length of the local tree of an interval.</brief>
+  <prototype>(total-branch-length interval-or-tree)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
+(map total-branch-length intervals)</example>
+  <description>
+    <p>
+     Returns the total tree branch length of the local tree of an interval.
+     The argument to the function can be either a local interval, as returned
+     by the intervals function, or a local tree, as returned by the local-trees
+     function.
+    </p>
+  </description>
+</method>
+
+
+<method name="interval->tree">
+  <brief>Returns tree local to an interval.</brief>
+  <prototype>(interval->tree interval)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
+(define trees (map interval->tree intervals)) </example>
+  <description>
+    <p>Returns the tree local to an interval.</p>
+  </description>
+</method>
+
+
+<method name="tree->interval">
+  <brief>Returns interval a local tree covers.</brief>
+  <prototype>(tree->interval tree)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
+(define trees (map interval->tree intervals)) 
+(define intervals2 (map tree->interval trees))</example>
+  <description>
+    <p>
+      Returns interval a local tree covers.  The function is the reverse
+      of interval->tree.
+    </p>
+  </description>
+</method>
+
+
+
+<method name="trait-marker">
+  <brief>Creates a trait marker on the simulated region.</brief>
+  <prototype>(trait-marker position low-freq high-freq)</prototype>
+  <example>(trait-marker 0.5 0.18 0.22)</example>
+  <description>
+    <p>
+      Creates a trait marker on the simulated region.  The first
+      parameter determines the position (between 0 and 1) along the
+      region, the second the lowest frequency accepted for the
+      mutation type, and the third the highest frequency accepted for the
+      mutation type.
+    </p>
+  </description>
+</method>
+
+
+<method name="snp-marker">
+  <brief>Creates a SNP marker on the simulated region.</brief>
+  <prototype>(snp-marker position low-freq high-freq)</prototype>
+  <example>(snp-marker 0.5 0.1 0.9)</example>
+  <description>
+    <p>
+      Creates a SNP marker on the simulated region.  The first
+      parameter determines the position (between 0 and 1) along the
+      region, the second the lowest frequency accepted for the
+      mutation type, and the third the highest frequency accepted for the
+      mutation type.
+    </p>
+  </description>
+</method>
+
+
+<method name="ms-marker">
+  <brief>Creates a micro-satellite marker on the simulated region.</brief>
+  <prototype>(ms-marker position theta K)</prototype>
+  <example>(ms-marker 0.5 0.2 10)</example>
+  <description>
+    <p>
+      Creates a micro-satellite marker on the simulated region.  The
+      first parameter determines the position (between 0 and 1) along
+      the region, the second the mutation rate of the marker, and the
+      third the size of the alphabet for the marker (in the K allele
+      model).
+    </p>
+  </description>
+</method>
+
+
+<method name="trait-marker?">
+  <brief>A predicate that evalutes to true for trait markers only.</brief>
+  <prototype>(trait-marker? marker)</prototype>
+  <example>(trait-marker? marker)</example>
+  <description>
+    <p>
+     A predicate that evalutes to true for trait markers and false for
+     all other types.
+    </p>
+  </description>
+</method>
+
+
+<method name="snp-marker?">
+  <brief>A predicate that evalutes to true for SNP markers only.</brief>
+  <prototype>(snp-marker? marker)</prototype>
+  <example>(snp-marker? marker)</example>
+  <description>
+    <p>
+     A predicate that evalutes to true for SNP markers and false for
+     all other types.
+    </p>
+  </description>
+</method>
+
+
+<method name="ms-marker?">
+  <brief>A predicate that evalutes to true for micro-satellite markers only.</brief>
+  <prototype>(ms-marker? marker)</prototype>
+  <example>(ms-marker? marker)</example>
+  <description>
+    <p>
+     A predicate that evalutes to true for micro-satellite  markers and false
+     for all other types.
+    </p>
+  </description>
+</method>
+
+
+<method name="position">
+  <brief>Returns the position of a marker.</brief>
+  <prototype>(position marker)</prototype>
+  <example>(position marker)</example>
+  <description>
+    <p>Returns the position of a marker.
+    </p>
+  </description>
+</method>
+
+
+
+
+<method name="event-time">
+  <brief>Returns the time of the event represented by a node.</brief>
+  <prototype>(event-time node)</prototype>
+  <example>(define coa-times '())
+(define (coa-cb n k) (set! coa-times (cons (event-time n) coa-times)))
+(define rc-times '())
+(define (rc-cb n1 n2) (set! rc-times (cons (event-time n1) rc-times)))
+(simulate markers no-leaves :rho 400
+	  :coalescence-callback   coa-cb 
+	  :recombination-callback rc-cb) </example>
+  <description>
+    <p>Returns the time of the event represented by a node.
+    </p>
+  </description>
+</method>
+
+
+<method name="recombination-point">
+  <brief>Returns the recombination point of a recombination node.</brief>
+  <prototype>(recombination-point recombination-node)</prototype>
+  <example>(define rc-points '())
+(define (rc-cb n1 n2 k) (set! rc-points (cons (recombination-point n1) rc-points)))
+(simulate markers no-leaves :rho 400 :recombination-callback rc-cb) </example>
+  <description>
+    <p>
+      Returns the recombination point of a recombination node.
+    </p>
+  </description>
+</method>
+
+
+<method name="gene-conversion-start">
+  <brief>Returns the start point of a gene conversion.</brief>
+  <prototype>(gene-conversion-start gene-conversion-node)</prototype>
+  <example>(define gc-start '())
+(define (gc-cb n1 n2 k) (set! gc-start (cons (gene-conversion-start n1) gc-start)))
+(simulate markers no-leaves :gamma 10 :Q 0.2 :geneconversion-callback gc-cb) </example>
+  <description>
+    <p>
+      Returns the start point of a gene conversion.
+    </p>
+  </description>
+</method>
+
+
+<method name="gene-conversion-end">
+  <brief>Returns the end point of a gene conversion.</brief>
+  <prototype>(gene-conversion-end gene-conversion-node)</prototype>
+  <example>(define gc-end '())
+(define (gc-cb n1 n2 k) (set! gc-end (cons (gene-conversion-end n1) gc-end)))
+(simulate markers no-leaves :gamma 10 :Q 0.2 :geneconversion-callback gc-cb) </example>
+  <description>
+    <p>
+      Returns the end point of a gene conversion.
+    </p>
+  </description>
+</method>
+
+
+
+
+<method name="simulate">
+  <brief>Simulate an ARG and corresponding sequences.</brief>
+  <prototype>(simulate marker-list no-leaves . additional-keyword-parameters)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :rho 400 :beta 10))
+
+(define coa-times '())
+(define (coa-cb n k) (set! coa-times (cons (event-time n) coa-times)))
+(simulate markers 10 :coalescence-callback coa-cb :rho 400 :beta 10)
+(display "coalescence times:\n")
+(map (lambda (t) (display t)(newline)) coa-times)
+(newline)</example>
+  <description>
+    <p>
+      Simulate an ARG and corresponding sequences, based ARG parameters, 
+      a list of markers, and the number of markers to simulate.
+    </p>
+    <p>
+      The building of the ARG is affected by the following paramters, that 
+      can be set using keyword arguments:
+    </p>
+    <ul>
+      <li><b>rho:</b> the <em>scaled recombination rate</em>, rho=4Nr.  See 
+        e.g. <em>Hein, Schierup and Wiuf:</em> Gene Genealogies, Variation
+        and Evolution, section 5.5 for details.
+	By default, this parameter is 0.
+      </li>
+      <li><b>gamma:</b> the <em>scaled gene-conversion rate</em>, gamma=4Ng.
+        See e.g. <em>Hein, et al.:</em> section 5.10 for details.
+	By default, this parameter is 0.
+      </li>
+      <li><b>Q:</b> the <em>gene-conversion tract length intensity</em>.
+        See e.g. <em>Hein, et al.:</em> section 5.10 for details.
+	By default, this parameter is 0.
+      </li>
+      <li><b>beta:</b> the <em>exponential growth rate</em>, beta=2Nb.
+        See e.g. <em>Hein, et al.:</em> section 4.3 for details.
+	By default, this parameter is 0.
+      </li>
+    </ul>
+    <p>
+      For fine-monitoring of the simulation, callback functions can be given
+      as key-word arguments.  The supported callbacks are:
+    </p>
+    <ul>
+      <li><b>coalescence-callback:</b>
+        called with the single node that is the result of a coalescent event,
+        and the number of lineages at the time of the coalescent (i.e.
+        the number of linages just after the event, moving forward in time).
+      </li>
+      <li><b>recombination-callback:</b>
+          called with the two nodes that is the result of a recombination
+          event, and the number of lineages at the time of the recombination
+	  (i.e. the number of linages just after the event, moving forward 
+	  in time).
+      </li>
+      <li><b>geneconversion-callback:</b>
+          called with the two nodes that is the result of a gene conversion
+          event, and the number of lineages at the time of the gene conversion
+	  (i.e. the number of linages just after the event, moving forward 
+	  in time).
+      </li>
+    </ul>
+    <p>
+      The following additional keyword arguments are available:
+    </p>
+    <ul>
+      <li><b>random-seed:</b> an integer used as random seed for the
+          simulation.  In most cases, this argument will not be used, but
+          it is useful for regression testing of scheme modules for CoaSim.
+      </li>
+    </ul>
+  </description>
+</method>
+
+
+<method name="sequences">
+  <brief>Returns the simulated sequences of an ARG as a list of lists.</brief>
+  <prototype>(sequences arg)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define haplotypes (let ((arg (simulate markers 100 :rho 400))) (sequences arg)))</example>
+  <description>
+    <p>Returns the simulated sequences of an ARG as a list of lists.
+    </p>
+  </description>
+</method>
+
+
+<method name="intervals">
+  <brief>Returns the intervals sharing genealogy in the ARG as a list.</brief>
+  <prototype>(intervals arg)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))</example>
+  <description>
+    <p>
+     Returns the intervals sharing genealogy in the ARG as a list.
+     Only intervals containing markers are returned.
+    </p>
+  </description>
+</method>
+
+<method name="local-trees">
+  <brief>Returns the local trees, i.e. the trees for intervals sharing genealogy in the ARG as a list.</brief>
+  <prototype>(local-trees arg)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define trees (let ((arg (simulate markers 100 :rho 400))) (local-trees arg)))</example>
+  <description>
+    <p>
+     Returns the local trees, i.e. the trees for 
+     intervals sharing genealogy in the ARG as a list.
+     Only trees containing markers are returned.
+    </p>
+  </description>
+</method>
+
+
+
+<method name="no-recombinations">
+  <brief>Returns the number of recombinations in the ARG.</brief>
+  <prototype>(no-recombinations arg)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :rho 400))
+(define n (no-recombinations arg))</example>
+  <description>
+    <p>
+     Returns the number of recombinations in the ARG.
+    </p>
+  </description>
+</method>
+
+
+<method name="no-coalescence-events">
+  <brief>Returns the number of coalescence events in the ARG.</brief>
+  <prototype>(no-coalescence-events arg)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :rho 400))
+(define n (no-coalescence-events arg))</example>
+  <description>
+    <p>
+     Returns the number of coalescence events in the ARG.
+    </p>
+  </description>
+</method>
+
+
+<method name="no-gene-conversions">
+  <brief>Returns the number of gene conversions in the ARG.</brief>
+  <prototype>(no-gene-conversions arg)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :gamma 10 :Q 0.2))
+(define n (no-gene-conversions arg))</example>
+  <description>
+    <p>
+     Returns the number of gene conversions in the ARG.
+    </p>
+  </description>
+</method>
+
+       
+<method name="simulate-sequences">
+  <brief>Simulate a list of sequences.</brief>
+  <prototype>(simulate-sequences markers no-leaves . additional-simulation-parameters)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0 1))
+(define seqs (simulate-sequences markers 10 :rho 400))</example>
+  <description>
+    <p>
+     Simulate a list of sequences.  This function is just a short-cut
+     for `simulate' followed by `sequences': 
+    </p>
+    <code><pre> (define (simulate-sequences . args)
+   (sequences (apply simulate args)))</pre></code>
+  </description>
+</method>
+
+
+
+
+
+
+
+ <module name="(coasim markers)">
+  <brief>
+    This module contains functions manipulating sorted lists of markers.
+  </brief>
+
+   <method name='sort-markers'>
+    <brief>Sort a list of markers.</brief>
+    <prototype>(sort-markers marker-list)</prototype>
+    <example>(sort-markers marker-list)</example>
+    <description>
+     <p>
+      Sort a list of markers with relation to their position.
+     </p>
+    </description>
+   </method>
+   <method name='insert-sorted-idx'>
+    <brief>Inserts a marker in a sorted list of markers..</brief>
+    <prototype>(insert-sorted-idx marker-list marker)</prototype>
+    <example> (define snp-markers (make-random-snp-markers 10 0.1 0.9))
+ (define disease-marker (car (make-random-trait-markers 1 0.18 0.22)))
+ (define markers-and-index (insert-sorted-idx snp-markers disease-marker))</example>
+    <description>
+     <p>
+      This function inserts a marker into a sorted list of markers and
+      return a list who's first element is the resulting list and who's
+      second element is the index the marker got in the new list.
+     </p>
+    </description>
+   </method>
+   <method name='insert-sorted'>
+    <brief>Inserts a marker in a sorted list of markers.</brief>
+    <prototype>(insert-sorted sorted-marker-list marker)</prototype>
+    <example>(insert-sorted sorted-marker-list marker)</example>
+    <description>
+     <p>
+      This function inserts a marker into a sorted list of markers and
+      return the resulting list.
+     </p>
+    </description>
+   </method>
+   <method name='merge-markers'>
+    <brief>Merge two or more lists of sorted markers.</brief>
+    <prototype>(merge-markers . list-of-marker-lists)</prototype>
+    <example>(merge-markers marker-list-1 marker-list-2 marker-list-3)</example>
+    <description>
+     <p>
+      Merge two or more lists of sorted markers.
+     </p>
+    </description>
+   </method>
+   <method name='split-in-cases-controls'>
+    <brief>Split a list of sequences into cases and controls.</brief>
+    <prototype>(split-in-cases-controls sequences trait-idx is-case?)</prototype>
+    <example>(use-modules (coasim markers))
+    (let ((is-case? (lambda (h) (= 1 (list-ref h trait-idx)))))
+        (split-in-cases-controls seqs trait-idx is-case?)))</example>
+    <description>
+     <p>
+      Split a dataset into cases and controls, based on the value at
+      trait-idx.  If the value at that index satisfy the is-case? predicate,
+      the sequence is considered a case, otherwise a control.
+     </p>
+    </description>
+   </method>
+ </module>
+
+
+ <module name="(coasim batch)">
+  <brief>
+    This module contains functions for running batchs of simulations.
+    Although most of the functionallity in this module can be easily 
+    implemented using Scheme's control-flow structures, the functions here
+    make batch running just a tad simpler.
+  </brief>
+
+ <method name='repeat'>
+  <brief>Call a block of code a certain number of times.</brief>
+  <prototype>(repeat n c)</prototype>
+  <example> (use-modules (coasim batch))
+ (repeat 20
+  (let* ((m (snp-marker 0.5 0 1))
+         (arg (simulate (list m) 10 :random-seed 10))
+         (tree (car (local-trees arg))))
+    (display tree)))
+ (newline) </example>
+  <description>
+   <p>
+    Execute the code `c' `n' number of times.
+   </p>
+  </description>
+ </method>
+ <method name='repeat-while'>
+  <brief>Call a block of code until a predicate evaluates to false.</brief>
+  <prototype>(repeat-while p c)</prototype>
+  <example> (use-modules (ice-9 format) (coasim batch))
+
+ (repeat-while (lambda (branch-length) (&lt; branch-length 5))
+  (let* ((m (snp-marker 0.5 0 1))
+         (arg (simulate (list m) 10))
+         (tree (car (local-trees arg)))
+         (branch-length (total-branch-length tree)))
+    (format #t "~4f " branch-length)
+    branch-length))
+ (newline)</example>
+  <description>
+   <p> Execute the code `c' until the predicate `p', evaluated on
+    the result of `c' evaluates to false. 
+   </p>
+  </description>
+ </method>
+ <method name='repeat-with-index'>
+  <brief>Call a block of code a certain number of times.</brief>
+  <prototype> (repeat-with-index (i n) c)
+ (repeat-with-index (i start stop) c)
+ (repeat-with-index (i start stop step) c) </prototype>
+  <example> (use-modules (coasim batch))
+ (repeat-with-index (i 10)
+    (let* ((markers (make-random-snp-markers 10 0 1))
+           (seqs (simulate-sequences markers 10))
+           (pos-file (string-append "positions." (number->string i) ".txt"))
+           (seq-file (string-append "sequences." (number->string i) ".txt")))
+      (call-with-output-file pos-file (marker-positions-printer markers))
+      (call-with-output-file seq-file (sequences-printer seqs))))
+ 
+ (repeat-with-index (i 2 12)
+    (let* ((markers (make-random-snp-markers 10 0 1))
+           (seqs (simulate-sequences markers 10))
+           (pos-file (string-append "positions." (number->string i) ".txt"))
+           (seq-file (string-append "sequences." (number->string i) ".txt")))
+      (call-with-output-file pos-file (marker-positions-printer markers))
+      (call-with-output-file seq-file (sequences-printer seqs))))
+ 
+ (repeat-with-index (i 2 20 2)
+    (let* ((markers (make-random-snp-markers 10 0 1))
+           (seqs (simulate-sequences markers 10))
+           (pos-file (string-append "positions." (number->string i) ".txt"))
+           (seq-file (string-append "sequences." (number->string i) ".txt")))
+      (call-with-output-file pos-file (marker-positions-printer markers))
+      (call-with-output-file seq-file (sequences-printer seqs)))) </example>
+  <description>
+   <p> Execute the code `c' a number of times, making the index
+    variable `i' visible to the code in `c'.  Comes in three
+    variants, a simple iteration from 1 to `n', an iteration from
+    `start' to `stop', and an iteration from `start' to `stop' in
+    jumps of `step'.
+   </p>
+  </description>
+ </method>
+ <method name='tabulate'>
+  <brief>Call a block of code a certain number of times, collecting
+         the results in a list.</brief>
+  <prototype> (tabulate n c)</prototype>
+  <example> (use-modules (coasim batch))
+ (let* ((no-iterations 10000)
+        (branch-lengths
+         (tabulate no-iterations
+          (let* ((m (snp-marker 0.5 0 1))
+                 (arg (simulate (list m) 10))
+                 (tree (car (local-trees arg)))
+                 (branch-length (total-branch-length tree)))
+            branch-length))))
+   (display (/ (apply + branch-lengths) no-iterations))(newline)) </example>
+  <description>
+   <p>Execute the code `c' `n' number of times, collecting the
+    results of evaluating `c' in a list that is returned as the
+    result of the tabulation.
+   </p>
+  </description>
+ </method>
+ <method name='fold'>
+  <brief>
+   Call a block of code a certain number of times, collecting the result
+   using a combination function.
+  </brief>
+  <prototype>(fold n comb init code)</prototype>
+  <example> (let* ((no-iterations 10000)
+        (branch-sum
+         (fold no-iterations (lambda (val sum) (+ val sum)) 0
+          (let* ((m (snp-marker 0.5 0 1))
+                 (arg (simulate (list m) 10))
+                 (tree (car (local-trees arg)))
+                 (branch-length (total-branch-length tree)))
+            branch-length))))
+   (display (/ branch-sum no-iterations))(newline))</example>
+  <description> <p> Execute the code `code' `n' number of times,
+   combining the result of `code' using the `comb' function.  The
+   `comb' is called with two arguments in each iteration, the first
+   is the result of having run `code', the second is the result of
+   the previous combination, initially the value `init' passed to
+   `fold'.  </p>
+  </description>
+ </method>
+ </module>
+
+
+ <module name="(coasim SNP genotypes)">
+  <brief>
+    This module contains functions for manipulating SNP (unphased) genotypes.
+  </brief>
+
+   <method name='haplotypes->genotypes'>
+    <brief>Translate a list of SNP haplotypes into a list of SNP genotypes.</brief>
+    <prototype> (haplotypes->genotypes haplotype-list)</prototype>
+    <example> (use-modules (coasim rand) (coasim SNP genotypes))
+ (define haplotypes (simulate-sequences (make-random-snp-markers 4 0 1) 8))
+ (display haplotypes)(newline)
+ (define genotypes (haplotypes->genotypes haplotypes))
+ (display genotypes)(newline) </example>
+    <description>
+     <p>
+      Translate a list containing an even number of SNP haplotypes
+      into a list of SNP genotypes.  The haplotypes are paired and the
+      alleles are translated such that homozygote 00 becomes 0, homozygote
+      11 becomes 1, and heterozygotes become 2.
+     </p>
+    </description>
+   </method>
+   <method name='split-in-cases-controls'>
+    <brief>Split a list of genotypes into cases and controls.</brief>
+    <prototype>(split-in-cases-controls genotypes trait-idx)</prototype>
+    <example> (define haplotypes (simulate-sequences markers 100))
+ (define genotypes (haplotypes->genotypes haplotypes))
+ (define cases-and-controls (split-in-cases-controls genotypes trait-idx
+                                                     :disease-model 'recessive))
+ (define cases    (car  cases-and-controls))
+ (define controls (cadr cases-and-controls))</example>
+    <description>
+     <p>
+      Split a dataset into cases and controls, based on the value at
+      trait-idx.   The following keyword arguments can be used to control
+      the split:
+     </p>
+     <ul>
+       <li><b>homozygote-0-prob:</b> The probability that genotype 0 (or 00)
+           is considered a case.  By default this is 0.
+       </li>
+       <li><b>homozygote-1-prob:</b> The probability that genotype 1 (or 11)
+           is considered a case.  By default this is 1.
+       </li>
+       <li><b>heterozygote-prob:</b> The probability that genotype 2 (01 or 10)
+           is considered a case.  By default this is 0.5.
+       </li>
+       <li><b>disase-model:</b> Should be either 'recessive or 'dominant;
+           if 'dominant genotypes 1 (11) and 2 (01 or 10) are considered cases,
+           if 'recessive only genotypes 1 (11) are considered cases.
+           only 
+       </li>
+     </ul>
+    </description>
+   </method>
+ </module>
+
+
+ <module name="(coasim SNP haplotypes)">
+  <brief>
+    This module contains functions for manipulating SNP haplotypes.
+  </brief>
+
+   <method name='split-in-cases-controls'>
+    <brief>Split a list of haplotypes into cases and controls.</brief>
+    <prototype>(split-in-cases-controls haplotypes trait-idx)</prototype>
+    <example> (define haplotypes (simulate-sequences markers 100))
+ (define cases-and-controls (split-in-cases-controls haplotypes trait-idx))
+ (define cases    (car  cases-and-controls))
+ (define controls (cadr cases-and-controls))</example>
+    <description>
+     <p>
+      Split a dataset into cases and controls, based on the value at
+      trait-idx.   The following keyword arguments can be used to control
+      the split:
+     </p>
+     <ul>
+       <li><b>mutant-prob:</b> The probability that a mutant (allele 1) is 
+           considered a case.  By default this is 1.
+       </li>
+       <li><b>wild-type-prob:</b> The probability that a wild-type (allele 0) 
+           is considered a case.  By default this is 0.
+       </li>
+     </ul>
+    </description>
+   </method>
+ </module>
+
+
+ <module name="(coasim rand)">
+  <brief>
+    This module contains functions making random marker configurations.
+  </brief>
+
+
+ <method name='make-random-trait-markers'>
+  <brief>Make a list of random trait markers.</brief>
+  <prototype>(make-random-trait-markers no-markers low-freq high-freq)</prototype>
+  <example>(define disease-marker (car (make-random-trait-markers 1 0.18 0.22)))</example>
+  <description>
+   <p>
+    Make a list of random positioned trait markers.  The low and 
+    high frequency constraints are similar to the `trait-marker'
+    function.
+   </p>
+  </description>
+ </method>
+
+ <method name='make-random-snp-markers'>
+  <brief>Make a list of random SNP markers.</brief>
+  <prototype>(make-random-snp-markers no-markers low-freq high-freq)</prototype>
+  <example>(define snp-markers (make-random-snp-markers 10 0.1 0.9))</example>
+  <description>
+   <p>
+    Make a list of random positioned SNP markers.  The low and 
+    high frequency constraints are similar to the `snp-marker'
+    function.
+   </p>
+  </description>
+ </method>
+
+ <method name='make-random-ms-markers'>
+  <brief>Make a list of random micro-satellite markers.</brief>
+  <prototype>(make-random-ms-markers no-markers theta K)</prototype>
+  <example>(define snp-markers (make-random-ms-markers 10 0.1 15))</example>
+  <description>
+   <p>
+    Make a list of random positioned micro-satellite markers.
+    The theta and K parameters are similar to the `ms-marker'
+    function.
+   </p>
+  </description>
+ </method>
+
+ </module>
+
+
+ <module name="(coasim io)">
+  <brief>
+    This module contains functions for reading and writing coasim data.
+  </brief>
+
+   <method name='print-sequences'>
+    <brief>Print a list of sequences.</brief>
+    <prototype>(print-sequences port sequences)</prototype>
+    <example>(print-sequences (current-output-port) sequences)</example>
+    <description>
+     <p>
+      This function prints the sequences in the list `sequences' to
+      the output port `port'.
+     </p>
+    </description>
+   </method>
+   <method name='print-positions'>
+    <brief>Print a list of positions.</brief>
+    <prototype>(print-positions port positions)</prototype>
+    <example>(print-positions (current-output-port) positions)</example>
+    <description>
+     <p>
+      This function prints the positions (numbers) in the list `positions' to
+      the output port `port'.
+     </p>
+    </description>
+   </method>
+   <method name='print-marker-positions'>
+    <brief>Print a list of positions from markers.</brief>
+    <prototype>(print-marker-positions port markers)</prototype>
+    <example>(print-marker-positions (current-output-port) markers)</example>
+    <description>
+     <p>
+      This function prints the positions of the markers in the list `markers'
+      to the output port `port'.
+     </p>
+    </description>
+   </method>
+
+ <method name='sequences-printer'>
+  <brief>Convenience function for printing sequences.</brief>
+  <prototype>(sequences-printer sequences)</prototype>
+  <example>(call-with-output-file "sequences.txt" (sequences-printer sequences))</example>
+  <description>
+   <p>
+    A convenience function, based on `print-sequences', that, given a 
+    list of sequences, gives a function with one argument, a port, that
+    when applied writes the sequences to the port.
+   </p>
+   <p>
+    The function is useful for calls to `call-with-output-file'.
+   </p>
+  </description>
+ </method>
+
+ <method name='sequences-port'>
+  <brief>Convenience function for printing sequences.</brief>
+  <prototype>(sequences-port port)</prototype>
+  <example>(map (sequence-port port) list-of-sequences)</example>
+  <description>
+   <p>
+    A convenience function, based on `print-sequences', that, given a 
+    list a port, gives a function with one argument, a sequence, that
+    when applied writes the sequences to the port.
+   </p>
+   <p>
+    The function is useful for mapping over lists of sequences.
+   </p>
+  </description>
+ </method>
+
+
+
+ <method name='positions-printer'>
+  <brief>Convenience function for printing positions.</brief>
+  <prototype>(positions-printer positions)</prototype>
+  <example>(call-with-output-file "positions.txt" (positions-printer positions))</example>
+  <description>
+   <p>
+    A convenience function, based on `print-positions', that, given a 
+    list of positions, gives a function with one argument, a port, that
+    when applied writes the positions to the port.
+   </p>
+   <p>
+    The function is useful for calls to `call-with-output-file'.
+   </p>
+  </description>
+ </method>
+
+ <method name='positions-port'>
+  <brief>Convenience function for printing positions.</brief>
+  <prototype>(positions-port port)</prototype>
+  <example>(map (position-port port) list-of-positions)</example>
+  <description>
+   <p>
+    A convenience function, based on `print-positions', that, given a 
+    list a port, gives a function with one argument, a position, that
+    when applied writes the positions to the port.
+   </p>
+   <p>
+    The function is useful for mapping over lists of positions.
+   </p>
+  </description>
+ </method>
+
+
+
+ <method name='marker-positions-printer'>
+  <brief>Convenience function for printing marker-positions.</brief>
+  <prototype>(marker-positions-printer marker-positions)</prototype>
+  <example>(call-with-output-file "marker-positions.txt" (marker-positions-printer marker-positions))</example>
+  <description>
+   <p>
+    A convenience function, based on `print-marker-positions', that, given a 
+    list of marker-positions, gives a function with one argument, a port, that
+    when applied writes the marker-positions to the port.
+   </p>
+   <p>
+    The function is useful for calls to `call-with-output-file'.
+   </p>
+  </description>
+ </method>
+
+ <method name='marker-positions-port'>
+  <brief>Convenience function for printing marker-positions.</brief>
+  <prototype>(marker-positions-port port)</prototype>
+  <example>(map (position-port port) list-of-marker-positions)</example>
+  <description>
+   <p>
+    A convenience function, based on `print-marker-positions', that, given a 
+    list a port, gives a function with one argument, a position, that
+    when applied writes the marker-positions to the port.
+   </p>
+   <p>
+    The function is useful for mapping over lists of marker-positions.
+   </p>
+  </description>
+ </method>
+
+ </module>
+
+
+
+</guile-bindings>
+
