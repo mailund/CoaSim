@@ -99,7 +99,7 @@ ARG::Node *ARG::coalescence(double time, Node *left, Node *right)
 
 ARG::node_pair_t ARG::recombination(double time, Node *child,
 				    double cross_over_point)
-  throw(null_child,Interval::interval_out_of_range)
+  throw(null_child,Interval::interval_out_of_range,Interval::empty_interval)
 {
   if (child == 0) throw null_child();
 
@@ -123,7 +123,7 @@ ARG::node_pair_t ARG::recombination(double time, Node *child,
 ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
 				      double conversion_point,
 				      double conversion_length)
-  throw(null_child,Interval::interval_out_of_range)
+  throw(null_child,Interval::interval_out_of_range,Interval::empty_interval)
 {
   if (child == 0) throw null_child();
 

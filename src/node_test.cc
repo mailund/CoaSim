@@ -3,8 +3,6 @@
 #include "testing.hh"
 #include "dist_funcs.hh"
 
-static Configuration *global_conf;
-
 int main(int argc, const char *argv[])
 {
   HANDLE_TEST_OPTIONS;
@@ -14,10 +12,10 @@ int main(int argc, const char *argv[])
   const double positions[] = { 0.0, 0.2, 0.3, 0.4, 0.67, };
   const size_t no_positions = (sizeof positions)/sizeof(double);
 
-  global_conf = new Configuration((const double*)positions,
-				  &positions[no_positions]);
+  Configuration conf(0.0, 0.0, 0.0, 0.0,
+		     (const double*)positions, &positions[no_positions]);
 
-  ARG arg(*global_conf);
+  ARG arg(conf);
 
   ARG::Node *l1 = arg.leaf();
   CHECK(l1 != 0);

@@ -6,6 +6,21 @@
 #include "dist_funcs.hh"
 #include "reporter.hh"
 
+class Builder
+{
+public:
+  Builder(Configuration &conf) : _conf(conf) {};
+  ~Builder() {};
+
+  // Builds an ARG with the given number of leaf nodes.  The ARG is
+  // dynamically allocated and must be deleted after use.
+  ARG *build(size_t no_leaf_nodes) const;
+
+private:
+  Configuration &_conf;
+};
+
+#if 0
 class Builder{
 public:
   Builder(double _rho, double _G, double _Q, double _growth, std::string log): rho(_rho), Q(_Q), G(_G), growth(_growth), _log(log){};
@@ -21,5 +36,7 @@ private:
   double growth;
   std::string _log;
 };
+#endif
+
 
 #endif

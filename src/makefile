@@ -10,7 +10,9 @@ source = coasim.cc \
 
 interval_test_objects = interval_test.o interval.o
 configuration_test_objects = configuration.o configuration_test.o
-node_test_objects = node_test.o node_t.o interval.o test_dist_funcs.o configuration.o
+node_test_objects = node_test.o node.o interval.o configuration.o
+builder_test_objects = builder_test.o node.o interval.o test_dist_funcs.o \
+	  	       configuration.o builder.o
 
 #coasim : $(objects)
 #	$(CXX) $(CXXFLAGS) -o coasim $(objects)
@@ -21,8 +23,9 @@ test: test_programs
              echo "FAILURE: configuration_test failed!"; \
         fi
 	if ! ./node_test; then echo "FAILURE: node_test failed!"; fi
+	if ! ./builder_test; then echo "FAILURE: builder_test failed!"; fi
 
-test_programs: interval_test configuration_test node_test
+test_programs: interval_test configuration_test node_test builder_test
 
 interval_test: $(interval_test_objects)
 	$(CXX) $(CXXFLAGS) -o interval_test $(interval_test_objects)
@@ -32,6 +35,9 @@ configuration_test: $(configuration_test_objects)
 
 node_test: $(node_test_objects)
 	$(CXX) $(CXXFLAGS) -o node_test $(node_test_objects)
+
+builder_test: $(builder_test_objects)
+	$(CXX) $(CXXFLAGS) -o builder_test $(builder_test_objects)
 
 
 
@@ -43,14 +49,12 @@ interval.o: interval.hh interval.cc
 interval_test.o: interval.hh interval.cc interval_test.cc testing.hh
 
 node.o: node.hh node.cc dist_funcs.hh interval.hh
-
-node_t.o: node.hh node.cc dist_funcs.hh interval.hh
-	$(CXX) $(CXXFLAGS) -DTESTING -c -o node_t.o node.cc
-
-node_test.o: node_test.cc node.hh node.cc testing.hh interval.hh
+node_test.o: node_test.cc node.hh node.cc testing.hh interval.hh configuration.hh
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o node_test.o node_test.cc
 
-builder.o: builder.hh builder.cc reporter.hh dist_funcs.hh node.o
+builder.o: builder.hh builder.cc reporter.hh dist_funcs.hh node.hh
+builder_test.o: builder.hh builder.cc builder_test.cc
+	$(CXX) $(CXXFLAGS) -DTESTING -c -o builder_test.o builder_test.cc
 
 
 

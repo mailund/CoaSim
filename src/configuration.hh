@@ -46,7 +46,8 @@ public:
   // the sequence from begin to end -- an exception is thrown if the
   // positions are not sorted in increasing order
   template <typename InItr>
-  Configuration(InItr begin, InItr end) throw(out_of_sequence);
+  Configuration(double rho, double Q, double G, double growth,
+		InItr begin, InItr end) throw(out_of_sequence);
   ~Configuration();
 
   // number of markers for the configuration
@@ -63,6 +64,12 @@ public:
   enum marker_t { MT_SNP, MT_MICROSATELLITE, MT_TRAIT, };
   void set_marker_type(size_t marker, marker_t type) throw(std::out_of_range);
 
+
+  double rho()    const { return _rho; }
+  double Q()      const { return _Q; }
+  double G()      const { return _G; }
+  double growth() const { return _growth; }
+
 private:
   // disable these
   Configuration(const Configuration&);
@@ -71,14 +78,22 @@ private:
   // set the value sets to uninitialized values
   void initialize_value_sets();
 
+
   std::vector<double>    _positions;
   std::vector<ValueSet*> _value_sets;
+
+  double _rho;
+  double _Q;
+  double _G;
+  double _growth;
 };
 
 
 template <typename InItr>
-Configuration::Configuration(InItr begin, InItr end)
+Configuration::Configuration(double rho, double Q, double G, double growth,
+			     InItr begin, InItr end)
   throw(out_of_sequence)
+  : _rho(rho), _Q(Q), _G(G), _growth(growth)
 {
   for (InItr itr = begin; itr != end; ++itr)
     _positions.push_back(*itr);

@@ -80,11 +80,12 @@ public:
   typedef std::pair<Node*,Node*> node_pair_t;
   node_pair_t recombination(double time, Node *child,
 			    double cross_over_point)
-    throw(null_child,Interval::interval_out_of_range);
+    throw(null_child,Interval::interval_out_of_range,Interval::empty_interval);
   node_pair_t gene_conversion(double time, Node *child,
 			      double conversion_point,
 			      double conversion_length)
-    throw(null_child,Interval::interval_out_of_range);
+    throw(null_child,Interval::interval_out_of_range,Interval::empty_interval);
+
 
 
   const std::vector<RetiredInterval> &retired_intervals() const
