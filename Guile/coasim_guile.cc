@@ -118,7 +118,7 @@ read_home_rc_file()
     const char *home_dir = getenv("HOME");
     if (home_dir)
 	{
-	    std::string home_rc(home_dir); home_rc += "/."PACKAGE".scm";
+	    std::string home_rc(home_dir); home_rc += "/.coasim/startup.scm";
 	    struct stat s;
 	    if (stat(home_rc.c_str(), &s) == 0 and S_ISREG(s.st_mode))
 		{
@@ -185,6 +185,17 @@ main(int argc, const char *argv[])
 	scm_c_eval_string("(set! %load-path "
 			  "   (cons \"/usr/local/share/coasim/scheme\""
 			  "   %load-path))");
+	const char *home_dir = getenv("HOME");
+	if (home_dir)
+	    {
+		std::string home_module_path;
+		home_module_path = "(set! %load-path (cons \"";
+		home_module_path += home_dir;
+		home_module_path += "/.coasim/\" %load-path))";
+		std::cout << home_module_path << std::endl;
+		scm_c_eval_string(home_module_path.c_str());
+	    }
+
 	
 	// install bindings -- to both toplevel and module
 	init_scheme_bindings(0);
