@@ -12,7 +12,8 @@
 (use-modules ((coasim rand)           :select (make-random-snp-markers
 					       make-random-trait-markers))
 	     ((coasim markers)        :select (insert-sorted-idx))
-	     ((coasim io)             :select (haplotype-printer))
+	     ((coasim io)             :select (haplotypes-printer
+					       marker-positions-printer))
 	     ((coasim SNP haplotypes) :select (split-in-cases-controls)))
 
 
@@ -45,5 +46,9 @@
 (define cases    (car  cases-and-controls))
 (define controls (cadr cases-and-controls))
 
-(call-with-output-file "cases.txt"    (haplotype-printer cases))
-(call-with-output-file "controls.txt" (haplotype-printer controls))
+(call-with-output-file "snp-positions.txt" 
+  (marker-positions-printer snp-markers))
+(call-with-output-file "trait-position.txt" 
+  (marker-positions-printer (list disease-marker)))
+(call-with-output-file "cases.txt"    (haplotypes-printer cases))
+(call-with-output-file "controls.txt" (haplotypes-printer controls))

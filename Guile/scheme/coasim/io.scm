@@ -10,26 +10,46 @@
 ;;; Code:
 
 
-(define-module (coasim io)
-  :use-module ((srfi srfi-1)))
+(define-module (coasim io) :use-module ((coasim) :select (position)))
 
+(define (bind-1st f first)  (lambda (second) (f first second)))
+(define (bind-2nd f second) (lambda (first)  (f first second)))
+
+(define (print-list port lst)
+  "Prints the list `lst' to `port'."
+  (let ((print-elm (lambda (elm) (display elm port)(display " " port))))
+    (for-each print-elm lst)
+    (newline port)))
+
+
+;;; Haplotype output
 (define-public (print-haplotypes port haplotypes)
   "This function prints the haplotypes in the list `haplotypes' to the
 output port `port'."
-  (let ((print-haplotype 
-	 (lambda (h) 
-	   (for-each (lambda (a) (display a port)(display " " port)) h)
-	   (newline port))))
-    (for-each print-haplotype haplotypes)))
+  (for-each (bind-1st print-list port) haplotypes))
 
-(define-public (haplotype-printer haplotypes)
-  "This function is a convenience function for use with call-with-output-file.
+;;; Position output
+(define-public (print-positions port positions)
+  "Prints a list of positions to a port."
+  (print-list port positions))
 
-Given a list of haplotypes, it creates a function that takes a port as
-argument and writes the haplotypes to this port, thus it can be used
-as:
+(define-public (print-marker-positions port markers)
+  "Print the positions for the `markers' to `port'."
+  (print-positions port (map position markers)))
 
-  (call-with-output-file filename (haplotype-printer haplotypes))
 
-which will write the `haplotypes' to `filename'."
-  (lambda (port) (print-haplotypes port haplotypes)))
+;; Makes convenience functions for making a -printer and a -port
+;; version of each print- function.
+(define-macro (make-printer-and-port func)
+  (let* ((func-name (symbol->string func))
+	 ;; remove "print-"
+	 (name-str  (substring func-name 6 (string-length func-name)))
+	 (port-name    (string->symbol (string-append name-str "-port")))
+	 (printer-name (string->symbol (string-append name-str "-printer"))))
+    `(begin 
+       (define-public ,printer-name (lambda (data) (bind-2nd ,func data)))
+       (define-public ,port-name    (lambda (port) (bind-1st ,func port))))))
+
+(make-printer-and-port print-haplotypes)
+(make-printer-and-port print-positions)
+(make-printer-and-port print-marker-positions)

@@ -1,12 +1,14 @@
 Summary: CoaSim -- A coalescence process simulator
 Name: coasim-gui
-Version: 3.0.0
-Release: 4
+Version: 3.0.1
+Release: 1
 License: GPL
 Group: Applications/Bioinformatics
 URL: http://www.birc.dk/Software/Coasim
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+
+BuildRequires: qt >= 3.3
 
 %description
 CoaSim -- A coalescence process simulator
@@ -15,16 +17,19 @@ CoaSim -- A coalescence process simulator
 %setup -q
 
 %build
+(cd Core && ./configure && make)
+(cd GUI && qmake && make)
 
 %install
 rm -rf $RPM_BUILD_ROOT
+
 mkdir -p $RPM_BUILD_ROOT/usr/local/bin
+cp GUI/coasim_gui $RPM_BUILD_ROOT/usr/local/bin/
+
 mkdir -p $RPM_BUILD_ROOT/usr/local/share/pixmaps
 mkdir -p $RPM_BUILD_ROOT/usr/local/share/applications
 mkdir -p $RPM_BUILD_ROOT/usr/local/share/desktop-directories
 mkdir -p $RPM_BUILD_ROOT/etc/xdg/menus/applications-merged
-
-cp coasim_gui      $RPM_BUILD_ROOT/usr/local/bin/
 
 cp coasim-icon.png         $RPM_BUILD_ROOT/usr/local/share/pixmaps
 cp bioinformatics-icon.png $RPM_BUILD_ROOT/usr/local/share/pixmaps

@@ -29,15 +29,16 @@ int main( int argc, char* argv[] )
 		    Qt::AlignRight | Qt::AlignTop, Qt::white);
     sleep(1); // cheating...
 
-    QSettings settings;
-    settings.setPath("bioinformatics.dk","CoaSim");
-    settings.beginGroup("/CoaSim");
-    main_window.noLeaves = settings.readNumEntry("/noLeaves", 500);
-    main_window.rho      = settings.readDoubleEntry("/rho", 500.0); 
-    main_window.G        = settings.readDoubleEntry("/G", 0.0); 
-    main_window.Q        = settings.readDoubleEntry("/Q", 0.0); 
-    main_window.beta     = settings.readDoubleEntry("/beta", 0.0); 
-    settings.endGroup();
+    QSettings *settings = new QSettings();
+    settings->setPath("bioinformatics.dk","CoaSim");
+    settings->beginGroup("/CoaSim");
+    main_window.noLeaves = settings->readNumEntry("/noLeaves", 500);
+    main_window.rho      = settings->readDoubleEntry("/rho", 500.0); 
+    main_window.G        = settings->readDoubleEntry("/G", 0.0); 
+    main_window.Q        = settings->readDoubleEntry("/Q", 0.0); 
+    main_window.beta     = settings->readDoubleEntry("/beta", 0.0); 
+    settings->endGroup();
+    delete settings;
 
     main_window.show();
     splash->finish(&main_window);
@@ -47,18 +48,19 @@ int main( int argc, char* argv[] )
 	int ret = coasim_main_app->exec();
 
 	// save settings for next session...
-	QSettings settings;
-	settings.setPath("bioinformatics.dk","CoaSim");
-	settings.beginGroup("/CoaSim");
+	QSettings *settings = new QSettings();
+	settings->setPath("bioinformatics.dk","CoaSim");
+	settings->beginGroup("/CoaSim");
 	// FIXME: this only works as long as we stick to a single
 	// window.  later on, it should probably be handled explicitly
 	// in a menu or something...
-	settings.writeEntry("/noLeaves", main_window.noLeaves); 
-	settings.writeEntry("/rho",      main_window.rho); 
-	settings.writeEntry("/G",        main_window.G); 
-	settings.writeEntry("/Q",        main_window.Q); 
-	settings.writeEntry("/beta",     main_window.beta); 
-	settings.endGroup();
+	settings->writeEntry("/noLeaves", main_window.noLeaves); 
+	settings->writeEntry("/rho",      main_window.rho); 
+	settings->writeEntry("/G",        main_window.G); 
+	settings->writeEntry("/Q",        main_window.Q); 
+	settings->writeEntry("/beta",     main_window.beta); 
+	settings->endGroup();
+	delete settings;
 
 	return ret;
 

@@ -1,22 +1,33 @@
 #!/bin/bash
 
-version=3.0.0
-release=4
+version=3.0.1
+release=1
 
-(cd Core; make)
-(cd GUI; make)
+(cd Core; make dist)
+(cd GUI;  make dist)
 mkdir coasim-gui-${version}
-cp GUI/coasim_gui coasim-gui-${version}
-cp GUI/coasim-icon.png coasim-gui-${version}
-cp GUI/bioinformatics-icon.png coasim-gui-${version}
-cp GUI/coasim.desktop coasim-gui-${version}
-cp GUI/BioinformaticsApS.directory coasim-gui-${version}
-cp GUI/bioinformatics-aps.menu coasim-gui-${version}
+cd coasim-gui-${version}
 
+tar zxvf ../Core/coasim-core-${version}.tar.gz
+rm ../Core/coasim-core-${version}.tar.gz
+tar zxvf ../GUI/coasim_gui.tar.gz
+rm ../GUI/coasim_gui.tar.gz
+mv coasim-core-${version} Core
+mv coasim_gui GUI
+
+cp ../GUI/coasim_gui .
+cp ../GUI/coasim-icon.png .
+cp ../GUI/bioinformatics-icon.png .
+cp ../GUI/coasim.desktop .
+cp ../GUI/BioinformaticsApS.directory .
+cp ../GUI/bioinformatics-aps.menu .
+
+cd ..
 tar zcvf coasim-gui-${version}.tar.gz coasim-gui-${version}
 rm -rf coasim-gui-${version}
 
 mv coasim-gui-${version}.tar.gz ~/rpm/SOURCES
-rpmbuild -bb coasim-gui.spec
-rm ~/rpm/SOURCES/coasim-gui-${version}.tar.gz
+rpmbuild -bb --rmsource coasim-gui.spec
 mv ~/rpm/RPMS/i386/coasim-gui-${version}-${release}.i386.rpm .
+rm ~/rpm/RPMS/i386/coasim-gui-debuginfo-${version}-${release}.i386.rpm
+

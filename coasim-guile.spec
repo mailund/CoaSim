@@ -1,7 +1,7 @@
 Summary: CoaSim -- A coalescence process simulator
 Name: coasim-guile
-Version: 3.0.0
-Release: 3
+Version: 3.0.1
+Release: 1
 License: GPL
 Group: Applications/Bioinformatics
 URL: http://www.birc.dk/Software/Coasim
@@ -29,6 +29,11 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/local/bin/coasim_guile
+
+%doc /usr/local/share/coasim/test-input/*.scm
+
+/usr/local/share/coasim/scheme/coasim/*.scm
+/usr/local/share/coasim/scheme/coasim/SNP/*.scm
 
 
 
