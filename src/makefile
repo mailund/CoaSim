@@ -38,7 +38,7 @@ node.o: node.hh node.cc dist_funcs.hh interval.hh
 node_t.o: node.hh node.cc dist_funcs.hh interval.hh
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o node_t.o node.cc
 
-node_test.o: node_test.cc node.hh node.cc testing.hh
+node_test.o: node_test.cc node.hh node.cc testing.hh interval.hh
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o node_test.o node_test.cc
 
 builder.o: builder.hh builder.cc reporter.hh dist_funcs.hh node.o

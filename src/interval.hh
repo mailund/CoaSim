@@ -54,7 +54,6 @@ public:
   // join this and i, assuming they overlap (using the overlaps()
   // test), i.e. overlap or at least epsilon close
   void join(const Interval &i) throw(non_overlapping);
-
   Interval & operator |= (const Interval &i) throw(non_overlapping);
 
   bool operator == (const Interval &i) const;
@@ -119,8 +118,6 @@ public:
   class illegal_interval : public std::exception {};
 
 
-  Intervals()  {}
-
   // add an interval to the Intervals -- the added interval must start
   // later than the previously added intervals; if it overlaps the
   // last interval so far, it will be joined with it.
@@ -142,14 +139,23 @@ public:
 
   // copy the intervals between start and stop, trunkating intervals
   // that overlap start and stop.
-  Intervals copy(double start, double stop) throw(illegal_interval);
+  Intervals copy(double start, double stop) const throw(illegal_interval);
+
+  // merge this and i, joining overlapping intervals
+  Intervals merge(const Intervals& i) const;
+  Intervals operator | (const Intervals &i) const;
+
+  // This method adds two intervals where all Interval on the one
+  // Intervals comes before all Interval on the second Intervals;
+  // throws an exception if one interval does not come before the
+  // other (but merges the end of one and the start of the next if
+  // they overlap).
+  Intervals add_intervals(const Intervals &i) const throw(out_of_sequence);
+  Intervals operator + (const Intervals &i)   const throw(out_of_sequence);
 
 
-  Intervals* merge(Intervals& in);
-  Intervals* add_interval(Intervals* i_val);
-  Intervals* operator + (Intervals &in);
-
-
+  // FIXME: I am not sure how this method is used, but I think that it
+  // might be better as a version of copy (?)
   static std::vector<Interval> intervals_in_range(std::vector<Interval> i_starts, double start, double stop);
 
 
@@ -158,11 +164,36 @@ private:
   // INVARIANT: The _intervals vector contains the non-overlapping
   // intervals in sorted order, wrt to < on intervals.
   std::vector<Interval> _intervals;
+
   std::vector<Interval>::const_iterator interval_starting_before(double point) const;
   std::vector<Interval>::const_iterator interval_starting_after(double point) const;
   typedef bool (Interval::*interval_predicate_t)(double point) const;
   bool check_predicate(double point, interval_predicate_t predicate) const;
+
+  // Adds the intervals where first comes before second, but where the
+  // last element of first might overlap the first of second (if that
+  // is the case the two intervals are joined).
+  static Intervals add_ordered_intervals(Intervals const &first,
+					 Intervals const &second);
+					 
 };
+
+
+inline bool Intervals::is_start(double point) const
+{ return check_predicate(point, &Interval::is_start); }
+
+inline bool Intervals::is_end(double point) const
+{ return check_predicate(point, &Interval::is_end); }
+
+inline bool Intervals::contains_point(double point) const
+{ return check_predicate(point, &Interval::contains_point); }
+
+inline Intervals Intervals::operator | (const Intervals &i) const
+{ return merge(i); }
+
+inline Intervals Intervals::operator + (const Intervals &in) const
+  throw(out_of_sequence)
+{ return add_intervals(in); }
 
 
 #endif

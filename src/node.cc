@@ -142,8 +142,9 @@ Genconversion_node::Genconversion_node(bool is_i, Node* child, double conversion
   _conversion_length(conversion_length), _child(child) {};
 
 
-Coalescent_node* Node::operator+(Node& n){ 
-  return (&(Coalescent_node::get_new_coalescent_node(&n, this, size(), interval().merge(n.interval())))); 
+Coalescent_node* Node::operator+(Node& n){
+  Intervals *dummy = new Intervals(interval().merge(n.interval()));
+  return (&(Coalescent_node::get_new_coalescent_node(&n, this, size(),dummy))); 
 };
 
 void Node::genconversion(Genconversion_node*& gcon_node_1, Genconversion_node*& gcon_node_2, double Q, double time)
@@ -179,9 +180,9 @@ void Node::genconversion(Genconversion_node*& gcon_node_1, Genconversion_node*& 
 	gcon_node_1 = &(Genconversion_node::get_new_geneconversion_node(true, this, start, end-start, time, size(), &i_val)); 
 	Intervals i_val1 = interval().copy(active_left(), start);
 	Intervals i_val2 = interval().copy(end, active_right());
-	Intervals *i_val3 = (i_val1.add_interval(&i_val2));
+	Intervals i_val3 = (i_val1.add_intervals(i_val2));
  //	i_val = (*(interval().copy(active_left(), start)) + *(interval().copy(end, active_right())));
-	gcon_node_2 = &(Genconversion_node::get_new_geneconversion_node(false, this, start, end-start, time, size(), i_val3 ));   
+	gcon_node_2 = &(Genconversion_node::get_new_geneconversion_node(false, this, start, end-start, time, size(), &i_val3 ));   
       }
     }
   }  

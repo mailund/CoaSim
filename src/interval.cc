@@ -102,105 +102,62 @@ bool Intervals::check_predicate(double point,
   return res != stop;
 }
 
-bool Intervals::is_start(double point) const
+
+
+// Adds the intervals where first comes before second, but where the
+// last element of first might overlap the first of second (if that is
+// the case the two intervals are joined).
+Intervals Intervals::add_ordered_intervals(Intervals const &first,
+					   Intervals const &second)
 {
-  return check_predicate(point, &Interval::is_start);
+  Intervals result(first);
+  if (result._intervals.back().overlaps(second._intervals.front()))
+    {
+      result._intervals.back() |= second._intervals.front();
+      std::copy(second._intervals.begin() + 1, second._intervals.end(),
+		std::back_inserter(result._intervals));
+    }
+  else
+    {
+      std::copy(second._intervals.begin(), second._intervals.end(),
+		std::back_inserter(result._intervals));
+    }
+  return result;
 }
 
-bool Intervals::is_end(double point) const
+
+// this operator adds two intervals where all Interval on the one
+// Intervals comes before all Interval on the second Intervals
+Intervals Intervals::add_intervals(const Intervals &i) const
+  throw(out_of_sequence)
 {
-  return check_predicate(point, &Interval::is_end);
-}
+  if (size() == 0)   return i;
+  if (i.size() == 0) return *this;
 
-bool Intervals::contains_point(double point) const
-{
-  return check_predicate(point, &Interval::contains_point);
-}
-
-
-
-Intervals* Intervals::add_interval(Intervals* i_val)
-{
-  return 0;			// FIXME: add late
-#if 0
-  Intervals* r = new Intervals();
+  // At this point we know that both intervals are non-empty.  The
+  // invariant of intervals gives us that they are ordered and
+  // non-overlapping, if we concatenate them in the right order, the
+  // invariant is still true.  If one does not not come before the
+  // other, we must throw an exception
   
-  if ((size()==0)&&(i_val -> size()!=0)){
-    for (int i = 0; i<i_val -> size(); i++){
-      r -> add(new Interval((i_val -> interval(i)).start(), (i_val -> interval(i)).length(), (i_val -> interval(i)).leaf_contacts()));
-    }
-  }
-  if ((i_val -> size()==0)&&(size()!=0)){
-    for (int i = 0; i<size(); i++){
-      r -> add(new Interval(_intervals[i]->start(), _intervals[i]->length(), _intervals[i]->leaf_contacts()));
-    }
-  }
-  if ((i_val -> size()!=0)&&(size()!=0)){    
-    if (_intervals[size()-1]->end()<(i_val -> interval(0)).start()){
-      for (int i = 0; i<size(); i++){
-	r -> add(new Interval(_intervals[i]->start(), _intervals[i]->length(), _intervals[i]->leaf_contacts()));
-      }
-      for (int i = 0; i<i_val -> size(); i++){
-	r -> add(new Interval((i_val -> interval(i)).start(), (i_val -> interval(i)).length(), (i_val -> interval(i)).leaf_contacts()));
-      }
-    }
-    else {
-      for (int i = 0; i<i_val -> size(); i++){
-	r -> add(new Interval((i_val -> interval(i)).start(), (i_val -> interval(i)).length(), (i_val -> interval(i)).leaf_contacts()));
-      }
-      for (int i = 0; i<size(); i++){
-	r -> add(new Interval(_intervals[i]->start(), _intervals[i]->length(), _intervals[i]->leaf_contacts()));
-      }
-    }
-  }
-  return r;
-#endif
-};
-
-Intervals* Intervals::operator+(Intervals &in)
-  // this operator adds two intervals where all Interval on the one Intervals comes before all Interval on the second Intervals 
-{
-  return 0;
-#if 0
-  Intervals* r = new Intervals();
+  Intervals result;
   
-  if ((size()==0)&&(in.size()!=0)){
-    for (int i = 0; i<in.size(); i++){
-      r -> add(new Interval(in[i].start(), in[i].length(), in[i].leaf_contacts()));
-    }
-  }
-  if ((in.size()==0)&&(size()!=0)){
-    for (int i = 0; i<size(); i++){
-      r -> add(new Interval(_intervals[i]->start(), _intervals[i]->length(), _intervals[i]->leaf_contacts()));
-    }
-  }
-  if ((in.size()!=0)&&(size()!=0)){    
-    if (_intervals[size()-1]->end()<in[0].start()){
-      for (int i = 0; i<size(); i++){
-	r -> add(new Interval(_intervals[i]->start(), _intervals[i]->length(), _intervals[i]->leaf_contacts()));
-      }
-      for (int i = 0; i<in.size(); i++){
-	r -> add(new Interval(in[i].start(), in[i].length(), in[i].leaf_contacts()));
-      }
-    }
-    else {
-      for (int i = 0; i<in.size(); i++){
-	r -> add(new Interval(in[i].start(), in[i].length(), in[i].leaf_contacts()));
-      }
-      for (int i = 0; i<size(); i++){
-	r -> add(new Interval(_intervals[i]->start(), _intervals[i]->length(), _intervals[i]->leaf_contacts()));
-      }
-    }
-  }
-  return r;
-#endif
-};
+  if (_intervals.back().start() <= i._intervals.front().start())
+    return add_ordered_intervals(*this,i);
+  else if (i._intervals.back().start() <= _intervals.front().start())
+    return add_ordered_intervals(i,*this);
+  else
+    throw out_of_sequence();	// the intervals are not ordered correctly
+
+  return result;
+}
 
 
 
 // copy the intervals between start and stop, trunkating the
 // end-intervals to start and stop.
-Intervals Intervals::copy(double start, double stop) throw(illegal_interval)
+Intervals Intervals::copy(double start, double stop) const
+  throw(illegal_interval)
 {
   std::vector<Interval>::const_iterator first, last, itr;
   Intervals result;
@@ -239,15 +196,35 @@ Intervals Intervals::copy(double start, double stop) throw(illegal_interval)
 }
 
 
-
-class interval_start_comp
+Intervals Intervals::merge(const Intervals& i) const
 {
-public:
-  bool operator()(const Interval &in1, const Interval &in2){
-    return in1.start() < in2.start();
-  }
-};
+  std::vector<Interval> tmp_merge;
+
+  std::merge(_intervals.begin(), _intervals.end(),
+	     i._intervals.begin(), i._intervals.end(),
+	     std::back_inserter(tmp_merge));
+
+  if (tmp_merge.size() == 0) return Intervals(); // the empty merge
+
+  // otherwise, just join the overlapping intervals
+  std::vector<Interval> res_intervals;
+  std::vector<Interval>::const_iterator itr = tmp_merge.begin();
+
+  res_intervals.push_back(*itr);
+  for (++itr; itr != tmp_merge.end(); ++itr)
+    if (res_intervals.back().overlaps(*itr))
+      res_intervals.back() |= *itr;
+    else
+      res_intervals.push_back(*itr);
+
+  Intervals res; res._intervals = res_intervals;
+  return res;
+}
+
   
+
+
+// FIXME: I haven't refactored this method yet!
 std::vector<Interval> Intervals::intervals_in_range(std::vector<Interval> i_starts, double start, double stop)
 {
   std::vector<Interval> res;
@@ -260,128 +237,3 @@ std::vector<Interval> Intervals::intervals_in_range(std::vector<Interval> i_star
   return res;
 }
 
-Intervals* Intervals::merge(Intervals& in)
-{
-  Intervals* r = new Intervals();
-  std::vector< Interval > all_intervals_start;
-  std::vector< double > all_intervals;
-  std::vector< double > starts_and_stops;
-  double start = 0.0;
-  double stop = 0.0;
-  std::vector< Interval > between;
-  int leaf_cnts = 0;
-
-  // we are using that each marker up though the ancestral recombination graph may be seen as a binary tree.
-  // this means that if two different intervals overlab, they connect to different leaf nodes, and the new combined
-  // interval according connects to the sum of these leafnodes.
-
-  if ((size()==0)&&(in.size()!=0)){
-    for (int i=0; i<in.size(); i++)
-      r -> add(in[i].start(), in[i].length(), in[i].leaf_contacts());
-  }
-  else if ((size()!=0)&&(in.size()==0)){
-    for (int i=0; i<size(); i++)
-      r -> add(_intervals[i].start(), _intervals[i].length(), _intervals[i].leaf_contacts());
-  }
-  else if ((size()!=0)&&(in.size()!=0)){
-    for (int i=0;i<size();i++){
-      all_intervals.push_back(_intervals[i].start());
-      all_intervals.push_back(_intervals[i].end());
-    }
-  
-    for (int i=0;i<in.size();i++){
-      all_intervals.push_back(in[i].start());
-      all_intervals.push_back(in[i].end());
-    }
-    sort(all_intervals.begin(),all_intervals.end());
-    
-    starts_and_stops.push_back(all_intervals[0]);
-    
-    for (unsigned int i=0; i<all_intervals.size()-1;i++)
-      if (std::abs(all_intervals[i]-all_intervals[i+1])>Interval::epsilon/2){
-	starts_and_stops.push_back(all_intervals[i+1]);
-      } 
-    
-
-    for (int i=0;i<size();i++) all_intervals_start.push_back(_intervals[i]);
-    for (int i=0;i<in.size();i++) all_intervals_start.push_back(in[i]);
-
-    sort(all_intervals_start.begin(),all_intervals_start.end(),interval_start_comp());
-
-    for (unsigned int i=0; i<starts_and_stops.size()-1; i++){      
-      start = starts_and_stops[i];
-      stop = starts_and_stops[i+1];
-      between.clear();
-      leaf_cnts = 0;
-      between = intervals_in_range(all_intervals_start,start, stop);
-      for (unsigned int j=0; j<between.size();j++)
-	leaf_cnts = leaf_cnts + between[j].leaf_contacts();
-      if (leaf_cnts>0) r -> add(start, stop-start, leaf_cnts);
-    }
-  }
-  return r;
-}
-
-/*
-Intervals Intervals::merge(Intervals& in)
-{
-  Intervals r;
-  int first_index = 0;
-  int second_index = 0;
-  std::vector< double > all_intervals(0);
-  std::vector< double > starts_and_stops(0);
-  double middle = 0.0;
-
-  if ((size()==0)&&(in.size()!=0)){
-    for (int i=0; i<in.size(); i++)
-      r.add(new Interval(in[i].start(), in[i].length(), in[i].leaf_contacts()));
-  }
-  else if ((size()!=0)&&(in.size()==0)){
-    for (int i=0; i<size(); i++)
-      r.add(new Interval(_intervals[i]->start(), _intervals[i]->length(), _intervals[i]->leaf_contacts()));
-  }
-  else if ((size()!=0)&&(in.size()!=0)){
-    for (int i=0;i<size();i++){
-      all_intervals.push_back(_intervals[i]->start());
-      all_intervals.push_back(_intervals[i]->end());
-    }
-  
-    for (int i=0;i<in.size();i++){
-      all_intervals.push_back(in[i].start());
-      all_intervals.push_back(in[i].end());
-    }
-    sort(all_intervals.begin(),all_intervals.end());
-    
-    starts_and_stops.push_back(all_intervals[0]);
-    
-    for (int i=0; i<all_intervals.size()-1;i++)
-      if (std::abs(all_intervals[i]-all_intervals[i+1])>Interval::epsilon){
-	starts_and_stops.push_back(all_intervals[i+1]);
-      } 
-	
-    std::valarray< int > is_first_on(starts_and_stops.size());
-    std::valarray< int > is_second_on(starts_and_stops.size());
-    for (int i=0; i<starts_and_stops.size()-1; i++){      
-      middle = (starts_and_stops[i]+starts_and_stops[i+1])/2.0;
-      if ((_intervals[first_index]->start()<=middle)&&(_intervals[first_index]->end()>middle))
-	is_first_on[i] = _intervals[first_index]->leaf_contacts();      
-      else is_first_on[i] = 0;
-      if ((in[second_index].start()<=middle)&&(in[second_index].end()>middle))
-	is_second_on[i] = in[second_index].leaf_contacts();      
-      else is_second_on[i] = 0;
-      if ((first_index<size()-1)&&(_intervals[first_index]->end()<middle)) first_index++;
-      if ((second_index<in.size()-1)&&(in[second_index].end()<middle)) second_index++;
-    }
-    
-    
-    for (int i=0; i<starts_and_stops.size()-1; i++){      
-      if (is_first_on[i]+is_second_on[i]>0) {
-	r.add(new Interval(starts_and_stops[i],starts_and_stops[i+1]-starts_and_stops[i],is_first_on[i]+is_second_on[i]));
-      }
-    }
-  }
-  return r;
-};
-  
-*/
-  
