@@ -13,6 +13,12 @@
 (define seqs (sequences arg))
 ;(display seqs)(newline)
 
+(define retired-intervals (intervals arg))
+(define start-positions (map interval-start retired-intervals))
+(define end-positions (map interval-end retired-intervals))
+(define branch-lengths (map total-branch-length retired-intervals))
+;;(display branch-lengths)(newline)
+
 (catch 'wrong-number-of-args
        (lambda () (simulate p))
        (lambda (key . args) (display key)(newline)))

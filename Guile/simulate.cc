@@ -48,6 +48,7 @@ using namespace guile;
 
 
 scm_t_bits guile::arg_tag;
+scm_t_bits guile::interval_tag;
 
 namespace {
     struct ARGData {
@@ -62,6 +63,18 @@ namespace {
 	    delete conf;
 	}
     };
+
+    struct IntervalData {
+	SCM arg;
+	const core::RetiredInterval *rinterval;
+	IntervalData(SCM arg, const core::RetiredInterval *rinterval)
+	    : arg(arg), rinterval(rinterval)
+	{
+	}
+	~IntervalData()
+	{
+	}
+    };
 }
 
 static size_t
@@ -72,6 +85,25 @@ free_arg(SCM s_arg_data)
     scm_must_free(arg_data);
     return sizeof(ARGData);
 }
+
+
+static SCM
+mark_interval (SCM s_interval)
+{
+    IntervalData *interval = (IntervalData*) SCM_SMOB_DATA(s_interval);
+    scm_gc_mark(interval->arg);
+    return SCM_BOOL_F;
+}
+
+static size_t
+free_interval(SCM s_interval)
+{
+    IntervalData *interval = (IntervalData*) SCM_SMOB_DATA(s_interval);
+    interval->~IntervalData();
+    scm_must_free(interval);
+    return sizeof(IntervalData);
+}
+
 
 namespace {
     class CLISimMonitor : public core::SimulationMonitor {
@@ -309,11 +341,143 @@ sequences(SCM arg_data_smob)
 }
 
 
+// FIXME: I want a better example here!!!
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="intervals">
+  <brief>Returns the intervals sharing genealogy in the ARG as a list.</brief>
+  <prototype>(intervals arg)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))</example>
+  <description>
+    <p>
+     Returns the intervals sharing genealogy in the ARG as a list.
+     Only intervals containing markers are returned.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+static SCM
+wrap_interval(SCM arg, const core::RetiredInterval *rinterval)
+{
+    void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
+    IntervalData *interval = new(mem)IntervalData(arg,rinterval);
+    SCM_RETURN_NEWSMOB(guile::interval_tag, interval);
+}
+static SCM 
+intervals(SCM arg_data_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
+	       arg_data_smob, SCM_ARG1, "intervals");
+
+    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
+
+    SCM intervals = SCM_EOL;
+
+    const std::vector<core::RetiredInterval> &rintervals
+	= arg_data->arg->retired_intervals();
+    std::vector<core::RetiredInterval>::const_iterator i;
+    for (i = rintervals.begin(); i != rintervals.end(); ++i)
+	{
+	    SCM interval = wrap_interval(arg_data_smob, &(*i));
+	    intervals = scm_cons(interval, intervals);
+	}
+
+    return scm_reverse(intervals);
+}
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="interval-start">
+  <brief>Returns the start position of an interval.</brief>
+  <prototype>(interval-start interval)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
+(map interval-start intervals)</example>
+  <description>
+    <p>
+     Returns the start position of an interval.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+static SCM
+interval_start(SCM interval_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::interval_tag, interval_smob),
+	       interval_smob, SCM_ARG1, "interval-start");
+    IntervalData *interval_data = (IntervalData*) SCM_SMOB_DATA(interval_smob);
+    return scm_make_real(interval_data->rinterval->start());
+}
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="interval-end">
+  <brief>Returns the end position of an interval.</brief>
+  <prototype>(interval-end interval)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
+(map interval-end intervals)</example>
+  <description>
+    <p>
+     Returns the end position of an interval.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+static SCM
+interval_end(SCM interval_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::interval_tag, interval_smob),
+	       interval_smob, SCM_ARG1, "interval-end");
+    IntervalData *interval_data = (IntervalData*) SCM_SMOB_DATA(interval_smob);
+    return scm_make_real(interval_data->rinterval->end());
+}
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="total-branch-length">
+  <brief>Returns the total tree branch length of the local tree of an interval.</brief>
+  <prototype>(total-branch-length interval)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
+(map total-branch-length intervals)</example>
+  <description>
+    <p>
+     Returns the total tree branch length of the local tree of an interval.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+static SCM
+total_branch_length(SCM interval_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::interval_tag, interval_smob),
+	       interval_smob, SCM_ARG1, "interval-end");
+    IntervalData *interval_data = (IntervalData*) SCM_SMOB_DATA(interval_smob);
+    return scm_make_real(interval_data->rinterval->surface());
+}
+
+
 void
 guile::install_simulate()
 {
     guile::arg_tag = scm_make_smob_type("arg", sizeof(ARGData));
     scm_set_smob_free(guile::arg_tag, free_arg);
+
+    // FIXME: add printing of intervals
+    guile::interval_tag = scm_make_smob_type("interval", sizeof(IntervalData));
+    scm_set_smob_mark(guile::interval_tag, mark_interval);
+    scm_set_smob_free(guile::interval_tag, free_interval);
 
     scm_c_define_gsubr("simulate", 3, 0, 0, 
 		       (scm_unused_struct*(*)())simulate);
@@ -321,6 +485,15 @@ guile::install_simulate()
 		       (scm_unused_struct*(*)())save_sequences);
     scm_c_define_gsubr("sequences", 1, 0, 0, 
 		       (scm_unused_struct*(*)())sequences);
+
+    scm_c_define_gsubr("intervals", 1, 0, 0, 
+		       (scm_unused_struct*(*)())intervals);
+    scm_c_define_gsubr("interval-start", 1, 0, 0, 
+		       (scm_unused_struct*(*)())interval_start);
+    scm_c_define_gsubr("interval-end", 1, 0, 0, 
+		       (scm_unused_struct*(*)())interval_end);
+    scm_c_define_gsubr("total-branch-length", 1, 0, 0, 
+		       (scm_unused_struct*(*)())total_branch_length);
 }
 
 

@@ -26,7 +26,7 @@ static size_t
 free_trait_marker(SCM s_m)
 {
     core::TraitMarker *m = (core::TraitMarker*) SCM_SMOB_DATA(s_m);
-    m->core::~TraitMarker();
+    m->~TraitMarker();
     scm_must_free(m);
     return sizeof(core::TraitMarker);
 }
@@ -47,7 +47,7 @@ static size_t
 free_snp_marker(SCM s_m)
 {
     core::SNPMarker *m = (core::SNPMarker*) SCM_SMOB_DATA(s_m);
-    m->core::~SNPMarker();
+    m->~SNPMarker();
     scm_must_free(m);
     return sizeof(core::SNPMarker);
 }
@@ -69,7 +69,7 @@ free_ms_marker(SCM s_m)
 {
     core::MicroSatelliteMarker *m 
 	= (core::MicroSatelliteMarker*) SCM_SMOB_DATA(s_m);
-    m->core::~MicroSatelliteMarker();
+    m->~MicroSatelliteMarker();
     scm_must_free(m);
     return sizeof(core::MicroSatelliteMarker);
 }

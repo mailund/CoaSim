@@ -29,8 +29,9 @@
    <method name='split-in-cases-controls'>
     <brief>Split a list of haplotypes into cases and controls.</brief>
     <prototype>(split-in-cases-controls haplotypes trait-idx is-case?)</prototype>
-    <example>(let ((is-case? (lambda (h) (= 1 (list-ref h trait-idx)))))
-    (split haplotypes trait-idx is-case?)))</example>
+    <example>(use-modules (coasim SNP shared))
+    (let ((is-case? (lambda (h) (= 1 (list-ref h trait-idx)))))
+    (split-in-cases-controls haplotypes trait-idx is-case?)))</example>
     <description>
      <p>
       Split a dataset into cases and controls, based on the value at
