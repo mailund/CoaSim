@@ -12,6 +12,16 @@ static int test_count = 0, test_failures = 0;
              test_failures++; \
         }}
 
+#define ERROR(message) \
+        { test_count++; test_failures++; \
+          if (test_verbose) \
+             std::cerr << "ERROR: " << __FILE__ << " line " << __LINE__ \
+                       << " :\n---------------------------------------------------------------------\n" \
+                       << message \
+                       << "\n---------------------------------------------------------------------\n\n"; \
+        }
+
+
 #define HANDLE_TEST_OPTIONS \
         if (argc > 1 and  (0 == strcmp(argv[1],"-v")) ) test_verbose = true;
 #define REPORT_RESULTS \

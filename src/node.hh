@@ -42,19 +42,25 @@ public:
   // recombinatin node (2), geneconversion node (1) and leafnode (-1)
   // i_val is the intervals (remember the s for pural) that is associated with the node
   virtual ~Node(){ std::cout << "Node destructor called" << std::endl; };
+
+  bool has_intervals(){ return (interval().size()!=0); };
+  int node_type(){return _node_type; };
+  unsigned int size() {return _states.size(); };
+
+  void set_time(double d){ _time = d;}; 
+  double time(){ return  _time; };
+
+  bool is_mutating(int site){ return _is_mutating[site]; };
+  void set_is_mutating(bool m, int site){ _is_mutating[site] = m; };
+
   Coalescent_node* operator+(Node& n);
   void genconversion(Genconversion_node*& gcon_node_1, Genconversion_node*& gcon_node_2, double Q, double time);
   void recombination(Recombination_node*& rcom_node_1, Recombination_node*& rcom_node_2, double time);
-  bool has_intervals(){ return (interval().size()!=0); };
-  bool is_mutating(int site){ return _is_mutating[site]; };
-  void set_is_mutating(bool m, int site){ _is_mutating[site] = m; };
+
+
   bool contains_active_region(double left, double right){ return ((left<=active_right())&&(right>=active_left())); };
   bool is_active_region(double left, double right); 
-  unsigned int size() {return _states.size(); };
   bool validate(){ return (Node::_pos.size()==size()); };
-  void set_time(double d){ _time = d;}; 
-  double time(){ return  _time; };
-  int node_type(){return _node_type; };
   double active_left(){ return (interval().size()) ? interval(0).start() : 1.0; };
   double active_right(){ return (interval().size()) ? interval(interval().size()-1).end() : 0.0; };
   int& state(int index){return _states[index]; };

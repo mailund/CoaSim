@@ -4,6 +4,11 @@
 #include <cstdlib>
 #include <algorithm>
 
+// when testing we want deterministic functions
+#if TESTING
+#include "test_dist_funcs.hh"
+#else
+
 namespace Distribution_functions
 {
   inline double expdev(const double param)
@@ -57,4 +62,5 @@ namespace Distribution_functions
 
 };
 
+#endif
 #endif
