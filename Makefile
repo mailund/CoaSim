@@ -1,5 +1,5 @@
 
-version=2-0-0b
+version=2.0.0b
 
 install_prefix=/usr/local
 escaped_prefix=\/usr\/local
@@ -42,6 +42,7 @@ dist:
 	cp gui/Makefile         coasim-$(version)/gui
 
 	cp Makefile 	       	coasim-$(version)
+	cp COPYING 	       	coasim-$(version)
 	cp README 		coasim-$(version)
 	cp README_separate 	coasim-$(version)
 	cp coasim_to_dot.xsl	coasim-$(version)
