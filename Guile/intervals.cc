@@ -16,15 +16,6 @@ using namespace guile;
 #endif
 
 
-// FIXME: this might be g++ specific!
-#ifndef GPP_FILEBUF_H_INCLUDED
-# include "gpp_filebuf.h"
-# define GPP_FILEBUF_H_INCLUDED
-#endif
-#ifndef UNISTD_H_INCLUDED
-# include <unistd.h>
-# define UNISTD_H_INCLUDED
-#endif
 
 scm_t_bits guile::interval_tag;
 scm_t_bits guile::local_tree_tag;
@@ -91,6 +82,50 @@ namespace {
 	return sizeof(TreeData);
     }
 
+    /* Cut from fdstream.hpp
+     *
+     *(C) Copyright Nicolai M. Josuttis 2001.
+     * Permission to copy, use, modify, sell and distribute this software
+     * is granted provided this copyright notice appears in all copies.
+     * This software is provided "as is" without express or implied
+     * warranty, and with no claim as to its suitability for any purpose.
+     */
+
+    class fdoutbuf : public std::streambuf {
+    protected:
+	int fd;    // file descriptor
+    public:
+	// constructor
+	fdoutbuf (int _fd) : fd(_fd) {
+	}
+    protected:
+	// write one character
+	virtual int_type overflow (int_type c) {
+	    if (c != EOF) {
+		char z = c;
+		if (write (fd, &z, 1) != 1) {
+		    return EOF;
+		}
+	    }
+	    return c;
+	}
+	// write multiple characters
+	virtual
+	std::streamsize xsputn (const char* s,
+				std::streamsize num) {
+	    return write(fd,s,num);
+	}
+    };
+
+    class fdostream : public std::ostream {
+    protected:
+	fdoutbuf buf;
+    public:
+	fdostream (int fd) : std::ostream(0), buf(fd) {
+	    rdbuf(&buf);
+	}
+    };
+
     int print_tree (SCM tree_smob, SCM port, scm_print_state *pstate)
     {
 	TreeData *tree_data = (TreeData*) SCM_SMOB_DATA(tree_smob);
@@ -98,8 +133,9 @@ namespace {
 	core::Node *node = tree_data->rinterval->top_node();
 
 	int fd = scm_num2int(scm_fileno(port),SCM_ARG2,"");
-	__gnu_cxx::stdio_filebuf<char> obuf(dup(fd), std::ios::out);
-	std::ostream os(&obuf);
+	//__gnu_cxx::stdio_filebuf<char> obuf(dup(fd), std::ios::out);
+	//std::ostream os(&obuf);
+	fdostream os(fd);
 
 	node->print_tree_at_point(os, start);
 	os << std::endl;
