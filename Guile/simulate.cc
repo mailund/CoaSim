@@ -2,7 +2,7 @@
  *
  *  CoaSim -- A coalescence process simulator
  *
- *  Copyright (C) 2004 by Bioinformatics ApS
+ *  Copyright (C) 2004, 2005 by Bioinformatics ApS
  */
 
 #include "simulate.hh"
@@ -237,7 +237,7 @@ void ProfileMonitor::builder_termination(unsigned int no_nodes,
 
 <method name="simulate">
   <brief>Simulate an ARG and corresponding sequences.</brief>
-  <prototype>(simulate arg-parameters marker-list no-leaves . callbacks)</prototype>
+  <prototype>(simulate arg-parameters marker-list no-leaves . additional-keyword-parameters)</prototype>
   <example>(define p (arg-parameters rho Q G beta))
 (define markers (make-random-snp-markers 10 0.1 0.9))
 (define arg (simulate p markers 100))
@@ -274,6 +274,15 @@ void ProfileMonitor::builder_termination(unsigned int no_nodes,
           event, and the number of lineages at the time of the gene conversion
 	  (i.e. the number of linages just after the event, moving forward 
 	  in time).
+      </li>
+    </ul>
+    <p>
+      The following additional keyword arguments are available:
+    </p>
+    <ul>
+      <li><b>random-seed:</b> an integer used as random seed for the
+          simulation.  In most cases, this argument will not be used, but
+          it is useful for regression testing of scheme modules for CoaSim.
       </li>
     </ul>
   </description>
@@ -359,8 +368,10 @@ void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
 
 static SCM
 simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves,
-	 SCM coa_cb, SCM rc_cb, SCM gc_cb)
+	 SCM coa_cb, SCM rc_cb, SCM gc_cb, SCM s_random_seed)
 {
+    using namespace std;
+
     SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_parameters_tag, 
 				  arg_parameters_smob),
 	       arg_parameters_smob, SCM_ARG1, "simulate");
@@ -370,7 +381,7 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves,
     ARGParameters *p = (ARGParameters*) SCM_SMOB_DATA(arg_parameters_smob);
 
     SCM itr_markers = s_markers;
-    std::vector<core::Marker*> markers;
+    vector<core::Marker*> markers;
     while (!SCM_NULLP(itr_markers))
 	{
 	    SCM marker_smob = SCM_CAR(itr_markers);
@@ -413,15 +424,17 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves,
 	    has_cb = true;
 	}
 
+    unsigned int seed = scm_num2int(s_random_seed, SCM_ARG7, "simulate");
 
     try {
-	std::auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
-	std::auto_ptr<core::Configuration> conf(new core::Configuration(no_leaves,
-									markers.begin(), markers.end(),
-									p->rho, p->Q, p->G, p->growth));
-	std::auto_ptr<core::ARG> arg(core::Simulator::simulate(*conf, 
-							       monitor.get(),
-							       has_cb ? &cb : 0));
+	auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
+	auto_ptr<core::Configuration> conf(new core::Configuration(no_leaves,
+								   markers.begin(), markers.end(),
+								   p->rho, p->Q, p->G, p->growth));
+	auto_ptr<core::ARG> arg(core::Simulator::simulate(*conf, 
+							  monitor.get(),
+							  has_cb ? &cb : 0,
+							  seed));
 
 	void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
 	ARGData *arg_data = new(mem)ARGData(arg.release(),conf.release(),monitor.release());
@@ -429,7 +442,7 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves,
 	SCM_RETURN_NEWSMOB(guile::arg_tag, arg_data);
     } catch(core::Configuration::out_of_sequence&) {
 	scm_throw(scm_str2symbol("out-of-sequence"), s_markers);
-    } catch(std::exception &ex) {
+    } catch(exception &ex) {
 	scm_throw(scm_str2symbol("unexcepted-exception"), 
 		  scm_mem2string(ex.what(),strlen(ex.what())));
     }
@@ -667,18 +680,20 @@ guile::install_simulate()
     guile::arg_tag = scm_make_smob_type("arg", sizeof(ARGData));
     scm_set_smob_free(guile::arg_tag, free_arg);
 
-    scm_c_define_gsubr("c-simulate", 6, 0, 0, 
+    scm_c_define_gsubr("c-simulate", 7, 0, 0, 
 		       (scm_unused_struct*(*)())simulate);
     scm_c_eval_string("(read-set! keywords 'prefix)"
 		      "(use-modules (ice-9 optargs))"
 		      "(define (simulate p ms n . args)"
 		      "  (let-keywords args #f ((coalescence-callback '())"
 		      "                         (recombination-callback '())"
-		      "                         (geneconversion-callback '()))"
+		      "                         (geneconversion-callback '())"
+		      "                         (random-seed 0))"
 		      "		(c-simulate p ms n"
 		      "                     coalescence-callback"
 		      "                     recombination-callback"
-		      "                     geneconversion-callback)))");
+		      "                     geneconversion-callback"
+		      "                     random-seed)))");
 
     scm_c_define_gsubr("save-sequences", 2, 0, 0, 
 		       (scm_unused_struct*(*)())save_sequences);

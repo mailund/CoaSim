@@ -27,17 +27,24 @@
 using namespace core;
 
 ARG *
-core::Simulator::simulate(const Configuration &conf, SimulationMonitor *mon,
-			  BuilderMonitor *build_callbacks)
+core::Simulator::simulate(const Configuration &conf,
+			  SimulationMonitor *mon,
+			  BuilderMonitor *build_callbacks,
+			  unsigned int random_seed)
 {
     Builder builder(conf);
     Descender descender(conf);
     ARG *arg = 0;
 
     // set rand seed
-    struct timeval tv; struct timezone tz;
-    gettimeofday(&tv,&tz);
-    std::srand(tv.tv_usec);
+    if (!random_seed)
+	{
+	    // use time if no seed is explicitly given
+	    struct timeval tv; struct timezone tz;
+	    gettimeofday(&tv,&tz);
+	    random_seed = tv.tv_usec;
+	}
+    std::srand(random_seed);
 
 
     try {
