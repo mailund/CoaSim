@@ -1,5 +1,11 @@
 
-version=2-0-0
+version=2-0-0b
+
+install_prefix=/usr/local
+escaped_prefix=\/usr\/local
+bindir=$(install_prefix)/bin
+sharedir=$(install_prefix)/share/coasim
+escaped_sharedir=$(escaped_prefix)\/share\/coasim
 
 all:
 	cd src && make all
@@ -8,6 +14,15 @@ all:
 test:
 	cd src && make test
 	# FIXME: no gui test
+
+install: all
+	cd src && make install bindir=$(bindir) sharedir=$(sharedir)
+
+	cp gui/coasim_gui	$(bindir)
+
+	cp coasim_to_dot.xsl	$(sharedir)
+	cat coasim_to_ps | sed "s/'coasim_to_dot.xsl'/'$(escaped_sharedir)\/coasim_to_dot.xsl'/" > $(bindir)/coasim_to_ps
+	cp coasim_separate.py	$(bindir)
 
 dist:
 	mkdir coasim-$(version)
@@ -30,7 +45,8 @@ dist:
 	cp README 		coasim-$(version)
 	cp README_separate 	coasim-$(version)
 	cp coasim_to_dot.xsl	coasim-$(version)
-	cp separate.py		coasim-$(version)
+	cp coasim_to_ps		coasim-$(version)
+	cp coasim_separate	coasim-$(version)
 
 
 	tar zcvf coasim-$(version).tar.gz coasim-$(version)

@@ -85,7 +85,31 @@ be processed in a number of ways. Using the XSLT script
 coasim_to_dot.xsl the XML file can be transformed to dot format which
 can be used to construct a postscript version of the generated
 ancestral recombination graph. The program 'dot' is part of GraphViz
-<URL:http://www.graphviz.org/>. Using the script seperate.py the
-sequences at the leaf nodes can be separated into cases and controls
-depending on specific alleles.  See the README_seperate file for
-details.
+<URL:http://www.graphviz.org/>. 
+
+Transforming the XML file output.xml to a postscript representation of
+the ARG can be done using the script coasim_to_ps.  The script
+translates the coasim XML file to dot and then to PostScript using the
+commands:
+
+  $ xsltproc coasim_to_dot.xsl output.xml > arg.dot
+  $ dot -Tps -o arg.ps arg.dot
+
+The coasim_to_ps version of the above is:
+
+  $ coasim_to_ps output.xml arg.ps
+
+
+
+Using the script coasim_separate the sequences at the leaf nodes
+can be separated into cases and controls depending on specific
+alleles.  See the README_separate file for details.
+
+Using coasim_separate to generate a case/control data set form the coasim
+result file arg.xml can be done as:
+
+  $ coasim_separate -i arg.xml -ocases cases -ocontrols controls \
+	-number_disease_markers 1 -disease_positions 0.76 -disease_alleles 1 \
+	-number_cases_with_mutation 80 -number_controls_with_mutation 30 \
+	-number_controls 100 -number_cases 100 -dtd bioinformatics.dtd -randomphase \
+	-text_format
