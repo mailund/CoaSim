@@ -28,7 +28,7 @@ core::TraitMarker::copy() const
 bool
 core::TraitMarker::run_first() const
 {
-    return false;
+    return true;
 }
 
 int
