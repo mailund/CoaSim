@@ -192,7 +192,6 @@ main(int argc, const char *argv[])
 		home_module_path = "(set! %load-path (cons \"";
 		home_module_path += home_dir;
 		home_module_path += "/.coasim/\" %load-path))";
-		std::cout << home_module_path << std::endl;
 		scm_c_eval_string(home_module_path.c_str());
 	    }
 
