@@ -400,8 +400,7 @@ position(SCM marker_smob)
 
 	 (waiting-time
 	  (lambda ()
-	    (let ((mean (/ 2 theta)))	;mean is 1/i where the
-					;intensity i is theta/2
+	    (let ((mean (/ 2 theta))) ; mean is 1/i where the intensity i is theta/2
 	      (* mean (random:exp random-state)))))
 
 	 (mutate-to
