@@ -126,6 +126,7 @@ all: Makefile $(TARGET)
 $(TARGET): $(UICDECLS) $(OBJECTS) $(OBJMOC) 
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJMOC) $(LIBS)
 
+
 mocables: $(SRCMOC)
 
 $(MOC): 
