@@ -25,13 +25,13 @@ ARG *Simulator::simulate(const Configuration &conf)
 
   retry:
     try {
-      if (mon) mon->start_arg_building();
+      if (mon) mon->start_arg_building(conf.no_leaves());
       arg = builder.build();
       if (mon) mon->start_mutating();
       descender.evolve(*arg);
     } catch (Mutator::retry_arg&) {
       if (mon) mon->retry_arg_building();
-      delete arg;
+      delete arg; arg = 0;
       goto retry;
     }
 
