@@ -21,6 +21,12 @@
     <property name="iconText">
         <string>CoaSim</string>
     </property>
+    <property name="usesBigPixmaps">
+        <bool>true</bool>
+    </property>
+    <property name="usesTextLabel">
+        <bool>false</bool>
+    </property>
     <vbox>
         <property name="name">
             <cstring>unnamed</cstring>
@@ -56,24 +62,15 @@
                                     <property name="text">
                                         <string>Position</string>
                                     </property>
-                                    <property name="pixmap">
-                                        <pixmap></pixmap>
-                                    </property>
                                 </column>
                                 <column>
                                     <property name="text">
                                         <string>High Freq.</string>
                                     </property>
-                                    <property name="pixmap">
-                                        <pixmap></pixmap>
-                                    </property>
                                 </column>
                                 <column>
                                     <property name="text">
                                         <string>Low Freq.</string>
-                                    </property>
-                                    <property name="pixmap">
-                                        <pixmap></pixmap>
                                     </property>
                                 </column>
                                 <property name="name">
@@ -787,6 +784,9 @@
         <property name="toolTip">
             <string>Run simulation</string>
         </property>
+        <property name="statusTip">
+            <string>Run simulation (Ctrl+R)</string>
+        </property>
         <property name="accel">
             <string>Ctrl+R</string>
         </property>
@@ -820,6 +820,9 @@
         </property>
         <property name="toolTip">
             <string>Delete selected markers</string>
+        </property>
+        <property name="statusTip">
+            <string>Delete selected markers (Del)</string>
         </property>
         <property name="accel">
             <string>Del</string>

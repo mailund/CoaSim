@@ -16,6 +16,9 @@
 #include <qmessagebox.h>
 #include <vector>
 
+
+#include <qiconset.h>
+
 void MainWindow::init()
 {
     noLeaves = 500;
@@ -34,7 +37,6 @@ void MainWindow::init()
 
     // doing this manually since there is a bug in uic
     // <URL:http://lists.trolltech.com/qt-interest/2003-02/thread00173-0.html>
-
     traitMarkerTable->horizontalHeader()->setLabel(0, tr("Position"));
     traitMarkerTable->horizontalHeader()->setLabel(1, tr("High Freq."));
     traitMarkerTable->horizontalHeader()->setLabel(2, tr("Low Freq."));
@@ -48,9 +50,9 @@ void MainWindow::init()
     MSMarkerTable->horizontalHeader()->setLabel(2, tr("Mutation Rate"));
 
     struct PositionCheckerHook : PositionChecker {
- MainWindow *main_window;
- PositionCheckerHook(MainWindow *mw) : main_window(mw) {}
- bool check(int pos) { return main_window->checkMarkerPosition(pos); }
+	MainWindow *main_window;
+	PositionCheckerHook(MainWindow *mw) : main_window(mw) {}
+	bool check(int pos) { return main_window->checkMarkerPosition(pos); }
     };
 
     traitMarkerTable->setPositionChecker(new PositionCheckerHook(this));
@@ -66,19 +68,19 @@ void MainWindow::fileExit()
 void MainWindow::helpAbout()
 {
     QMessageBox::about(this,
-         tr("About CoaSim"),
-         tr("<h2>CoaSim 3.0</h2>"
+		       tr("About CoaSim"),
+		       tr("<h2>CoaSim 3.0</h2>"
 
-     "<p>Copyright &copy; 2004 Bioinformatics ApS "
-     "<tt>http://www.bioinformatics.dk</tt>."
+			  "<p>Copyright &copy; 2004 Bioinformatics ApS "
+			  "<tt>http://www.bioinformatics.dk</tt>."
 
-     "<p>CoaSim is an ancestral recombination graph "
-     "simulator that simulates evolution under "
-     "various population and mutation models."
+			  "<p>CoaSim is an ancestral recombination graph "
+			  "simulator that simulates evolution under "
+			  "various population and mutation models."
      
-     "<p>If you have any questions or comments, "
-     "please direct them to <tt>mailund@birc.dk</tt>."
-     ));
+			  "<p>If you have any questions or comments, "
+			  "please direct them to <tt>mailund@birc.dk</tt>."
+			  ));
 }
 
 int MainWindow::updateNextPosition( int pos )
@@ -101,14 +103,14 @@ static bool checkTable(int pos, QTable *table, QString markerType)
     
     int noRows = table->numRows();
     for (int i = 0; i < noRows; ++i) { 
- int rowPos = table->text(i,0).mid(2).toInt();
- if (rowPos == pos)  {
-     QMessageBox::warning(0, QObject::tr("Position Error"),
-     QString(QObject::tr("The chosen position is already occupied by a %1 marker.")).arg(markerType),
-     "OK");
-     return false;
- } 
- if (rowPos > pos) return true; // safe since the table is sorted
+	int rowPos = table->text(i,0).mid(2).toInt();
+	if (rowPos == pos)  {
+	    QMessageBox::warning(0, QObject::tr("Position Error"),
+				 QString(QObject::tr("The chosen position is already occupied by a %1 marker.")).arg(markerType),
+				 "OK");
+	    return false;
+	} 
+	if (rowPos > pos) return true; // safe since the table is sorted
     }
     return true;
 }
@@ -182,17 +184,17 @@ void MainWindow::nextPosChanged( int pos )
 void MainWindow::runSimulation()
 {
     if (traitMarkerTable->numRows() == 0
- and SNPMarkerTable->numRows() == 0
- and MSMarkerTable->numRows() == 0)
- {
-     QMessageBox::warning(this, tr("No Markers!"),
-     tr("At least one marker must be "
-        "specified to run a simulation."));
-     return;
- }
+	and SNPMarkerTable->numRows() == 0
+	and MSMarkerTable->numRows() == 0)
+	{
+	    QMessageBox::warning(this, tr("No Markers!"),
+				 tr("At least one marker must be "
+				    "specified to run a simulation."));
+	    return;
+	}
 
     SimulationDialog *simulation = 
- new SimulationDialog(this, "Simulate", false, WDestructiveClose);
+	new SimulationDialog(this, "Simulate", false, WDestructiveClose);
     simulation->show();
 }
 
@@ -208,13 +210,13 @@ void MainWindow::editSimulationParameters()
     dialog.beta->setValue((int)beta*100);
 
     if (dialog.exec()) 
- {
-     noLeaves = dialog.noChromosomes->text().toInt();
-     rho = dialog.rho->text().toDouble();
-     Q = dialog.Q->text().toDouble();
-     G = dialog.G->text().toDouble();
-     beta = dialog.beta->text().toDouble();
- }
+	{
+	    noLeaves = dialog.noChromosomes->text().toInt();
+	    rho = dialog.rho->text().toDouble();
+	    Q = dialog.Q->text().toDouble();
+	    G = dialog.G->text().toDouble();
+	    beta = dialog.beta->text().toDouble();
+	}
 }
 
 void MainWindow::deleteSelectedMarkers()
@@ -233,18 +235,18 @@ void MainWindow::deleteMarkers(QTable *table)
 
     int n = table->numSelections();
     while (n-- > 0)
- {
-     QTableSelection sel = table->selection(n);
-     for (int row = sel.bottomRow(); row >= sel.topRow(); --row)
-  toDelete.push_back(row);
- }
+	{
+	    QTableSelection sel = table->selection(n);
+	    for (int row = sel.bottomRow(); row >= sel.topRow(); --row)
+		toDelete.push_back(row);
+	}
 
     // deleting a row renumbers the lower rows, so we have to delete
     // them from the highest and down.
     std::sort(toDelete.begin(), toDelete.end());
     std::vector<int>::reverse_iterator i;
     for (i = toDelete.rbegin(); i != toDelete.rend(); ++i)
- table->removeRow(*i);
+	table->removeRow(*i);
 }
 
 
