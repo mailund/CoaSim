@@ -569,9 +569,10 @@ void ARG::to_xml(std::ostream &os, bool print_all_nodes) const
     for_each(npb,npe, node_printer(&Node::haplotype_to_xml,os));
   os << "  </haplotypes>" << std::endl;
 
-  std::for_each(i_retired_intervals.begin(),
-		i_retired_intervals.end(),
-		interval_printer(&RetiredInterval::to_xml,os));
+  if (print_all_nodes)
+    std::for_each(i_retired_intervals.begin(),
+		  i_retired_intervals.end(),
+		  interval_printer(&RetiredInterval::to_xml,os));
 
   std::for_each(lpb, lpe, node_printer(&Node::node_to_xml,os));
   if (print_all_nodes) 
