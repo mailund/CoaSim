@@ -1,15 +1,15 @@
 CXX = c++
 CXXFLAGS = -Wall -O3 -lpopt
 
-objects = coasim.o node.o builder.o interval.o descender.o
-source = coasim.cc \
-         interval.cc interval.hh \
-         node.cc node.hh node_test.cc \
-         builder.cc builder.hh \
-         reporter.hh dist_funcs.hh descender.hh descender.cc
+coasim_objects = simulator.o node.o interval.o retired_interval.o\
+		 configuration.o builder.o descender.o \
+		 snp_marker.o micro_satellite_marker.o trait_marker.o \
+		 rc-parser.o coasim.o
 
 interval_test_objects = interval_test.o interval.o
 all_markers_test_objects = all_markers_test.o snp_marker.o micro_satellite_marker.o trait_marker.o retired_interval.o interval.o node.o
+
+rc-parser-test_objects = rc-parser-test.o rc-parser.o
 
 mutation_test_objects = mutation_test.o snp_marker_t.o micro_satellite_marker_t.o trait_marker_t.o retired_interval.o interval.o node.o test_dist_funcs.o
 
@@ -33,12 +33,12 @@ profiler_objects = profiler.o simulator.o node.o interval.o retired_interval.o\
 			snp_marker.o micro_satellite_marker.o trait_marker.o
 
 
-test_programs = interval_test all_markers_test configuration_test node_test builder_test descender_test mutation_test simulator_test
+test_programs = interval_test rc-parser-test all_markers_test configuration_test node_test builder_test descender_test mutation_test simulator_test
 
-all: test profiler
+all: coasim test profiler
 
-#coasim : $(objects)
-#	$(CXX) $(CXXFLAGS) -o coasim $(objects)
+coasim : $(coasim_objects)
+	$(CXX) $(CXXFLAGS) -o coasim $(coasim_objects)
 
 test: $(test_programs)
 	if ! ./interval_test; then echo "FAILURE: interval_test failed!"; fi
@@ -53,12 +53,16 @@ test: $(test_programs)
 	if ! ./builder_test; then echo "FAILURE: builder_test failed!"; fi
 	if ! ./descender_test; then echo "FAILURE: descender_test failed!"; fi
 	if ! ./simulator_test; then echo "FAILURE: simulator_test failed!"; fi
+	if ! ./rc-parser-test; then echo "FAILURE: rc-parser-test failed!"; fi
 
 profiler: $(profiler_objects)
 	$(CXX) $(CXXFLAGS) -o profiler $(profiler_objects)
 
 interval_test: $(interval_test_objects)
 	$(CXX) $(CXXFLAGS) -o interval_test $(interval_test_objects)
+
+rc-parser-test: $(rc-parser-test_objects)
+	$(CXX) $(CXXFLAGS) -o rc-parser-test $(rc-parser-test_objects)
 
 configuration_test: $(configuration_test_objects)
 	$(CXX) $(CXXFLAGS) -o configuration_test $(configuration_test_objects)

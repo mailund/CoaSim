@@ -381,11 +381,11 @@ int main(int argc, const char *argv[])
 
 
 
-
+#if 0 // won't work right now, 'cause the markers aren't initialized
   std::ofstream xml_file("node_test.xml");
   xml_file << arg;
   xml_file.close();
-
+#endif
 
 
   } catch (std::exception &ex) {

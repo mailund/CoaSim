@@ -1,0 +1,19 @@
+no_leaves: 5
+
+gene_conversion_rate:   250.0 # Q
+gene_conversion_length: 250.0 # G
+
+recombination_rate: 0.5 # rho
+
+growth: 0.5
+
+mutation_rate: 0.05 # mu
+
+positions: 0.1 0.2 0.3   0.4 0.6 0.9   # marker positions
+markers:   snp snp trait ms  snp snp   # types of markers
+low_freq:  0.1 0.1 0.0   0.0 0.2 0.2   # low freq for traits and snps
+high_freq: 0.2 0.2 0.2   0.0 0.4 0.4   # high freq for traits and snps
+no_values: 0   0   0     4   0   0     # no possible values for ms
+
+print_all_nodes: false
+

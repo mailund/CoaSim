@@ -77,6 +77,7 @@ time_t run_simulation(unsigned int no_leaves,
   std::vector<marker_t>::const_iterator itr;
   int m;
 
+#if 0
   for (itr = markers.begin(), m = 0; itr != markers.end(); ++itr, ++m)
     {
       switch (itr->type)
@@ -97,7 +98,7 @@ time_t run_simulation(unsigned int no_leaves,
 	  break;
 	}
     }
-      
+#endif
 
   std::vector<double> positions;
   for (itr = markers.begin(); itr != markers.end(); ++itr)

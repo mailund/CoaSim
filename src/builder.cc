@@ -82,9 +82,13 @@ ARG * Builder::build() const
       int event = uniform((k-1)/2.,_conf.G(), _conf.rho());
 
       ++no_iterations;
+
+#if 0 // FIXME: Find a general way to display progress, that works in
+      // both gui and cli.
       if ( (no_iterations % 1000) == 0)
 	std::cout << "After " << no_iterations << ' '
 		  << k << " nodes remains to be processed.\n";
+#endif
 
       switch (event)
 	{
@@ -154,6 +158,8 @@ ARG * Builder::build() const
 	}
     }
 
+#if 0 // FIXME: Find a general way to display progress, that works in
+      // both gui and cli.
   std::cout << "Terminated after " << no_iterations << " iterations\n";
   std::cout << coal_events << " coalecense events,\n"
 	    << gene_conv_events << " gene-conversion events,\nand "
@@ -161,6 +167,7 @@ ARG * Builder::build() const
   std::cout << "There are " << arg->retired_intervals().size()
 	    << " retired intervals and "
 	    << arg->no_nodes() << " nodes.\n";
+#endif
 
 #if 0
   std::vector<RetiredInterval>::const_iterator itr;
