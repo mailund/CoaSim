@@ -32,6 +32,7 @@ public:
     int value(size_t index)     const throw(std::out_of_range);
     virtual void add_value(int value) throw(uninitialized_marker_type,
 					    illegal_value) = 0;
+
   protected:
     std::vector<int> _values;
   };
@@ -42,17 +43,21 @@ public:
     out_of_sequence() : std::logic_error("Marker positions not sorted."){}
   };
 
-  // initialize the configuration with the marker positions given by
+  // initialize the configuration with the build and evolution
+  // parameters rho, Q, G, and growth; the marker positions given by
   // the sequence from begin to end -- an exception is thrown if the
-  // positions are not sorted in increasing order
+  // positions are not sorted in increasing order -- and a flag
+  // specifying if the full output of the simulation is desired, or
+  // just information about the leaf nodes.
   template <typename InItr>
   Configuration(double rho, double Q, double G, double growth,
-		InItr begin, InItr end) throw(out_of_sequence);
+		InItr positions_begin, InItr positions_end,
+		bool print_all_nodes = false)
+    throw(out_of_sequence);
   ~Configuration();
 
   // number of markers for the configuration
   size_t no_markers() const { return _positions.size(); }
-
   // the positions of the markers
   double position(size_t index) const throw(std::out_of_range);
 
@@ -60,15 +65,17 @@ public:
   // accessors to the possible values of a marker
   ValueSet &value_set(size_t marker) const
     throw(std::out_of_range);
-
   enum marker_t { MT_SNP, MT_MICROSATELLITE, MT_TRAIT, };
   void set_marker_type(size_t marker, marker_t type) throw(std::out_of_range);
 
-
+  // parameters for building the ARG and assigning mutations
   double rho()    const { return _rho; }
   double Q()      const { return _Q; }
   double G()      const { return _G; }
   double growth() const { return _growth; }
+
+  // parameters for output
+  bool print_all_nodes() const { return _print_all_nodes; }
 
 private:
   // disable these
@@ -79,6 +86,7 @@ private:
   void initialize_value_sets();
 
 
+
   std::vector<double>    _positions;
   std::vector<ValueSet*> _value_sets;
 
@@ -86,14 +94,18 @@ private:
   double _Q;
   double _G;
   double _growth;
+
+  bool _print_all_nodes;
 };
 
 
 template <typename InItr>
 Configuration::Configuration(double rho, double Q, double G, double growth,
-			     InItr begin, InItr end)
+			     InItr begin, InItr end,
+			     bool print_all_nodes)
   throw(out_of_sequence)
-  : _rho(rho), _Q(Q), _G(G), _growth(growth)
+  : _rho(rho), _Q(Q), _G(G), _growth(growth),
+    _print_all_nodes(print_all_nodes)
 {
   for (InItr itr = begin; itr != end; ++itr)
     _positions.push_back(*itr);

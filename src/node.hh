@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <algorithm>
 #include <vector>
+#include <iostream>
+#include <valarray>
 
 class ARG
 {
@@ -20,9 +22,15 @@ public:
     Node &operator = (const Node&);
 
   public:
-    Node(double time) : _time(time) {}
-    Node(double time, const Intervals &i) : _time(time), _intervals(i) {}
+    Node(const Configuration &conf, double time) 
+      : _time(time), _states(-1,conf.no_markers()) 
+    {}
+    Node(const Configuration &conf, double time, const Intervals &i)
+      : _time(time), _intervals(i),  _states(-1,conf.no_markers())
+    {}
     virtual ~Node() {};
+
+    double time() const { return _time; }
 
     // the sub-intervals of the range [0,1) that connects this node to
     // a leaf node in the ARG -- if a point is not in one of these
@@ -31,11 +39,21 @@ public:
     // same binary tree of the ARG.
     const Intervals &intervals() const { return _intervals; }
 
+  protected:
+    size_t no_states()          const { return _states.size(); }
+    int state(unsigned int idx) const { return _states[idx]; }
+
+    virtual void node_to_xml(std::ostream &os)                const = 0;
+    virtual void mutation_to_xml(std::ostream &os)            const = 0;
+    void haplotype_to_xml(std::ostream &os)                   const;
+
   private:
     friend class ARG;
 
     double    _time;
     Intervals _intervals;
+
+    std::valarray<int> _states;
   };
 
   class RetiredInterval : public Interval
@@ -51,6 +69,8 @@ public:
     { if (top_node == 0) throw null_top_node(); }
 
     Node *top_node() const { return _top_node; }
+
+    void to_xml(std::ostream &os) const;
 
   private:
     Node *_top_node;
@@ -82,14 +102,16 @@ public:
 			    double cross_over_point)
     throw(null_child,Interval::interval_out_of_range,Interval::empty_interval);
   node_pair_t gene_conversion(double time, Node *child,
-			      double conversion_point,
-			      double conversion_length)
+			      double conversion_start,
+			      double conversion_end)
     throw(null_child,Interval::interval_out_of_range,Interval::empty_interval);
-
-
 
   const std::vector<RetiredInterval> &retired_intervals() const
   { return _retired_intervals; }
+
+
+  void to_xml(std::ostream &os) const;
+
 
 private:
   // disable these
@@ -100,10 +122,31 @@ private:
   size_t _no_leaves;
 
   // pools of nodes -- FIXME: can be handled more efficiently...
+  std::vector<Node*> _leaf_pool;
   std::vector<Node*> _node_pool;
 
   std::vector<RetiredInterval> _retired_intervals;
 };
+
+
+inline std::ostream & operator << (std::ostream &os, ARG &arg)
+{ arg.to_xml(os); return os; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #if 0

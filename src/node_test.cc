@@ -3,6 +3,8 @@
 #include "testing.hh"
 #include "dist_funcs.hh"
 
+#include <fstream>
+
 int main(int argc, const char *argv[])
 {
   HANDLE_TEST_OPTIONS;
@@ -13,7 +15,8 @@ int main(int argc, const char *argv[])
   const size_t no_positions = (sizeof positions)/sizeof(double);
 
   Configuration conf(0.0, 0.0, 0.0, 0.0,
-		     (const double*)positions, &positions[no_positions]);
+		     (const double*)positions, &positions[no_positions],
+		     true);
 
   ARG arg(conf);
 
@@ -39,6 +42,11 @@ int main(int argc, const char *argv[])
   CHECK(l2->intervals().first_point() == 0.0);
   CHECK(l2->intervals().last_point() == 1.0);
 
+  for (size_t i = 0; i < no_positions; ++i)
+    CHECK(l1->intervals().contains_point(positions[i]));
+
+  for (size_t i = 0; i < no_positions; ++i)
+    CHECK(l2->intervals().contains_point(positions[i]));
 
 
   ARG::node_pair_t p;
@@ -83,10 +91,15 @@ int main(int argc, const char *argv[])
     if (0.5 <= positions[i])
       CHECK(r2->intervals().contains_point(positions[i]));
 
-
-
-
-
+  for (size_t i = 0; i < no_positions; ++i)
+    if (positions[i] < 0.5)
+      {
+	CHECK(r1->intervals().contains_point(positions[i]));
+      }
+    else
+      {
+	CHECK(r2->intervals().contains_point(positions[i]));
+      }
 
   p = arg.recombination(0.0, r2, 0.25);
   CHECK(p.first == r2);
@@ -104,16 +117,15 @@ int main(int argc, const char *argv[])
   CHECK(p.first == r1);
   CHECK(p.second == 0);
 
-
-  p = arg.gene_conversion(0.0, r2, 0.25, 0.2);
+  p = arg.gene_conversion(0.0, r2, 0.25, 0.45);
   CHECK(p.first == r2);
   CHECK(p.second == 0);
 
-  p = arg.gene_conversion(0.0, r2, 0.25, 0.25);
+  p = arg.gene_conversion(0.0, r2, 0.25, 0.50);
   CHECK(p.first == r2);
   CHECK(p.second == 0);
 
-  p = arg.gene_conversion(0.0, l2, 0.30, 0.30);
+  p = arg.gene_conversion(0.0, l2, 0.30, 0.60);
   CHECK(p.first != 0);
   CHECK(p.second != 0);
 
@@ -143,6 +155,17 @@ int main(int argc, const char *argv[])
   CHECK(g2->intervals().size() == 1);
   CHECK(g2->intervals().first_point() == 0.3);
   CHECK(g2->intervals().last_point()  == 0.6);
+
+
+  for (size_t i = 0; i < no_positions; ++i)
+    if (positions[i] < 0.3 or 0.6 <= positions[i])
+      {
+	CHECK(g1->intervals().contains_point(positions[i]));
+      }
+    else
+      {
+	CHECK(g2->intervals().contains_point(positions[i]));
+      }
 
 
 
@@ -178,6 +201,17 @@ int main(int argc, const char *argv[])
   CHECK(arg.retired_intervals().at(0).is_end  (1.0));
   CHECK(arg.retired_intervals().at(0).leaf_contacts() == 2);
   CHECK(arg.retired_intervals().at(0).top_node() == c1);
+
+
+  for (size_t i = 0; i < no_positions; ++i)
+    if (positions[i] < 0.3 or (0.5 <= positions[i] and positions[i] < 0.6))
+      {
+	CHECK(c1->intervals().contains_point(positions[i]));
+      }
+    else if (0.6 <= positions[i])
+      {
+	CHECK(arg.retired_intervals().at(0).contains_point(positions[i]));
+      }
 
 
   ARG::Node *c2 = arg.coalescence(0.0, r1, g2);
@@ -217,6 +251,16 @@ int main(int argc, const char *argv[])
   CHECK(arg.retired_intervals().at(1).leaf_contacts() == 2);
   CHECK(arg.retired_intervals().at(1).top_node() == c2);
 
+
+  for (size_t i = 0; i < no_positions; ++i)
+    if (positions[i] < 0.3 or (0.5 <= positions[i] and positions[i] < 0.6))
+      {
+	CHECK(c2->intervals().contains_point(positions[i]));
+      }
+    else if (0.3 <= positions[i] and positions[i] < 0.5)
+      {
+	CHECK(arg.retired_intervals().at(1).contains_point(positions[i]));
+      }
 
 
 
@@ -261,6 +305,18 @@ int main(int argc, const char *argv[])
     arg.gene_conversion(0.0, 0, 0.0, 0.2);
     ERROR("gene-conversion with null-children");
   } catch (ARG::null_child&) {}
+
+
+
+
+
+
+
+
+  std::ofstream xml_file("node_test.xml");
+  xml_file << arg;
+  xml_file.close();
+
 
 
   } catch (std::exception &ex) {

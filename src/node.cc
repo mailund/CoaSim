@@ -5,13 +5,41 @@
 #include <string>
 #include <valarray>
 
+void ARG::Node::haplotype_to_xml(std::ostream &os) const
+{
+  os << "    <haplotype id=\"h_" << this << "\"> " << std::endl;
+  for (unsigned int i = 0; i < no_states(); ++i){
+    os << "      <loci marker_ref=\"marker_" << i << "\">";
+    os << "<allele>" << state(i) << "</allele>";
+    os << "</loci>" << std::endl;
+  }
+  os << "    </haplotype>" << std::endl;
+}
+
+void ARG::RetiredInterval::to_xml(std::ostream &os) const
+{
+  os << "  <interval_node id=\"i_" << this << "\">" << std::endl
+     << "    <child ref=\"i_" << top_node() << "\"/>" << std::endl
+     << "    <interval start=\"" << start() << "\" end=\"" << end() << "\"/>\n"
+     << "  </interval_node>" << std::endl;
+}
 
 namespace {
 
   class LeafNode : public ARG::Node
   {
     friend Node *ARG::leaf();
-    LeafNode() : Node(0.0) {}
+    LeafNode(const Configuration &conf) : Node(conf,0.0) {}
+
+    virtual void node_to_xml(std::ostream &os) const
+    {
+      os << "  <leaf time=\"" << time() << "\" id=\"i_" << this << '"'
+	 << " haplotype=\"h_" << this << "\"/>" << std::endl;
+    }
+
+    virtual void mutation_to_xml(std::ostream &os) const
+    {
+    }
   };
 
 
@@ -24,29 +52,117 @@ namespace {
   class CoalescentNode : public ARG::Node
   {
     friend Node *ARG::coalescence(double,Node*,Node*);
-    CoalescentNode(double time, Node *left, Node *right, const Intervals &is)
-      : Node(time,is), _left(left), _right(right)
+    CoalescentNode(const Configuration &conf, double time, 
+		   Node *left, Node *right, const Intervals &is)
+      : Node(conf,time,is), _left(left), _right(right),
+	_left_mutating(false,conf.no_markers()),
+	_right_mutating(false,conf.no_markers())
     {}
+
+    virtual void node_to_xml(std::ostream &os) const
+    {
+      os << "  <coalescent time=\"" << time() << "\" id=\"i_" << this << '"'
+	 << " haplotype=\"h_" << this << "\">" << std::endl;
+      os << "    <child ref=\"i_" << _left << "\"/>" << std::endl;
+      os << "    <child ref=\"i_" << _right << "\"/>" << std::endl;
+      os << "  </coalescent>" << std::endl; 
+    }
+
+    virtual void mutation_to_xml(std::ostream &os) const
+    {
+      for (size_t i = 0; i < no_states(); ++i){
+	if (_left_mutating[i])
+	  os << "    <mutation marker_ref=\"marker_" << i << '"'
+	     << " parent_ref=\"i_" << this << '"'
+	     << " child_ref=\"i_" << _left << "\"/> "
+	     << std::endl;
+	else if (_right_mutating[i])
+	  os << "    <mutation marker_ref=\"marker_" << i << '"'
+	     << " parent_ref=\"i_" << this << '"'
+	     << " child_ref=\"i_" << _right << "\"/> "
+	     << std::endl;
+      }
+    }
+
     Node *const _left;
     Node *const _right;
+    std::valarray<bool> _left_mutating;
+    std::valarray<bool> _right_mutating;
   };
   
   class RecombinationNode : public ARG::Node
   {
     friend ARG::node_pair_t ARG::recombination(double,Node*,double);
-    RecombinationNode(double time, Node *child, const Intervals &is)
-      : Node(time,is), _child(child)
+    RecombinationNode(const Configuration &conf,
+		      double time, Node *child, const Intervals &is,
+		      double cross_over_point, bool is_left)
+      : Node(conf,time,is), _child(child),
+	_child_mutating(false,conf.no_markers()),
+	_cross_over_point(cross_over_point), _is_left(is_left)
     {}
+
+    virtual void node_to_xml(std::ostream &os) const
+    {
+      os << "  <recombination time=\"" << time() << '"'
+	 << " crossover=\"" << _cross_over_point << '"'
+	 << " id=\"i_" << this << "\" haplotype=\"h_" << this << '"'
+	 << " is_left=\"" << _is_left << "\">" << std::endl
+	 << "    <child ref=\"i_" << _child << "\"/>" << std::endl
+	 << "  </recombination>" << std::endl; 
+    }
+
+    virtual void mutation_to_xml(std::ostream &os) const
+    {
+      for (size_t i = 0; i < no_states(); ++i)
+	if (_child_mutating[i])
+	  os << "    <mutation marker_ref=\"marker_" << i << '"'
+	     << " parent_ref=\"i_" << this << '"'
+	     << " child_ref=\"i_" << _child << "\"/> " << std::endl; 
+    }
+
     Node *const _child;
+    std::valarray<bool> _child_mutating;
+    double _cross_over_point;
+    bool _is_left;
   };
 
   class GeneConversionNode : public ARG::Node
   {
     friend ARG::node_pair_t ARG::gene_conversion(double,Node*,double,double);
-    GeneConversionNode(double time, Node *child, const Intervals &is)
-      : Node(time,is), _child(child)
+    GeneConversionNode(const Configuration &conf,
+		       double time, Node *child, const Intervals &is,
+		       double conversion_start, double conversion_end,
+		       bool is_inside)
+      : Node(conf,time,is), _child(child),
+	_child_mutating(false,conf.no_markers()),
+	_conversion_start(conversion_start), _conversion_end(conversion_end),
+	_is_inside(is_inside)
     {}
+
+    virtual void node_to_xml(std::ostream &os) const
+    {
+      os << "  <genconversion time=\"" << time() << '"'
+	 << " conversion_start=\"" << _conversion_start << '"'
+	 << " conversion_end=\"" << _conversion_end << '"'
+	 << " id=\"i_" << this << "\" haplotype=\"h_" << this << '"'
+	 << "  is_inside=\"" << _is_inside <<"\">" << std::endl
+	 << "    <child ref=\"i_" << _child << "\"/>" << std::endl
+	 << "  </genconversion>" << std::endl; 
+    }
+
+    virtual void mutation_to_xml(std::ostream &os) const
+    {
+      for (size_t i = 0; i < no_states(); ++i)
+	if (_child_mutating[i])
+	  os << "    <mutation marker_ref=\"marker_" << i << '"'
+	     << " parent_ref=\"i_" << this << '"'
+	     << " child_ref=\"i_" << _child << "\"/> " << std::endl; 
+    }
+
     Node *const _child;
+    std::valarray<bool> _child_mutating;
+    double _conversion_start, _conversion_end;
+    bool _is_inside;
   };
 }
 
@@ -54,17 +170,19 @@ namespace {
 ARG::~ARG()
 {
   std::vector<Node*>::iterator itr;
+  for (itr = _leaf_pool.begin(); itr != _leaf_pool.end(); ++itr)
+    delete *itr;
   for (itr = _node_pool.begin(); itr != _node_pool.end(); ++itr)
     delete *itr;
 }
 
 ARG::Node *ARG::leaf() throw()
 {
-  LeafNode *n = new LeafNode();
+  LeafNode *n = new LeafNode(_conf);
 
   // the leaves covers the entire interval [0,1)
   n->_intervals.add(0.0,1.0,1);
-  _node_pool.push_back(n);
+  _leaf_pool.push_back(n);
   ++_no_leaves;
 
   return n;
@@ -87,7 +205,7 @@ ARG::Node *ARG::coalescence(double time, Node *left, Node *right)
 	non_retired.add(merged.interval(i));
     }
 
-  CoalescentNode *n = new CoalescentNode(time,left,right,non_retired);
+  CoalescentNode *n = new CoalescentNode(_conf,time,left,right,non_retired);
   _node_pool.push_back(n);
 
   std::vector<Interval>::const_iterator itr;
@@ -113,39 +231,132 @@ ARG::node_pair_t ARG::recombination(double time, Node *child,
 
   // FIXME: we could optimize here by not creating intervals without markers
 
-  RecombinationNode *n1 = new RecombinationNode(time,child,left);
-  RecombinationNode *n2 = new RecombinationNode(time,child,right);
+  RecombinationNode *n1 = new RecombinationNode(_conf,time,child,left,
+						cross_over_point, true);
+  RecombinationNode *n2 = new RecombinationNode(_conf,time,child,right,
+						cross_over_point, false);
   _node_pool.push_back(n1); _node_pool.push_back(n2);
 
   return std::make_pair(n1,n2);
 }
 
 ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
-				      double conversion_point,
-				      double conversion_length)
+				      double conversion_start,
+				      double conversion_end)
   throw(null_child,Interval::interval_out_of_range,Interval::empty_interval)
 {
   if (child == 0) throw null_child();
 
-  if (conversion_point+conversion_length <= child->intervals().first_point())
+  if (conversion_end <= child->intervals().first_point())
     return std::make_pair<Node*,Node*>(child,0);
-  if (child->intervals().last_point() <= conversion_point)
+  if (child->intervals().last_point() <= conversion_start)
     return std::make_pair<Node*,Node*>(child,0);
 
   // FIXME: we could optimize here by not creating intervals without markers
 
   Intervals left  =
-    child->intervals().copy(0.0, conversion_point)
-    + child->intervals().copy(conversion_point+conversion_length, 1.0);
+    child->intervals().copy(0.0, conversion_start) 
+    + child->intervals().copy(conversion_end, 1.0);
   Intervals right =
-    child->intervals().copy(conversion_point,
-			    conversion_point+conversion_length);
+    child->intervals().copy(conversion_start, conversion_end);
 
-  GeneConversionNode *n1 = new GeneConversionNode(time,child,left);
-  GeneConversionNode *n2 = new GeneConversionNode(time,child,right);
+  GeneConversionNode *n1 = new GeneConversionNode(_conf,time,child,left,
+						  conversion_start,
+						  conversion_end,
+						  false);
+  GeneConversionNode *n2 = new GeneConversionNode(_conf,time,child,right,
+						  conversion_start,
+						  conversion_end,
+						  true);
   _node_pool.push_back(n1); _node_pool.push_back(n2);
 
   return std::make_pair<Node*,Node*>(n1,n2);
+}
+
+namespace {
+  class interval_printer : 
+    public std::unary_function<void,const ARG::RetiredInterval&>
+  {
+  public:
+    typedef void (ARG::RetiredInterval::*to_xml_t)(std::ostream &os) const;
+    interval_printer(to_xml_t f, std::ostream &os) : _f(f), _os(os) {};
+    void operator () (const ARG::RetiredInterval &ri) { (ri.*_f)(_os); }
+
+  private:
+    to_xml_t _f;
+    std::ostream &_os;
+  };
+
+  class node_printer : public std::unary_function<void,const ARG::Node*>
+  {
+  public:
+    typedef void (ARG::Node::*to_xml_t)(std::ostream &os) const;
+    node_printer(to_xml_t f, std::ostream &os) : _f(f), _os(os) {};
+    void operator () (const ARG::Node *n) { (n->*_f)(_os); }
+
+  private:
+    to_xml_t _f;
+    std::ostream &_os;
+  };
+}
+
+void ARG::to_xml(std::ostream &os) const
+{
+  std::string dtd = "unknown"; 	// FIXME: set dtd?
+
+  const std::vector<Node*>::const_iterator lpb = _leaf_pool.begin();
+  const std::vector<Node*>::const_iterator lpe = _leaf_pool.end();
+  const std::vector<Node*>::const_iterator npb = _node_pool.begin();
+  const std::vector<Node*>::const_iterator npe = _node_pool.end();
+
+
+  os << "<?xml version=\"1.0\"?>" << std::endl;
+  os <<"<!DOCTYPE coasim SYSTEM \"" << dtd << "\"> " << std::endl;
+
+
+  os << "<coasim>" << std::endl;
+
+  // FIXME: configuration
+
+  //out << "<coasim output_mode=\"" << output_mode << "\" leaf_nodes=\"" << leaf_nodes << "\" positions=\""<<pos_string<<"\" value_set=\""<<alp_string<<"\" Q=\""<<Q<<"\" G=\""<<G<<"\" rho=\""<<rho<<"\" mu=\""<<mu<<"\">" << std::endl;
+
+
+  os << "  <markers>" << std::endl;
+  for (size_t i = 0; i < _conf.no_markers(); ++i)
+    {
+      os << "    <marker id=\"marker_" << i << "\">\n"
+	 << "      <position>" << _conf.position(i) << "</position>\n"
+	 << "      <value-set>";
+      for (size_t j = 0; j < _conf.value_set(i).size(); ++j)
+	os << "<value>" << _conf.value_set(i).value(j) << "</value>";
+      os << "</value-set>\n"
+	 << "    </marker>" << std::endl;
+  }
+  os << "  </markers>" << std::endl;
+
+
+  os << "  <haplotypes>" << std::endl;
+  for_each(lpb,lpe, node_printer(&Node::haplotype_to_xml,os));
+  if (_conf.print_all_nodes())
+    for_each(npb,npe, node_printer(&Node::haplotype_to_xml,os));
+  os << "  </haplotypes>" << std::endl;
+
+  std::for_each(_retired_intervals.begin(),
+		_retired_intervals.end(),
+		interval_printer(&RetiredInterval::to_xml,os));
+
+  std::for_each(lpb, lpe, node_printer(&Node::node_to_xml,os));
+  if (_conf.print_all_nodes()) 
+    for_each(npb,npe,node_printer(&Node::node_to_xml,os));
+
+  os << "  <mutations>" << std::endl;
+
+  for_each(lpb,lpe, node_printer(&Node::mutation_to_xml,os));
+  if (_conf.print_all_nodes())
+    for_each(npb,npe, node_printer(&Node::mutation_to_xml,os));
+
+  os << "  </mutations>" << std::endl
+     << "</coasim>" << std::endl; 
 }
 
 
