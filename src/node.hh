@@ -15,20 +15,33 @@ public:
   /* Abstract class for ARG nodes. */
   class Node 
   {
+    // explicitly remove chance of copying
+    Node(const Node&);
+    Node &operator = (const Node&);
+
   public:
     Node(double time) : _time(time) {}
     Node(double time, const Intervals &i) : _time(time), _intervals(i) {}
     virtual ~Node() {};
 
+    // the sub-intervals of the range [0,1) that connects this node to
+    // a leaf node in the ARG -- if a point is not in one of these
+    // intervals it is lost somewhere from here to the leaves.  As an
+    // invariant, two points on the same interval correspond to the
+    // same binary tree of the ARG.
     const Intervals &intervals() const { return _intervals; }
 
   private:
+    friend class ARG;
+
     double    _time;
     Intervals _intervals;
   };
 
   // Exception thrown if a node is created with a 0-child
-  class null_child : public std::exception {};
+  struct null_child : public std::logic_error {
+    null_child() : std::logic_error("null child.") {}
+  };
 
 
   // Initialization and book-keeping
@@ -47,8 +60,13 @@ public:
   // pair, the second being 0), if one of the nodes created would
   // otherwise be immediately retired
   typedef std::pair<Node*,Node*> node_pair_t;
-  node_pair_t recombination(double time, Node *child)     throw(null_child);
-  node_pair_t gene_conversion(double time, Node *child)   throw(null_child);
+  node_pair_t recombination(double time, Node *child,
+			    double cross_over_point)
+    throw(null_child,Interval::interval_out_of_range);
+  node_pair_t gene_conversion(double time, Node *child,
+			      double conversion_point,
+			      double conversion_length)
+    throw(null_child,Interval::interval_out_of_range);
 
 
 private:

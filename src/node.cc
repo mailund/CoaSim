@@ -2,7 +2,7 @@
 #include "dist_funcs.hh"
 
 #include <sstream>
-#include<string>
+#include <string>
 #include <valarray>
 
 
@@ -33,7 +33,7 @@ namespace {
   
   class RecombinationNode : public ARG::Node
   {
-    friend ARG::node_pair_t ARG::recombination(double,Node*);
+    friend ARG::node_pair_t ARG::recombination(double,Node*,double);
     RecombinationNode(double time, Node *child, const Intervals &is)
       : Node(time,is), _child(child)
     {}
@@ -42,7 +42,7 @@ namespace {
 
   class GeneConversionNode : public ARG::Node
   {
-    friend ARG::node_pair_t ARG::gene_conversion(double,Node*);
+    friend ARG::node_pair_t ARG::gene_conversion(double,Node*,double,double);
     GeneConversionNode(double time, Node *child, const Intervals &is)
       : Node(time,is), _child(child)
     {}
@@ -61,6 +61,8 @@ ARG::~ARG()
 ARG::Node *ARG::leaf() throw()
 {
   LeafNode *n = new LeafNode();
+  // the leaves covers the entire interval [0,1)
+  n->_intervals.add(0.0,1.0,1);
   _node_pool.push_back(n);
   return n;
 }
@@ -75,19 +77,21 @@ ARG::Node *ARG::coalescence(double time, Node *left, Node *right)
   return n;
 }
 
-ARG::node_pair_t ARG::recombination(double time, Node *child)
-  throw(null_child)
+ARG::node_pair_t ARG::recombination(double time, Node *child,
+				    double cross_over_point)
+  throw(null_child,Interval::interval_out_of_range)
 {
   if (child == 0) throw null_child();
 
-  double cross_over_point = Distribution_functions::uniform();
   if (cross_over_point <= child->intervals().first_point())
     return std::make_pair<Node*,Node*>(child,0);
   if (child->intervals().last_point() <= cross_over_point)
     return std::make_pair<Node*,Node*>(child,0);
 
-  Intervals left  = child->intervals().copy(0,cross_over_point);
-  Intervals right = child->intervals().copy(cross_over_point,1);
+  Intervals left  = child->intervals().copy(0.0,cross_over_point);
+  Intervals right = child->intervals().copy(cross_over_point,1.0);
+
+  // FIXME: we could optimize here by not creating intervals without markers
 
   RecombinationNode *n1 = new RecombinationNode(time,child,left);
   RecombinationNode *n2 = new RecombinationNode(time,child,right);
@@ -96,16 +100,32 @@ ARG::node_pair_t ARG::recombination(double time, Node *child)
   return std::make_pair(n1,n2);
 }
 
-ARG::node_pair_t ARG::gene_conversion(double time, Node *child)
-  throw(null_child)
+ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
+				      double conversion_point,
+				      double conversion_length)
+  throw(null_child,Interval::interval_out_of_range)
 {
   if (child == 0) throw null_child();
-  return std::make_pair<Node*,Node*>(child,0);
-#if 0 // FIXME
-  GeneConversionNode *n = new GeneConversionNode(time,child);
-  _gene_conversion_node_pool.push_back(n);
-  return n;
-#endif
+
+  if (conversion_point+conversion_length <= child->intervals().first_point())
+    return std::make_pair<Node*,Node*>(child,0);
+  if (child->intervals().last_point() <= conversion_point)
+    return std::make_pair<Node*,Node*>(child,0);
+
+  // FIXME: we could optimize here by not creating intervals without markers
+
+  Intervals left  =
+    child->intervals().copy(0.0, conversion_point)
+    + child->intervals().copy(conversion_point+conversion_length, 1.0);
+  Intervals right =
+    child->intervals().copy(conversion_point,
+			    conversion_point+conversion_length);
+
+  GeneConversionNode *n1 = new GeneConversionNode(time,child,left);
+  GeneConversionNode *n2 = new GeneConversionNode(time,child,right);
+  _node_pool.push_back(n1); _node_pool.push_back(n2);
+
+  return std::make_pair<Node*,Node*>(n1,n2);
 }
 
 

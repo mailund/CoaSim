@@ -10,7 +10,7 @@ source = coasim.cc \
 
 interval_test_objects = interval_test.o interval.o
 configuration_test_objects = configuration.o configuration_test.o
-node_test_objects = node_test.o node_t.o interval.o test_dist_funcs.o
+node_test_objects = node_test.o node_t.o interval.o test_dist_funcs.o configuration.o
 
 #coasim : $(objects)
 #	$(CXX) $(CXXFLAGS) -o coasim $(objects)
@@ -36,6 +36,8 @@ node_test: $(node_test_objects)
 
 
 coasim.o: coasim.cc node.o builder.o descender.hh reporter.hh dist_funcs.hh
+
+configuration_test.o: configuration_test.cc configuration.hh configuration.cc
 
 interval.o: interval.hh interval.cc
 interval_test.o: interval.hh interval.cc interval_test.cc testing.hh

@@ -15,11 +15,11 @@ public:
   // it must be closed in one end and open in the other, it cannot be
   // a point.
   struct empty_interval : public std::logic_error {
-    empty_interval(const std::string &er) : std::logic_error(er) {}
+    empty_interval() : std::logic_error("empty interval.") {}
   };
   // exception thrown in the interval is not in the range [0,1)
   struct interval_out_of_range : public std::logic_error {
-    interval_out_of_range(const std::string &er) : std::logic_error(er) {}
+    interval_out_of_range() : std::logic_error("interval out of range.") {}
   };
 
   Interval(double start, double end, unsigned int leaf_contacts = 0)
@@ -87,19 +87,19 @@ public:
   // exception thrown if an interval is added out of sequence (i.e. is
   // less than a previous added interval.
   struct out_of_sequence : public std::logic_error {
-    out_of_sequence(const std::string &er) : std::logic_error(er) {}
+    out_of_sequence() : std::logic_error("intervals out of sequence.") {}
   };
 
   // exception thrown if we try to copy an empty or inverted
   // (stop<=start) sub-interval.
   struct illegal_interval : public std::logic_error {
-    illegal_interval(const std::string &er) : std::logic_error(er) {}
+    illegal_interval() : std::logic_error("illegal interval.") {}
   };
 
   // add an interval to the Intervals -- the added interval must start
   // later than the previously added intervals.
   void add(const Interval &i) throw(out_of_sequence);
-  void add(double start, double end, int contacts)
+  void add(double start, double end, int contacts = 0)
     throw(out_of_sequence, Interval::empty_interval,
 	  Interval::interval_out_of_range);
 
@@ -138,12 +138,6 @@ public:
   Intervals add_intervals(const Intervals &i) const throw(out_of_sequence);
   Intervals operator + (const Intervals &i)   const throw(out_of_sequence);
 
-
-  // FIXME: I am not sure how this method is used, but I think that it
-  // might be better as a version of copy (?)
-  static std::vector<Interval> intervals_in_range(std::vector<Interval> i_starts, double start, double stop);
-
-
 private:
 
   // INVARIANT: The _intervals vector contains the non-overlapping
@@ -176,12 +170,12 @@ inline bool Intervals::contains_point(double point) const
 
 inline double Intervals::first_point() const throw(std::out_of_range)
 {
-  if (_intervals.size() == 0) throw std::out_of_range("Empty interval");
+  if (_intervals.size() == 0) throw std::out_of_range("no intervals!");
   return _intervals.front().start();
 }
 inline double Intervals::last_point() const throw(std::out_of_range)
 {
-  if (_intervals.size() == 0) throw std::out_of_range("Empty interval");
+  if (_intervals.size() == 0) throw std::out_of_range("no intervals!");
   return _intervals.back().end();
 }
 

@@ -43,36 +43,34 @@ namespace
 void Uninitialized::add_value(int value)
   throw(uninitialized_marker_type,illegal_value)
 {
-  throw uninitialized_marker_type();
+  throw uninitialized_marker_type("Accessing an uninitialized marker.");
 }
 
 void SNPSet::add_value(int value)
   throw(uninitialized_marker_type,illegal_value)
 {
-  throw illegal_value();
+  throw illegal_value("Setting illegal marker type.");
 }
 
 void MicroSatelliteSet::add_value(int value)
   throw(uninitialized_marker_type,illegal_value)
 {
-  if (value < 0) throw illegal_value();
+  if (value < 0) throw illegal_value("Setting illegal marker type.");
   _values.push_back(value);
 }
 
 void TraitSet::add_value(int value)
   throw(uninitialized_marker_type,illegal_value)
 {
-  throw illegal_value();
+  throw illegal_value("Setting illegal marker type.");
 }
 
-
-Configuration::Configuration(size_t no_markers) :
-  _positions(std::vector<double>(no_markers,0.0)),
-  _value_sets(std::vector<ValueSet*>(no_markers))
+void Configuration::initialize_value_sets()
 {
-  for (size_t m = 0; m < no_markers; ++m)
-    _value_sets[m] = new Uninitialized();
+  for (size_t i = 0; i < _positions.size(); ++i)
+    _value_sets.push_back(new Uninitialized());
 }
+
 
 Configuration::~Configuration()
 {

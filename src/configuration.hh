@@ -12,13 +12,18 @@ public:
   class ValueSet
   {
   public:
+
     // exception thrown if we try to add to a value set before the type
     // of the marker has been initialized
-    class uninitialized_marker_type : public std::exception {};
+    struct uninitialized_marker_type : public std::logic_error {
+      uninitialized_marker_type() : std::logic_error("uninitialized marker."){}
+    };
 
     // exception thrown if we try to add a value to a value set that
     // doesn't fit the type of the value set
-    class illegal_value : public std::exception {};
+    struct illegal_value : public std::logic_error {
+      illegal_value() : std::logic_error("illegal marker value.") {}
+    };
 
     virtual ~ValueSet() {};
 
@@ -31,15 +36,24 @@ public:
     std::vector<int> _values;
   };
 
-  Configuration(size_t no_markers);
+  // exception thrown if the configuration is initialized with
+  // un-sorted positions
+  struct out_of_sequence : public std::logic_error {
+    out_of_sequence() : std::logic_error("Marker positions not sorted."){}
+  };
+
+  // initialize the configuration with the marker positions given by
+  // the sequence from begin to end -- an exception is thrown if the
+  // positions are not sorted in increasing order
+  template <typename InItr>
+  Configuration(InItr begin, InItr end) throw(out_of_sequence);
   ~Configuration();
 
   // number of markers for the configuration
   size_t no_markers() const { return _positions.size(); }
 
   // the positions of the markers
-  double position(size_t index)                 const throw(std::out_of_range);
-  void set_position(size_t index, double pos)         throw(std::out_of_range);
+  double position(size_t index) const throw(std::out_of_range);
 
 
   // accessors to the possible values of a marker
@@ -50,9 +64,28 @@ public:
   void set_marker_type(size_t marker, marker_t type) throw(std::out_of_range);
 
 private:
+  // disable these
+  Configuration(const Configuration&);
+  Configuration& operator = (const Configuration&);
+
+  // set the value sets to uninitialized values
+  void initialize_value_sets();
+
   std::vector<double>    _positions;
   std::vector<ValueSet*> _value_sets;
 };
+
+
+template <typename InItr>
+Configuration::Configuration(InItr begin, InItr end)
+  throw(out_of_sequence)
+{
+  for (InItr itr = begin; itr != end; ++itr)
+    _positions.push_back(*itr);
+  for (size_t m = 1; m < _positions.size(); ++m)
+    if (_positions[m-1] >= _positions[m]) throw out_of_sequence();
+  initialize_value_sets();
+}
 
 
 
@@ -61,15 +94,6 @@ inline double Configuration::position(size_t index)
 {
   return _positions.at(index);
 }
-
-inline void Configuration::set_position(size_t index, double pos)
-  throw(std::out_of_range)
-{
-  if (pos < 0.0 or 1.0 <= pos)
-    throw std::out_of_range("position must be in [0.0,1.0)");
-  _positions.at(index) = pos;
-}
-
 
 inline int Configuration::ValueSet::value(size_t index)
   const throw (std::out_of_range)

@@ -8,13 +8,13 @@ using std::min; using std::max;
 
 void Interval::check_empty() const throw(empty_interval)
 {
-  if (length() <= 0.0) throw empty_interval("Creating empty interval.");
+  if (length() <= 0.0) throw empty_interval();
 }
 
 void Interval::check_range() const throw(interval_out_of_range)
 {
   if ((start() < 0 or 1 <= start()) or (end() <= 0 or 1 < end()))
-    throw interval_out_of_range("Creating interval with illegal range.");
+    throw interval_out_of_range();
 }
 
 Interval::Interval(double start, double end, unsigned int leaf_contacts)
@@ -32,7 +32,7 @@ void Intervals::add(const Interval &i) throw(out_of_sequence)
   if (_intervals.size() == 0 or _intervals.back().end() <= i.start())
     _intervals.push_back(i);
   else
-    throw out_of_sequence("Interval added out of sequence");
+    throw out_of_sequence();
 }
 
 void Intervals::add(double start, double end, int contacts)
@@ -61,6 +61,9 @@ Intervals::interval_starting_before(double point) const
 std::vector<Interval>::const_iterator
 Intervals::interval_starting_after(double point) const
 {
+  // special case to be able to handle the endpoint
+  if (point == 1.0) return _intervals.end();
+
   Interval dummy_interval(point,1.0);
   std::vector<Interval>::const_iterator itr;
   itr = upper_bound(_intervals.begin(),_intervals.end(), dummy_interval);
@@ -76,8 +79,11 @@ bool Intervals::check_predicate(double point,
 {
   using std::bind2nd;   using std::mem_fun_ref;
 
+  if (point == 1.0) // special case, needed to check for endpoint in 1.0
+    return (_intervals.back().*predicate)(point);
+
   if (point < 0.0 or 1.0 <= point)
-    throw std::out_of_range("Point must be in [0,1).");
+    throw std::out_of_range("checking point out of the [0,1) range.");
 
   std::vector<Interval>::const_iterator start, stop, res;
   start = interval_starting_before(point);
@@ -88,15 +94,13 @@ bool Intervals::check_predicate(double point,
 
 
 
-// Adds the intervals where first comes before second, but where the
-// last element of first might overlap the first of second (if that is
-// the case the two intervals are joined).
+// Adds the intervals where first comes before second
 Intervals Intervals::add_ordered_intervals(Intervals const &first,
 					   Intervals const &second)
   throw(out_of_sequence)
 {
   if (first._intervals.back().overlaps(second._intervals.front()))
-    throw out_of_sequence("Addition of un-ordered intervals.");
+    throw out_of_sequence();
 
   Intervals result(first);
   std::copy(second._intervals.begin(), second._intervals.end(),
@@ -127,14 +131,14 @@ Intervals Intervals::add_intervals(const Intervals &i) const
   else if (i._intervals.back().start() <= _intervals.front().start())
     return add_ordered_intervals(i,*this);
   else
-    throw out_of_sequence("Adding intervals not ordered correctly.");
+    throw out_of_sequence();
 
   return result;
 }
 
 
 
-// copy the intervals between start and stop, trunkating the
+// Copy the intervals between start and stop, trunkating the
 // end-intervals to start and stop.
 Intervals Intervals::copy(double start, double stop) const
   throw(illegal_interval)
@@ -142,9 +146,9 @@ Intervals Intervals::copy(double start, double stop) const
   std::vector<Interval>::const_iterator first, last, itr;
   Intervals result;
 
-  if (stop <= start) throw illegal_interval("Copying in illegal interval.");
-  if (start < 0.0)   throw illegal_interval("Copying in illegal interval.");
-  if (1.0 <= stop)   throw illegal_interval("Copying in illegal interval.");
+  if (stop <= start) throw illegal_interval();
+  if (start < 0.0)   throw illegal_interval();
+  if (1.0 < stop)    throw illegal_interval();
 
   first = interval_starting_before(start);
   last = interval_starting_after(stop);
@@ -152,21 +156,19 @@ Intervals Intervals::copy(double start, double stop) const
   // first points to the right-most interval that starts *before* start
   // last points to the left-most interval that starts *after* stop
 
-#if 0
-  std::cout << "first: [" << first->start() << ',' << first->end() << ")\n"
-	    << "last:  [" << last->start() << ',' << last->end() << ")\n";
-#endif
-
   /* -- handle first -------------------------------------*/
-  // if first contains start, we cut [start,first->end), otherwise we
-  // just skip the first interval; the next must be completely
-  // included as it must start *after* start, according to the
-  // specification of interval_starting_before: if it did not it would
-  // be to the right of the right-most interval that starts before
-  // start
+  // if first contains start, we cut [start,first->end) -- or
+  // [start,stop) if stop < first->end -- otherwise we just skip the
+  // first interval; the next must be completely included as it must
+  // start *after* start, according to the specification of
+  // interval_starting_before: if it did not it would be to the right
+  // of the right-most interval that starts before start
 
-  if (start < first->end()) result.add(start,first->end(),
-				       first->leaf_contacts());
+  if (start < first->end())
+    if (stop < first->end())
+      result.add(start, stop, first->leaf_contacts());
+    else
+      result.add(start, first->end(), first->leaf_contacts());
 			      
   /* -- handle the rest ----------------------------------*/
   // the only special case is the last interval, where we must make
@@ -185,13 +187,13 @@ Intervals Intervals::copy(double start, double stop) const
     }
 
 #if 0
+  std::cout << "copy of [" << start << ',' << stop << "):\n";
   for (itr = result._intervals.begin(); itr != result._intervals.end(); ++itr)
     std::cout << '[' << itr->start() << ',' << itr->end() << ")\n";
 #endif
 
   return result;
 }
-
 
 Intervals Intervals::merge(const Intervals& i) const
 {
@@ -206,16 +208,17 @@ Intervals Intervals::merge(const Intervals& i) const
   std::vector<Interval> res_intervals;
   std::vector<Interval>::const_iterator itr = tmp_merge.begin();
 
-  // `interval' points to the interval we are currently processing,
-  // `itr' to the next we will consider.  If `interval' does not
-  // overlap `*itr', we insert `interval' and move on.  If `interval'
-  // overlaps `*itr' we split the two intervals in three, insert the first
-  // two and move on with the third.
-  Interval interval = *itr;
+  res_intervals.push_back(*itr);
   for (++itr; itr != tmp_merge.end(); ++itr)
     {
-      if (interval.overlaps(*itr))
+      if (! res_intervals.back().overlaps(*itr))
+	res_intervals.push_back(*itr); // just move on to the next
+      else
 	{
+	  // the last interval shouldn't really habe be added -- it
+	  // overlaps the next -- so handle that
+	  Interval interval = res_intervals.back(); res_intervals.pop_back();
+
 	  double start1, end1;
 	  double start2, end2;
 	  double start3, end3;
@@ -225,47 +228,37 @@ Intervals Intervals::merge(const Intervals& i) const
 	  start3 = end2 = interval.end();
 	  end3 = itr->end();
 
-	  // The first interval covers the same leaves as `interval'
+	  // We know that interval 2 cannot be empty, as the two
+	  // original intervals overlap, but both interval 1 and
+	  // interval 3 can potentially be
+
+	  try {
+	    // The first interval covers the same leaves as `interval'
+	    res_intervals.push_back(Interval(start1,end1,
+					     interval.leaf_contacts()));
+	  } catch (Interval::empty_interval&) {};
 	  // The second interval joins the two intervals' trees
-	  // The third interval covers the same leaves as `*itr'
-
-	  Interval i1(start1,end1,interval.leaf_contacts());
-	  Interval i2(start2,end2,
-		      interval.leaf_contacts()+itr->leaf_contacts());
-	  Interval i3(start3,end3,itr->leaf_contacts());
-
-	  res_intervals.push_back(i1);
-	  res_intervals.push_back(i2);
-	  interval = i3;
-	}
-      else
-	{
-	  res_intervals.push_back(interval);
-	  interval = *itr;
+	  res_intervals.push_back(Interval(start2,end2,
+					   interval.leaf_contacts()
+					   +itr->leaf_contacts()));
+	  try {
+	    // The third interval covers the same leaves as `*itr'
+	    res_intervals.push_back(Interval(start3,end3,
+					     itr->leaf_contacts()));
+	  } catch (Interval::empty_interval&) {};
 	}
     }
-  // remember to include the last interval
-  res_intervals.push_back(interval);
+
+#if 0
+  std::cout << "Merge:\n";
+  for (itr = res_intervals.begin(); itr != res_intervals.end(); ++itr)
+    std::cout << '[' << itr->start() << ',' << itr->end() << ")\n";
+#endif
+
 
   Intervals res; res._intervals = res_intervals;
   return res;
 }
 
   
-
-
-// FIXME: I haven't refactored this method yet!
-std::vector<Interval> Intervals::intervals_in_range(std::vector<Interval> i_starts, double start, double stop)
-{
-  std::vector<Interval> res;
-#if 0				// FIXME
-  unsigned int index = 0;
-  while (i_starts[index].start()<stop+Interval::epsilon){
-    if ((i_starts[index].start()<start+Interval::epsilon)&&(i_starts[index].end()+Interval::epsilon>stop)) res.push_back(i_starts[index]);
-    index++;
-    if (index>i_starts.size()-1) break;
-  }
-#endif
-  return res;
-}
 

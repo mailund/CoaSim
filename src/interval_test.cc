@@ -139,6 +139,7 @@ static void test_Intervals()	// sorted, non-overlapping intervals
   for (int i = 0; i < no_intervals; ++i)
     CHECK(intervals.is_end(interval_array[i].end()));
 
+  CHECK(!intervals.is_end(1.0));
 
   for (int i = 0; i < no_intervals; ++i)
     CHECK(intervals.contains_point(starts[i]+(ends[i]-starts[i])/2));
@@ -193,15 +194,27 @@ static void test_Intervals()	// sorted, non-overlapping intervals
 
   Intervals cp = intervals.copy(0.0,0.1);
   CHECK(cp.size() == 1);
+  CHECK(cp.first_point() == 0.0);
+  CHECK(cp.last_point()  == 0.1);
 
   cp = intervals.copy(0.0,0.05);
   CHECK(cp.size() == 1);
+  CHECK(cp.first_point() == 0.0);
+  CHECK(cp.last_point()  == 0.05);
 
   cp = intervals.copy(0.015,0.035);
   CHECK(cp.size() == 1);
+  CHECK(cp.first_point() == 0.015);
+  CHECK(cp.last_point()  == 0.035);
 
   cp = intervals.copy(0.05,0.15);
   CHECK(cp.size() == 2);
+  CHECK(cp.first_point() == 0.05);
+  CHECK(cp.last_point()  == 0.15);
+  CHECK(cp.is_start(0.05));
+  CHECK(cp.is_end  (0.10));
+  CHECK(cp.is_start(0.10));
+  CHECK(cp.is_end  (0.15));
 
   cp = intervals.copy(0.22,0.24);
   CHECK(cp.size() == 0);
@@ -214,13 +227,30 @@ static void test_Intervals()	// sorted, non-overlapping intervals
 
   cp = intervals.copy(0.25,0.30);
   CHECK(cp.size() == 1);
+  CHECK(cp.first_point() == 0.25);
+  CHECK(cp.last_point()  == 0.30);
 
   cp = intervals.copy(0.25,0.45);
   CHECK(cp.size() == 3);
+  CHECK(cp.first_point() == 0.25);
+  CHECK(cp.last_point()  == 0.45);
+  CHECK(cp.is_start(0.25));
+  CHECK(cp.is_end  (0.30));
+  CHECK(cp.is_start(0.30));
+  CHECK(cp.is_end  (0.40));
+  CHECK(cp.is_start(0.40));
+  CHECK(cp.is_end  (0.45));
 
   cp = intervals.copy(0.25,0.50);
   CHECK(cp.size() == 3);
-
+  CHECK(cp.first_point() == 0.25);
+  CHECK(cp.last_point()  == 0.50);
+  CHECK(cp.is_start(0.25));
+  CHECK(cp.is_end  (0.30));
+  CHECK(cp.is_start(0.30));
+  CHECK(cp.is_end  (0.40));
+  CHECK(cp.is_start(0.40));
+  CHECK(cp.is_end  (0.50));
 
   intervals.reset();
   CHECK(intervals.size() == 0);
@@ -797,89 +827,6 @@ static void test_Intervals_merge()
 }
 
 
-static void test_intervals_in_range()
-{
-  return; // FIXME: refactor this test when the method has been
-	  // re-factored
-
-  //   0.00 0.10 0.20 0.30 0.40 0.50
-  // 0: |---------|
-  // 1:      |----|
-  // 2:           |----|
-  // 3:                |---------|
-  // 4                      |----|
-  static double starts[] =  { 0.00, 0.10, 0.20, 0.30, 0.40, };
-  static double lengths[] = { 0.20, 0.10, 0.10, 0.20, 0.10, };
-
-  Interval interval_array[] = {
-    Interval(starts[0],lengths[0]),
-    Interval(starts[1],lengths[1]),
-    Interval(starts[2],lengths[2]),
-    Interval(starts[3],lengths[3]),
-    Interval(starts[4],lengths[4]),
-  };
-  const int no_intervals = (sizeof interval_array)/sizeof(Interval);
-
-  std::vector< Interval > intervals(interval_array, interval_array+no_intervals);
-  std::vector< Interval > is1, is2, is3, is4, is5;
-
-  // -- testing middle of intervals --------------------------------
-
-  is1 = Intervals::intervals_in_range(intervals, 11, 19);
-
-  CHECK(is1.size() == 2);
-  CHECK(find(is1.begin(),is1.end(),interval_array[0]) != is1.end());
-  CHECK(find(is1.begin(),is1.end(),interval_array[1]) != is1.end());
-  CHECK(find(is1.begin(),is1.end(),interval_array[2]) == is1.end());
-  CHECK(find(is1.begin(),is1.end(),interval_array[3]) == is1.end());
-  CHECK(find(is1.begin(),is1.end(),interval_array[4]) == is1.end());
-
-  is2 = Intervals::intervals_in_range(intervals, 21, 24);
-
-  CHECK(is2.size() == 1);
-  CHECK(find(is2.begin(),is2.end(),interval_array[0]) == is2.end());
-  CHECK(find(is2.begin(),is2.end(),interval_array[1]) == is2.end());
-  CHECK(find(is2.begin(),is2.end(),interval_array[2]) != is2.end());
-  CHECK(find(is2.begin(),is2.end(),interval_array[3]) == is2.end());
-  CHECK(find(is2.begin(),is2.end(),interval_array[4]) == is2.end());
-
-  // -- testing end of intervals -----------------------------------
-  // FIXME: I'm not completly sure about this one, should the
-  // end-points be considered in the interval?  in other words, which
-  // ends of the interval are open and which are closed?  Here I've
-  // just assumed that both end-points are closed.
-
-  is3 = Intervals::intervals_in_range(intervals, 0, 0.1);
-
-  CHECK(is3.size() == 1);
-  CHECK(find(is3.begin(),is3.end(),interval_array[0]) != is3.end());
-  CHECK(find(is3.begin(),is3.end(),interval_array[1]) == is3.end());
-  CHECK(find(is3.begin(),is3.end(),interval_array[2]) == is3.end());
-  CHECK(find(is3.begin(),is3.end(),interval_array[3]) == is3.end());
-  CHECK(find(is3.begin(),is3.end(),interval_array[4]) == is3.end());
-
-  is4 = Intervals::intervals_in_range(intervals, 50, 50.1);
-  
-  CHECK(is4.size() == 2);
-  CHECK(find(is4.begin(),is4.end(),interval_array[0]) == is4.end());
-  CHECK(find(is4.begin(),is4.end(),interval_array[1]) == is4.end());
-  CHECK(find(is4.begin(),is4.end(),interval_array[2]) == is4.end());
-  CHECK(find(is4.begin(),is4.end(),interval_array[3]) != is4.end());
-  CHECK(find(is4.begin(),is4.end(),interval_array[4]) != is4.end());
-  
-
-  // -- testing outside intervals ----------------------------------
-
-  is5 = Intervals::intervals_in_range(intervals, 60, 60.1);
-
-  CHECK(is5.size() == 0);
-  CHECK(find(is5.begin(),is5.end(),interval_array[0]) == is5.end());
-  CHECK(find(is5.begin(),is5.end(),interval_array[1]) == is5.end());
-  CHECK(find(is5.begin(),is5.end(),interval_array[2]) == is5.end());
-  CHECK(find(is5.begin(),is5.end(),interval_array[3]) == is5.end());
-  CHECK(find(is5.begin(),is5.end(),interval_array[4]) == is5.end());
-
-}
 
 int main(int argc, const char *argv[])
 {
@@ -897,10 +844,6 @@ int main(int argc, const char *argv[])
   //test_Intervals_add_intervals();
   test_Intervals_sum();
   test_Intervals_merge();
-
-  REPORT_RESULTS;
-
-  test_intervals_in_range();
 
   } catch (std::exception &ex) {
     std::cout << "EXCEPTION: " << ex.what() << std::endl;
