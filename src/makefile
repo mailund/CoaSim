@@ -1,5 +1,5 @@
 CXX = c++
-CXXFLAGS = -Wall -O3
+CXXFLAGS = -Wall -O3 -lpopt
 
 objects = coasim.o node.o builder.o interval.o descender.o
 source = coasim.cc \

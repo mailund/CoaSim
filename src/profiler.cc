@@ -32,6 +32,7 @@
 #endif
 
 #include <time.h>
+#include <popt.h>
 
 
 enum marker_type_t { TRAIT, SNP, MS };
@@ -156,19 +157,146 @@ time_t run_simulation(unsigned int no_leaves,
   return time(0) - start_time;
 }
 		      
+namespace options {
+  int no_leaves;
+
+  int no_traits;
+  int no_snps;
+  int no_ms;
+
+  double rho;
+  double Q;
+  double G;
+  double growth;
+  double mu;
+}
+
+static struct poptOption cl_options[] = {
+    {
+      "leaves",
+      'l',
+      POPT_ARG_INT,
+      &options::no_leaves,
+      0,
+      "Set number of leaves.",
+      "no-leaves"
+    },
+
+    {
+      "traits",
+      '\0',
+      POPT_ARG_INT,
+      &options::no_traits,
+      0,
+      "Set number of trait markers.",
+      "no-traits"
+    },
+    {
+      "snps",
+      '\0',
+      POPT_ARG_INT,
+      &options::no_snps,
+      0,
+      "Set number of SNP markers.",
+      "no-snps"
+    },
+    {
+      "ms",
+      '\0',
+      POPT_ARG_INT,
+      &options::no_ms,
+      0,
+      "Set number of micro sattelite markers.",
+      "no-mss"
+    },
+
+    {
+      "rho",
+      '\0',
+      POPT_ARG_DOUBLE,
+      &options::rho,
+      0,
+      "Set rho.",
+      "rho"
+    },
+    {
+      "Q",
+      'Q',
+      POPT_ARG_DOUBLE,
+      &options::Q,
+      0,
+      "Set Q.",
+      "Q"
+    },
+    {
+      "G",
+      'G',
+      POPT_ARG_DOUBLE,
+      &options::G,
+      0,
+      "Set G.",
+      "G"
+    },
+    {
+      "growth",
+      '\0',
+      POPT_ARG_DOUBLE,
+      &options::growth,
+      0,
+      "Set growth.",
+      "growth"
+    },
+    {
+      "mu",
+      '\0',
+      POPT_ARG_DOUBLE,
+      &options::mu,
+      0,
+      "Set mu.",
+      "mu"
+    },
+
+
+    POPT_AUTOHELP
+    { 0 } // sentinel
+};
 
 int main(int argc, const char *argv[])
 {
-  try {
 
-    // dummy test call
-    time_t runtime = run_simulation(2, 1, 10, 10,
-				    //5.0, 250.0, 20.0, 5.0, 5.0);
-				    5.0, 250.0, 250.0, 5.0, 5.0);
+  poptContext ctxt = poptGetContext(0, argc, argv, cl_options, 0);
+  int opt = poptGetNextOpt(ctxt);
+  if (opt < -1)
+    {
+      std::cerr << poptBadOption(ctxt, POPT_BADOPTION_NOALIAS)
+		<< ':' << poptStrerror(opt) << std::endl;
+      return 2;
+    }
+
+  if (!options::no_leaves)
+    {
+      std::cerr << "number of leaves not specified!\n";
+      return 2;
+    }
+
+
+  try {
+    time_t runtime = run_simulation(options::no_leaves,
+
+				    options::no_traits,
+				    options::no_snps,
+				    options::no_ms,
+
+				    options::rho,
+				    options::Q,
+				    options::G,
+				    options::growth,
+				    options::mu);
 
     std::cout << "test took " << runtime << " seconds\n";
 
   } catch (std::exception &ex) {
     std::cout << "EXCEPTION: " << ex.what() << std::endl;
+    return 2;
   }
 }
