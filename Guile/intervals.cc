@@ -174,9 +174,8 @@ namespace {
 <method name="interval-end">
   <brief>Returns the end position of an interval.</brief>
   <prototype>(interval-end interval)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
 (map interval-end intervals)</example>
   <description>
     <p>
@@ -201,9 +200,8 @@ namespace {
 <method name="total-branch-length">
   <brief>Returns the total tree branch length of the local tree of an interval.</brief>
   <prototype>(total-branch-length interval-or-tree)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
 (map total-branch-length intervals)</example>
   <description>
     <p>
@@ -244,9 +242,8 @@ namespace {
 <method name="interval->tree">
   <brief>Returns tree local to an interval.</brief>
   <prototype>(interval->tree interval)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
 (define trees (map interval->tree intervals)) </example>
   <description>
     <p>Returns the tree local to an interval.</p>
@@ -272,9 +269,8 @@ namespace {
 <method name="tree->interval">
   <brief>Returns interval a local tree covers.</brief>
   <prototype>(tree->interval tree)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
 (define trees (map interval->tree intervals)) 
 (define intervals2 (map tree->interval trees))</example>
   <description>

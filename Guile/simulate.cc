@@ -237,14 +237,13 @@ void ProfileMonitor::builder_termination(unsigned int no_nodes,
 
 <method name="simulate">
   <brief>Simulate an ARG and corresponding sequences.</brief>
-  <prototype>(simulate arg-parameters marker-list no-leaves . additional-keyword-parameters)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate p markers 100))
+  <prototype>(simulate marker-list no-leaves . additional-keyword-parameters)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :rho 400 :beta 10))
 
 (define coa-times '())
 (define (coa-cb n k) (set! coa-times (cons (event-time n) coa-times)))
-(simulate p markers 10 :coalescence-callback coa-cb)
+(simulate markers 10 :coalescence-callback coa-cb :rho 400 :beta 10)
 (display "coalescence times:\n")
 (map (lambda (t) (display t)(newline)) coa-times)
 (newline)</example>
@@ -253,6 +252,29 @@ void ProfileMonitor::builder_termination(unsigned int no_nodes,
       Simulate an ARG and corresponding sequences, based ARG parameters, 
       a list of markers, and the number of markers to simulate.
     </p>
+    <p>
+      The building of the ARG is affected by the following paramters, that 
+      can be set using keyword arguments:
+    </p>
+    <ul>
+      <li><b>rho:</b> the <em>scaled recombination rate</em>, rho=4Nr.  See 
+        e.g. <em>Hein, Schierup and Wiuf:</em> Gene Genealogies, Variation
+        and Evolution, section 5.5 for details.
+	By default, this parameter is 0.
+      </li>
+      <li><b>gamma:</b> the <em>scaled gene-conversion rate</em>, gamma=4Ng.
+        See e.g. <em>Hein, et al.:</em> section 5.10 for details.
+	By default, this parameter is 0.
+      </li>
+      <li><b>Q:</b> the <em>gene-conversion tract length intensity</em>.
+        See e.g. <em>Hein, et al.:</em> section 5.10 for details.
+	By default, this parameter is 0.
+      </li>
+      <li><b>beta:</b> the <em>exponential growth rate</em>, beta=2Nb.
+        See e.g. <em>Hein, et al.:</em> section 4.3 for details.
+	By default, this parameter is 0.
+      </li>
+    </ul>
     <p>
       For fine-monitoring of the simulation, callback functions can be given
       as key-word arguments.  The supported callbacks are:
@@ -368,7 +390,7 @@ void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
 
 static SCM
 simulate(SCM s_markers, SCM s_no_leaves,
-	 SCM s_rho, SCM s_G, SCM s_Q, SCM s_beta,
+	 SCM s_rho, SCM s_gamma, SCM s_Q, SCM s_beta,
 	 SCM coa_cb, SCM rc_cb, SCM gc_cb, SCM s_random_seed)
 {
     using namespace std;
@@ -376,10 +398,10 @@ simulate(SCM s_markers, SCM s_no_leaves,
     SCM_ASSERT(SCM_NFALSEP(scm_list_p(s_markers)),
 	       s_markers, SCM_ARG1, "simulate");
 
-    double rho  = scm_num2dbl(s_rho,  "simulate");
-    double Q    = scm_num2dbl(s_Q,    "simulate");
-    double G    = scm_num2dbl(s_G,    "simulate");
-    double beta = scm_num2dbl(s_beta, "simulate");
+    double rho   = scm_num2dbl(s_rho,   "simulate");
+    double Q     = scm_num2dbl(s_Q,     "simulate");
+    double gamma = scm_num2dbl(s_gamma, "simulate");
+    double beta  = scm_num2dbl(s_beta,  "simulate");
 
     SCM itr_markers = s_markers;
     vector<core::Marker*> markers;
@@ -431,7 +453,8 @@ simulate(SCM s_markers, SCM s_no_leaves,
 	auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
 	auto_ptr<core::Configuration> conf(new core::Configuration(no_leaves,
 								   markers.begin(), markers.end(),
-								   rho, Q, G, 
+								   rho,
+								   Q, gamma, 
 								   beta));
 	auto_ptr<core::ARG> arg(core::Simulator::simulate(*conf, 
 							  monitor.get(),
@@ -458,9 +481,8 @@ simulate(SCM s_markers, SCM s_no_leaves,
 <method name="save-sequences">
   <brief>Save the sequences from a simulated ARG to a file.</brief>
   <prototype>(save-sequences arg file-name)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate p markers 100))
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :rho 400))
 (save-sequences arg "haplotypes.txt")</example>
   <description>
     <p>Save the sequences from a simulated ARG to a file.
@@ -494,9 +516,8 @@ save_sequences(SCM arg_data_smob, SCM s_filename)
 <method name="sequences">
   <brief>Returns the simulated sequences of an ARG as a list of lists.</brief>
   <prototype>(sequences arg)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define haplotypes (let ((arg (simulate p markers 100))) (sequences arg)))</example>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define haplotypes (let ((arg (simulate markers 100 :rho 400))) (sequences arg)))</example>
   <description>
     <p>Returns the simulated sequences of an ARG as a list of lists.
     </p>
@@ -534,9 +555,8 @@ sequences(SCM arg_data_smob)
 <method name="intervals">
   <brief>Returns the intervals sharing genealogy in the ARG as a list.</brief>
   <prototype>(intervals arg)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))</example>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))</example>
   <description>
     <p>
      Returns the intervals sharing genealogy in the ARG as a list.
@@ -550,7 +570,7 @@ sequences(SCM arg_data_smob)
   <prototype>(local-trees arg)</prototype>
   <example>(define p (arg-parameters rho Q G beta))
 (define markers (make-random-snp-markers 10 0.1 0.9))
-(define trees (let ((arg (simulate p markers 100))) (local-trees arg)))</example>
+(define trees (let ((arg (simulate markers 100 :rho 400))) (local-trees arg)))</example>
   <description>
     <p>
      Returns the local trees, i.e. the trees for 
@@ -592,9 +612,8 @@ intervals(SCM arg_data_smob)
 <method name="no-recombinations">
   <brief>Returns the number of recombinations in the ARG.</brief>
   <prototype>(no-recombinations arg)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate p markers 100))
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :rho 400))
 (define n (no-recombinations arg))</example>
   <description>
     <p>
@@ -620,9 +639,8 @@ no_recomb_events(SCM arg_data_smob)
 <method name="no-coalescence-events">
   <brief>Returns the number of coalescence events in the ARG.</brief>
   <prototype>(no-coalescence-events arg)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate p markers 100))
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :rho 400))
 (define n (no-coalescence-events arg))</example>
   <description>
     <p>
@@ -649,9 +667,8 @@ no_coal_events(SCM arg_data_smob)
 <method name="no-gene-conversions">
   <brief>Returns the number of gene conversions in the ARG.</brief>
   <prototype>(no-gene-conversions arg)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate p markers 100))
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :gamma 10 :Q 0.2))
 (define n (no-gene-conversions arg))</example>
   <description>
     <p>
@@ -686,16 +703,16 @@ guile::install_simulate()
 		       (scm_unused_struct*(*)())simulate);
     scm_c_eval_string("(use-modules (ice-9 optargs))"
 		      "(define (simulate ms n . args)"
-		      "  (let-keywords args #f ((rho  0)"
-		      "                         (G    0)"
-		      "                         (Q    0)"
-		      "                         (beta 0)"
+		      "  (let-keywords args #f ((rho   0)"
+		      "                         (gamma 0)"
+		      "                         (Q     0)"
+		      "                         (beta  0)"
 		      "                         (coalescence-callback '())"
 		      "                         (recombination-callback '())"
 		      "                         (geneconversion-callback '())"
 		      "                         (random-seed 0))"
 		      "		(c-simulate ms n"
-		      "                     rho G Q beta"
+		      "                     rho gamma Q beta"
 		      "                     coalescence-callback"
 		      "                     recombination-callback"
 		      "                     geneconversion-callback"

@@ -56,7 +56,7 @@ namespace
 		double xx = expdev(nodes_left,double(nodes_left-1)/2);
 		double yy = exp(-conf.growth()*current_time);
 		double time1 = log(1.0+conf.growth()*xx*yy)/conf.growth();
-		double time2 = expdev(nodes_left,conf.G()/2+conf.rho()/2);
+		double time2 = expdev(nodes_left,conf.gamma()/2+conf.rho()/2);
 		if (time1 < time2)
 		    {
 			// coalescence event
@@ -65,15 +65,15 @@ namespace
 		else
 		    {
 			// recomb or gene conversion
-			int event = uniform(conf.G(), conf.rho()) + 1;
+			int event = uniform(conf.gamma(), conf.rho()) + 1;
 			return time_event_t(time2, event);
 		    }
 	    }
 	else
 	    {
 		double time = expdev(nodes_left, double(nodes_left-1)/2
-				                 +conf.G()/2+conf.rho()/2);
-		int event = uniform(double(nodes_left-1), conf.G(), conf.rho());
+				                 +conf.gamma()/2+conf.rho()/2);
+		int event = uniform(double(nodes_left-1), conf.gamma(), conf.rho());
 		return time_event_t(time,event);
 	    }
     }

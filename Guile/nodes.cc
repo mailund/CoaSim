@@ -196,7 +196,7 @@ namespace {
 (define (coa-cb n k) (set! coa-times (cons (event-time n) coa-times)))
 (define rc-times '())
 (define (rc-cb n1 n2) (set! rc-times (cons (event-time n1) rc-times)))
-(simulate parameters markers no-leaves
+(simulate markers no-leaves :rho 400
 	  :coalescence-callback   coa-cb 
 	  :recombination-callback rc-cb) </example>
   <description>
@@ -244,7 +244,7 @@ namespace {
   <prototype>(recombination-point recombination-node)</prototype>
   <example>(define rc-points '())
 (define (rc-cb n1 n2 k) (set! rc-points (cons (recombination-point n1) rc-points)))
-(simulate parameters markers no-leaves :recombination-callback rc-cb) </example>
+(simulate markers no-leaves :rho 400 :recombination-callback rc-cb) </example>
   <description>
     <p>
       Returns the recombination point of a recombination node.
@@ -272,7 +272,7 @@ namespace {
   <prototype>(gene-conversion-start gene-conversion-node)</prototype>
   <example>(define gc-start '())
 (define (gc-cb n1 n2 k) (set! gc-start (cons (gene-conversion-start n1) gc-start)))
-(simulate parameters markers no-leaves :geneconversion-callback gc-cb) </example>
+(simulate markers no-leaves :gamma 10 :Q 0.2 :geneconversion-callback gc-cb) </example>
   <description>
     <p>
       Returns the start point of a gene conversion.
@@ -299,7 +299,7 @@ namespace {
   <prototype>(gene-conversion-end gene-conversion-node)</prototype>
   <example>(define gc-end '())
 (define (gc-cb n1 n2 k) (set! gc-end (cons (gene-conversion-end n1) gc-end)))
-(simulate parameters markers no-leaves :geneconversion-callback gc-cb) </example>
+(simulate markers no-leaves :gamma 10 :Q 0.2 :geneconversion-callback gc-cb) </example>
   <description>
     <p>
       Returns the end point of a gene conversion.

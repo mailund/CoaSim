@@ -47,11 +47,11 @@ namespace core {
 	// Initialize the configuration with the markers given by the
 	// sequence from begin to end -- an exception is thrown if the
 	// positions are not sorted in increasing order; the build
-	// parameters rho, Q, G, and growth.
+	// parameters rho, Q, gamma, and growth.
 	template <typename InItr>
 	Configuration(unsigned int no_leaves,
 		      InItr begin, InItr end,
-		      double rho, double Q, double G, double growth)
+		      double rho, double Q, double gamma, double growth)
 	    throw(out_of_sequence);
 	~Configuration();
 
@@ -87,7 +87,7 @@ namespace core {
 	// Parameters for building the ARG and assigning mutations
 	double rho()    const { return i_rho; }
 	double Q()      const { return i_Q; }
-	double G()      const { return i_G; }
+	double gamma()  const { return i_gamma; }
 	double growth() const { return i_growth; }
 
     private:
@@ -103,7 +103,7 @@ namespace core {
 
 	double i_rho;
 	double i_Q;
-	double i_G;
+	double i_gamma;
 	double i_growth;
 
     };
@@ -112,10 +112,12 @@ namespace core {
     template <typename InItr>
     Configuration::Configuration(unsigned int no_leaves,
 				 InItr begin, InItr end,
-				 double rho, double Q, double G, double growth)
+				 double rho, 
+				 double Q, double gamma,
+				 double growth)
 	throw(out_of_sequence)
 	: i_no_leaves(no_leaves),
-	  i_rho(rho), i_Q(Q), i_G(G), i_growth(growth)
+	  i_rho(rho), i_Q(Q), i_gamma(gamma), i_growth(growth)
     {
 	i_no_markers = end - begin;
     
