@@ -1,7 +1,11 @@
 #include "add_marker_impl.hh"
 
 #include <qtable.h>
+#include <qlineedit.h>
 #include <qspinbox.h>
+#include <qmessagebox.h>
+#include <qslider.h>
+
 #include "baps_float_spin_box.hh"
 
 /* 
@@ -22,9 +26,41 @@ AddMarkerImpl::~AddMarkerImpl()
     // no need to delete child widgets, Qt does it all for us
 }
 
+bool AddMarkerImpl::check_position(double pos) const
+{
+  // since we know that the gui will not allow us to input positions
+  // outside the interval [0.0,1.0), we do not check for this.
+
+  // FIXME: if this turns out to be too slow, use binary search -- we
+  // know the positions are sorted.
+  int no_rows = _marker_table->numRows();
+  for (int i = 0; i < no_rows; ++i)
+    {
+      double row_pos = _marker_table->text(i,0).toDouble();
+      if (row_pos == pos)
+	{
+	  // the pos is not allowed; it is already taken
+	  QMessageBox::warning(0, "Position Error",
+			       "The chosen position is already occupied!",
+			       "OK");
+	  return false;
+	}
+      if (row_pos > pos) break; // no problem with later positions
+    }
+  return true;
+}
+
+
+// FIXME: this scale factor is hard-wired for now; perhaps it
+// shouldn't be...
+static const int POSITION_SCALE_FACTOR = 1000;
+
 
 void AddMarkerImpl::add_trait()
 {
+  double pos = _trait_pos->text().toDouble();
+  if (!check_position(pos)) return;
+
   _marker_table->insertRows(0);
 
   _marker_table->setText(0,0,_trait_pos->text());
@@ -34,10 +70,16 @@ void AddMarkerImpl::add_trait()
   _marker_table->setText(0,4,"");
 
   _marker_table->sortColumn(0,true,true);
+
+  double next_pos = update_next_position(pos);
+  _trait_pos->setValue(int(POSITION_SCALE_FACTOR*next_pos));
 }
 
 void AddMarkerImpl::add_snp()
 {
+  double pos = _snp_pos->text().toDouble();
+  if (!check_position(pos)) return;
+
   _marker_table->insertRows(0);
 
   _marker_table->setText(0,0,_snp_pos->text());
@@ -47,10 +89,16 @@ void AddMarkerImpl::add_snp()
   _marker_table->setText(0,4,"");
 
   _marker_table->sortColumn(0,true,true);
+
+  double next_pos = update_next_position(pos);
+  _snp_pos->setValue(int(POSITION_SCALE_FACTOR*next_pos));
 }
 
 void AddMarkerImpl::add_ms()
 {
+  double pos = _ms_pos->text().toDouble();
+  if (!check_position(pos)) return;
+
   _marker_table->insertRows(0);
 
   _marker_table->setText(0,0,_ms_pos->text());
@@ -60,4 +108,33 @@ void AddMarkerImpl::add_ms()
   _marker_table->setText(0,4,_ms_size->text());
 
   _marker_table->sortColumn(0,true,true);
+
+  double next_pos = update_next_position(pos);
+  _ms_pos->setValue(int(POSITION_SCALE_FACTOR*next_pos + 0.5));
+}
+
+void AddMarkerImpl::next_pos_changed(int pos)
+{
+  double real_pos = double(pos) / POSITION_SCALE_FACTOR;
+  _next_pos->setText(QString("%1").arg(real_pos));
+
+  // WARNING: this only works 'cause the integer positions in the slider
+  // and the spin-boxes have the same interpretation
+  _trait_pos->setValue(pos);
+  _snp_pos  ->setValue(pos);
+  _ms_pos   ->setValue(pos);
+}
+
+double AddMarkerImpl::update_next_position(double pos)
+{
+  double cur_next_pos = _next_pos->text().toDouble();
+  if (pos != cur_next_pos) return cur_next_pos;
+
+  double step = _next_pos_step->text().toDouble();
+  double next_pos = cur_next_pos + step;
+
+  // move position -- this automatically updates all that depends on it.
+  _next_pos_slider->setValue(int(POSITION_SCALE_FACTOR*next_pos + 0.5));
+
+  return next_pos;
 }

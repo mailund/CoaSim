@@ -71,6 +71,9 @@
                     <property name="checked">
                         <bool>true</bool>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Selects whether the entire recomgination graph should be printed, or only the leaves</string>
+                    </property>
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">

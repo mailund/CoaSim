@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>317</width>
-            <height>395</height>
+            <width>396</width>
+            <height>519</height>
         </rect>
     </property>
     <property name="caption">
@@ -21,395 +21,504 @@
         </property>
         <widget class="QGroupBox">
             <property name="name">
-                <cstring>groupBox42</cstring>
+                <cstring>groupBox12</cstring>
             </property>
             <property name="title">
-                <string>Trait Marker</string>
+                <string>Marker Types</string>
             </property>
-            <hbox>
+            <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
-                <widget class="QLayoutWidget">
+                <widget class="QGroupBox">
                     <property name="name">
-                        <cstring>layout5</cstring>
+                        <cstring>groupBox42</cstring>
                     </property>
-                    <vbox>
+                    <property name="title">
+                        <string>Trait Marker</string>
+                    </property>
+                    <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="QLabel">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>textLabel1</cstring>
+                                <cstring>layout5</cstring>
                             </property>
-                            <property name="text">
-                                <string>Position:</string>
-                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Position:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Low Freq.:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>High Freq.:</string>
+                                    </property>
+                                </widget>
+                            </vbox>
                         </widget>
-                        <widget class="QLabel">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>textLabel2</cstring>
+                                <cstring>layout29</cstring>
                             </property>
-                            <property name="text">
-                                <string>Low Freq.:</string>
-                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="BapsFloatSpinBox">
+                                    <property name="name">
+                                        <cstring>_trait_pos</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>999</number>
+                                    </property>
+                                    <property name="lineStep">
+                                        <number>100</number>
+                                    </property>
+                                    <property name="decimals">
+                                        <number>3</number>
+                                    </property>
+                                </widget>
+                                <widget class="BapsFloatSpinBox">
+                                    <property name="name">
+                                        <cstring>_trait_low_freq</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>1000</number>
+                                    </property>
+                                    <property name="lineStep">
+                                        <number>100</number>
+                                    </property>
+                                    <property name="decimals">
+                                        <number>3</number>
+                                    </property>
+                                </widget>
+                                <widget class="BapsFloatSpinBox">
+                                    <property name="name">
+                                        <cstring>_trait_high_freq</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>1000</number>
+                                    </property>
+                                    <property name="lineStep">
+                                        <number>100</number>
+                                    </property>
+                                    <property name="value">
+                                        <number>1000</number>
+                                    </property>
+                                    <property name="decimals">
+                                        <number>3</number>
+                                    </property>
+                                </widget>
+                            </vbox>
                         </widget>
-                        <widget class="QLabel">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>textLabel2_2</cstring>
+                                <cstring>layout28</cstring>
                             </property>
-                            <property name="text">
-                                <string>High Freq.:</string>
-                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer6</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>40</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QPushButton">
+                                    <property name="name">
+                                        <cstring>addTraitButton</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Add Trait Marker</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Add a trait marker</string>
+                                    </property>
+                                </widget>
+                            </vbox>
                         </widget>
-                    </vbox>
+                    </hbox>
                 </widget>
-                <widget class="QLayoutWidget">
+                <widget class="QGroupBox">
                     <property name="name">
-                        <cstring>layout29</cstring>
+                        <cstring>groupBox42_2</cstring>
                     </property>
-                    <vbox>
+                    <property name="title">
+                        <string>SNP Marker</string>
+                    </property>
+                    <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="BapsFloatSpinBox">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>_trait_pos</cstring>
+                                <cstring>layout5_2</cstring>
                             </property>
-                            <property name="maxValue">
-                                <number>1000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                            <property name="decimals">
-                                <number>3</number>
-                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Position:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_3</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Low Freq.:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_2_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>High Freq.:</string>
+                                    </property>
+                                </widget>
+                            </vbox>
                         </widget>
-                        <widget class="BapsFloatSpinBox">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>_trait_low_freq</cstring>
+                                <cstring>layout30</cstring>
                             </property>
-                            <property name="maxValue">
-                                <number>1000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                            <property name="decimals">
-                                <number>3</number>
-                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="BapsFloatSpinBox">
+                                    <property name="name">
+                                        <cstring>_snp_pos</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>999</number>
+                                    </property>
+                                    <property name="lineStep">
+                                        <number>100</number>
+                                    </property>
+                                    <property name="decimals">
+                                        <number>3</number>
+                                    </property>
+                                </widget>
+                                <widget class="BapsFloatSpinBox">
+                                    <property name="name">
+                                        <cstring>_snp_low_freq</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>1000</number>
+                                    </property>
+                                    <property name="lineStep">
+                                        <number>100</number>
+                                    </property>
+                                    <property name="decimals">
+                                        <number>3</number>
+                                    </property>
+                                </widget>
+                                <widget class="BapsFloatSpinBox">
+                                    <property name="name">
+                                        <cstring>_snp_high_freq</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>1000</number>
+                                    </property>
+                                    <property name="lineStep">
+                                        <number>100</number>
+                                    </property>
+                                    <property name="value">
+                                        <number>1000</number>
+                                    </property>
+                                    <property name="decimals">
+                                        <number>3</number>
+                                    </property>
+                                </widget>
+                            </vbox>
                         </widget>
-                        <widget class="BapsFloatSpinBox">
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>_trait_high_freq</cstring>
+                                <cstring>layout7_2</cstring>
                             </property>
-                            <property name="maxValue">
-                                <number>1000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                            <property name="value">
-                                <number>1000</number>
-                            </property>
-                            <property name="decimals">
-                                <number>3</number>
-                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer2_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>40</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QPushButton">
+                                    <property name="name">
+                                        <cstring>addSNPButton</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Add SNP Marker</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Add a SNP marker</string>
+                                    </property>
+                                </widget>
+                            </vbox>
                         </widget>
-                    </vbox>
+                    </hbox>
                 </widget>
-                <widget class="QLayoutWidget">
+                <widget class="QGroupBox">
                     <property name="name">
-                        <cstring>layout28</cstring>
+                        <cstring>groupBox42_2_2</cstring>
                     </property>
-                    <vbox>
+                    <property name="title">
+                        <string>Micro-Satellite Marker</string>
+                    </property>
+                    <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <spacer>
+                        <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>spacer6</cstring>
+                                <cstring>layout14</cstring>
                             </property>
-                            <property name="orientation">
-                                <enum>Vertical</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>20</width>
-                                    <height>40</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>addTraitButton</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Add Trait Marker</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Add a trait marker</string>
-                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1_2_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Position:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_2_2_2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Alphabet Size:</string>
+                                    </property>
+                                </widget>
+                            </vbox>
                         </widget>
-                    </vbox>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout31</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="BapsFloatSpinBox">
+                                    <property name="name">
+                                        <cstring>_ms_pos</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>999</number>
+                                    </property>
+                                    <property name="lineStep">
+                                        <number>100</number>
+                                    </property>
+                                    <property name="decimals">
+                                        <number>3</number>
+                                    </property>
+                                </widget>
+                                <widget class="QSpinBox">
+                                    <property name="name">
+                                        <cstring>_ms_size</cstring>
+                                    </property>
+                                    <property name="minValue">
+                                        <number>2</number>
+                                    </property>
+                                    <property name="value">
+                                        <number>2</number>
+                                    </property>
+                                </widget>
+                            </vbox>
+                        </widget>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout7_2_2</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer2_2_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>40</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QPushButton">
+                                    <property name="name">
+                                        <cstring>addMSButton</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Add MS Marker</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Add a micro-satellite marker</string>
+                                    </property>
+                                </widget>
+                            </vbox>
+                        </widget>
+                    </hbox>
                 </widget>
-            </hbox>
+            </vbox>
         </widget>
         <widget class="QGroupBox">
             <property name="name">
-                <cstring>groupBox42_2</cstring>
+                <cstring>groupBox11</cstring>
             </property>
             <property name="title">
-                <string>SNP Marker</string>
+                <string>Next Position</string>
             </property>
-            <hbox>
+            <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
-                <widget class="QLayoutWidget">
+                <widget class="QSlider">
                     <property name="name">
-                        <cstring>layout5_2</cstring>
+                        <cstring>_next_pos_slider</cstring>
                     </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Position:</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel2_3</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Low Freq.:</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel2_2_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>High Freq.:</string>
-                            </property>
-                        </widget>
-                    </vbox>
+                    <property name="maxValue">
+                        <number>999</number>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="tickmarks">
+                        <enum>Right</enum>
+                    </property>
+                    <property name="tickInterval">
+                        <number>100</number>
+                    </property>
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout30</cstring>
+                        <cstring>layout53</cstring>
                     </property>
-                    <vbox>
+                    <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="BapsFloatSpinBox">
+                        <widget class="QLabel">
                             <property name="name">
-                                <cstring>_snp_pos</cstring>
-                            </property>
-                            <property name="maxValue">
-                                <number>1000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                            <property name="decimals">
-                                <number>3</number>
-                            </property>
-                        </widget>
-                        <widget class="BapsFloatSpinBox">
-                            <property name="name">
-                                <cstring>_snp_low_freq</cstring>
-                            </property>
-                            <property name="maxValue">
-                                <number>1000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                            <property name="decimals">
-                                <number>3</number>
-                            </property>
-                        </widget>
-                        <widget class="BapsFloatSpinBox">
-                            <property name="name">
-                                <cstring>_snp_high_freq</cstring>
-                            </property>
-                            <property name="maxValue">
-                                <number>1000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                            <property name="value">
-                                <number>1000</number>
-                            </property>
-                            <property name="decimals">
-                                <number>3</number>
-                            </property>
-                        </widget>
-                    </vbox>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout7_2</cstring>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer2_2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Vertical</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>20</width>
-                                    <height>40</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>addSNPButton</cstring>
+                                <cstring>textLabel3</cstring>
                             </property>
                             <property name="text">
-                                <string>Add SNP Marker</string>
+                                <string>Next Position:</string>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>_next_pos</cstring>
+                            </property>
+                            <property name="enabled">
+                                <bool>true</bool>
+                            </property>
+                            <property name="text">
+                                <string>0.000</string>
+                            </property>
+                            <property name="readOnly">
+                                <bool>true</bool>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Add a SNP marker</string>
-                            </property>
-                        </widget>
-                    </vbox>
-                </widget>
-            </hbox>
-        </widget>
-        <widget class="QGroupBox">
-            <property name="name">
-                <cstring>groupBox42_2_2</cstring>
-            </property>
-            <property name="title">
-                <string>Micro-Satellite Marker</string>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout14</cstring>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1_2_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Position:</string>
+                                <string>The next automatically selected position</string>
                             </property>
                         </widget>
                         <widget class="QLabel">
                             <property name="name">
-                                <cstring>textLabel2_2_2_2</cstring>
+                                <cstring>textLabel2_4</cstring>
                             </property>
                             <property name="text">
-                                <string>Alphabet Size:</string>
+                                <string>Next position step size:</string>
                             </property>
                         </widget>
-                    </vbox>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout31</cstring>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
                         <widget class="BapsFloatSpinBox">
                             <property name="name">
-                                <cstring>_ms_pos</cstring>
+                                <cstring>_next_pos_step</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>WheelFocus</enum>
                             </property>
                             <property name="maxValue">
-                                <number>1000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                            <property name="decimals">
-                                <number>3</number>
-                            </property>
-                        </widget>
-                        <widget class="QSpinBox">
-                            <property name="name">
-                                <cstring>_ms_size</cstring>
+                                <number>999</number>
                             </property>
                             <property name="minValue">
-                                <number>2</number>
+                                <number>1</number>
                             </property>
                             <property name="value">
-                                <number>2</number>
+                                <number>100</number>
                             </property>
-                        </widget>
-                    </vbox>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout7_2_2</cstring>
-                    </property>
-                    <vbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer2_2_2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Vertical</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>20</width>
-                                    <height>40</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>addMSButton</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Add MS Marker</string>
+                            <property name="decimals">
+                                <number>3</number>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Add a micro-satellite marker</string>
+                                <string>Step-size for increasing the automatically selected position</string>
                             </property>
                         </widget>
-                    </vbox>
+                    </hbox>
                 </widget>
-            </hbox>
+            </vbox>
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
@@ -476,14 +585,22 @@
         <receiver>AddMarkerForm</receiver>
         <slot>add_trait()</slot>
     </connection>
+    <connection>
+        <sender>_next_pos_slider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>AddMarkerForm</receiver>
+        <slot>next_pos_changed(int)</slot>
+    </connection>
 </connections>
 <slots>
     <slot>add_trait()</slot>
     <slot>add_snp()</slot>
+    <slot>next_pos_changed(int)</slot>
     <slot>add_ms()</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
+    <includehint>baps_float_spin_box.hh</includehint>
     <includehint>baps_float_spin_box.hh</includehint>
     <includehint>baps_float_spin_box.hh</includehint>
     <includehint>baps_float_spin_box.hh</includehint>
