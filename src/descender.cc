@@ -23,20 +23,43 @@ void Descender::evolve(ARG &arg) const
   // FIXME: we could do this merging of retired intervals and value
   // sets faster if we sorted the retired intervals, but if the number
   // of markers is fairly small it won't matter much.
+
+  // Markers to be mutated first
   for (ri_itr = ri_begin; ri_itr != ri_end; ++ri_itr)
     {
       for (size_t m = 0; m < i_conf.no_markers(); ++m)
 	{
+	  if (!i_conf.is_first_marker(m)) continue;
 	  if (ri_itr->contains_point(i_conf.position(m)))
 	    {
 	      if (mon) mon->mutator_update(m);
-	    retry: // handle retries when wrong freqs
+	    first_retry: // handle retries when wrong freqs
 	      try { ri_itr->mutate(i_conf,m); } 
 	      catch (Mutator::retry_mutation&) {
 		if (mon) mon->retry_mutation();
-		goto retry; 
+		goto first_retry; 
 	      }
 	    }
 	}
     }
+
+  // Remaining markers
+  for (ri_itr = ri_begin; ri_itr != ri_end; ++ri_itr)
+    {
+      for (size_t m = 0; m < i_conf.no_markers(); ++m)
+	{
+	  if (!i_conf.is_plain_marker(m)) continue;
+	  if (ri_itr->contains_point(i_conf.position(m)))
+	    {
+	      if (mon) mon->mutator_update(m);
+	    plain_retry: // handle retries when wrong freqs
+	      try { ri_itr->mutate(i_conf,m); } 
+	      catch (Mutator::retry_mutation&) {
+		if (mon) mon->retry_mutation();
+		goto plain_retry; 
+	      }
+	    }
+	}
+    }
+
 }

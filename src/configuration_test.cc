@@ -43,9 +43,21 @@ int main(int argc, const char *argv[])
 
   conf.set_marker(0,0);
   try {
-    conf.marker(0);
+    conf.first_marker(0);
     ERROR("Cannot access uninitialized marker.");
   } catch(Configuration::uninitialized_marker&) {}
+  try {
+    conf.plain_marker(0);
+    ERROR("Cannot access uninitialized marker.");
+  } catch(Configuration::uninitialized_marker&) {}
+
+  conf.set_marker(0,(Marker*)0xdeadbeef,true);
+  CHECK( conf.is_first_marker(0));
+  CHECK(!conf.is_plain_marker(0));
+
+  conf.set_marker(0,(Marker*)0xdeadbeef,false);
+  CHECK(!conf.is_first_marker(0));
+  CHECK( conf.is_plain_marker(0));
 
   
   } catch (std::exception &ex) {

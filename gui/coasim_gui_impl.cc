@@ -135,11 +135,17 @@ void CoasimGuiImpl::simulate()
   for (int i = 0; i < i_marker_table->numRows(); ++i)
     {
       if (i_marker_table->text(i,1) == "trait")
-	markers[i] = new TraitMarker(i_marker_table->text(i,2).toDouble(),
-				     i_marker_table->text(i,3).toDouble());
+	{
+	  markers[i] = new TraitMarker(i_marker_table->text(i,2).toDouble(),
+				       i_marker_table->text(i,3).toDouble());
+	  conf.set_marker(i,markers[i],true);
+	}
       else if (i_marker_table->text(i,1) == "snp")
-	markers[i] = new SNPMarker(i_marker_table->text(i,2).toDouble(),
-				   i_marker_table->text(i,3).toDouble());
+	{
+	  markers[i] = new SNPMarker(i_marker_table->text(i,2).toDouble(),
+				     i_marker_table->text(i,3).toDouble());
+	  conf.set_marker(i,markers[i]);
+	}
       else
 	{
 	  int alpha_size = i_marker_table->text(i,4).toInt();
@@ -147,9 +153,8 @@ void CoasimGuiImpl::simulate()
 	  MicroSatelliteMarker *m = new MicroSatelliteMarker(mrate);
 	  for (int j = 0; j < alpha_size; ++j) m->add_value(j);
 	  markers[i] = m;
+	  conf.set_marker(i,markers[i]);
 	}
-      
-      conf.set_marker(i,markers[i]);
     }
 
   try {

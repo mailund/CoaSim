@@ -190,7 +190,7 @@ static void set_markers(Configuration &conf,
       if (markers[i] == "trait")
 	{
 	  TraitMarker *tm = new TraitMarker(low_freq[i],high_freq[i]);
-	  conf.set_marker(i,tm);
+	  conf.set_marker(i,tm,true);
 	}
       else if (markers[i] == "snp")
 	{

@@ -52,14 +52,26 @@ public:
   double position(size_t index) const throw(std::out_of_range);
 
   // Accessors to markers
-  const Marker &marker(size_t index) const throw(uninitialized_marker,
-						 std::out_of_range);
+  const Marker &first_marker(size_t index) const throw(uninitialized_marker,
+						       std::out_of_range);
+  const Marker &plain_marker(size_t index) const throw(uninitialized_marker,
+						       std::out_of_range);
+  const Marker &marker(size_t index)       const throw(uninitialized_marker,
+						       std::out_of_range);
+
+  bool is_first_marker(size_t index) const;
+  bool is_plain_marker(size_t index) const;
+
 
   // Insert a marker at the position index -- this method only borrows
   // the reference, so don't free or change the marker after setting
   // it and before deleting the configuration -- and remember to free
-  // it yourself after use of the configuration.
-  void set_marker(size_t pos_index, const Marker *marker)
+  // it yourself after use of the configuration.  The run_first flag
+  // is used to prioritize the order of marker-mutations; all markers
+  // set with run_first are mutated before all markers without
+  // run_first.
+  void set_marker(size_t pos_index, const Marker *marker, 
+		  bool run_first = false)
     throw(std::out_of_range);
 
   // Parameters for building the ARG and assigning mutations
@@ -79,7 +91,8 @@ private:
   unsigned int i_no_leaves;
 
   std::vector<double>  i_positions;
-  const Marker** i_markers;
+  const Marker** i_first_markers;
+  const Marker** i_plain_markers;
 
   double i_rho;
   double i_Q;
@@ -103,13 +116,16 @@ Configuration::Configuration(unsigned int no_leaves,
 {
   for (size_t m = 1; m < i_positions.size(); ++m)
     if (i_positions[m-1] >= i_positions[m]) throw out_of_sequence();
-  i_markers = new const Marker* [no_markers()];
-  for (size_t m = 0; m < no_markers(); ++m)
-    i_markers[m] = 0;
+
+  i_first_markers = new const Marker* [no_markers()];
+  for (size_t m = 0; m < no_markers(); ++m) i_first_markers[m] = 0;
+
+  i_plain_markers = new const Marker* [no_markers()];
+  for (size_t m = 0; m < no_markers(); ++m) i_plain_markers[m] = 0;
 }
 
 inline Configuration::~Configuration() 
-{ delete[] i_markers; }
+{ delete[] i_first_markers; delete[] i_plain_markers; }
 
 
 inline double Configuration::position(size_t index)
@@ -118,19 +134,51 @@ inline double Configuration::position(size_t index)
   return i_positions.at(index);
 }
 
-inline const Marker &Configuration::marker(size_t index)
+inline const Marker &Configuration::first_marker(size_t index)
   const throw(uninitialized_marker,std::out_of_range)
 {
   if (index >= no_markers()) throw std::out_of_range("No marker at index");
-  if (!i_markers[index]) throw uninitialized_marker();
-  else return *i_markers[index];
+  if (!i_first_markers[index]) throw uninitialized_marker();
+  else return *i_first_markers[index];
 }
 
-inline void Configuration::set_marker(size_t index, const Marker *marker)
+inline const Marker &Configuration::plain_marker(size_t index)
+  const throw(uninitialized_marker,std::out_of_range)
+{
+  if (index >= no_markers()) throw std::out_of_range("No marker at index");
+  if (!i_plain_markers[index]) throw uninitialized_marker();
+  else return *i_plain_markers[index];
+}
+
+inline bool Configuration::is_first_marker(size_t index) const
+{ return i_first_markers[index] != 0; }
+inline bool Configuration::is_plain_marker(size_t index) const
+{ return i_plain_markers[index] != 0; }
+
+inline const Marker &Configuration::marker(size_t index) 
+  const throw(uninitialized_marker, std::out_of_range)
+{
+  if (is_first_marker(index)) return first_marker(index);
+  else                        return plain_marker(index);
+}
+
+
+inline void Configuration::set_marker(size_t index, const Marker *marker,
+				      bool run_first)
   throw(std::out_of_range)
 {
   if (index >= no_markers()) throw std::out_of_range("No marker at index");
-  i_markers[index] = marker;
+  
+  if (run_first) 
+    {
+      i_first_markers[index] = marker;
+      i_plain_markers[index] = 0;
+    }
+  else
+    {
+      i_first_markers[index] = 0;
+      i_plain_markers[index] = marker;
+    }
 }
 
 
