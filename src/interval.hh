@@ -30,7 +30,7 @@ public:
   double end()    const { return _end; }
   double length() const { return _end - _start; }
 
-  int leaf_contacts() const { return _leaf_contacts; }
+  unsigned int leaf_contacts() const { return _leaf_contacts; }
 
 
   // it is better to use these for comparison as exact double equality

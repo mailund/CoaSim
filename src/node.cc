@@ -61,9 +61,12 @@ ARG::~ARG()
 ARG::Node *ARG::leaf() throw()
 {
   LeafNode *n = new LeafNode();
+
   // the leaves covers the entire interval [0,1)
   n->_intervals.add(0.0,1.0,1);
   _node_pool.push_back(n);
+  ++_no_leaves;
+
   return n;
 }
 
@@ -71,9 +74,26 @@ ARG::Node *ARG::coalescence(double time, Node *left, Node *right)
   throw(null_child)
 {
   if (left == 0 or right == 0) throw null_child();
-  CoalescentNode *n =
-    new CoalescentNode(time,left,right,left->intervals()|right->intervals());
+
+  // sort in retired and non-retired intervals
+  std::vector<Interval> retired;
+  Intervals non_retired;
+  Intervals merged = left->intervals() | right->intervals();
+  for (int i = 0; i < merged.size(); ++i)
+    {
+      if (merged.interval(i).leaf_contacts() == _no_leaves)
+	retired.push_back(merged.interval(i));
+      else
+	non_retired.add(merged.interval(i));
+    }
+
+  CoalescentNode *n = new CoalescentNode(time,left,right,non_retired);
   _node_pool.push_back(n);
+
+  std::vector<Interval>::const_iterator itr;
+  for (itr = retired.begin(); itr != retired.end(); ++itr)
+    _retired_intervals.push_back(RetiredInterval(*itr,n));
+
   return n;
 }
 

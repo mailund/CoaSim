@@ -38,6 +38,24 @@ public:
     Intervals _intervals;
   };
 
+  class RetiredInterval : public Interval
+  {
+  public:
+    struct null_top_node : public std::logic_error {
+      null_top_node() : std::logic_error("null top node") {}
+    };
+
+    RetiredInterval(const Interval &interval, Node *const top_node)
+      throw(null_top_node)
+      : Interval(interval), _top_node(top_node)
+    { if (top_node == 0) throw null_top_node(); }
+
+    Node *top_node() const { return _top_node; }
+
+  private:
+    Node *_top_node;
+  };
+
   // Exception thrown if a node is created with a 0-child
   struct null_child : public std::logic_error {
     null_child() : std::logic_error("null child.") {}
@@ -45,7 +63,7 @@ public:
 
 
   // Initialization and book-keeping
-  ARG(const Configuration &conf) : _conf(conf) {}
+  ARG(const Configuration &conf) : _conf(conf), _no_leaves(0) {}
 
   // Cleanup.  Destroying the ARG also deletes all nodes in it, so
   // don't keep any pointers to them around after this deletion.
@@ -69,11 +87,21 @@ public:
     throw(null_child,Interval::interval_out_of_range);
 
 
+  const std::vector<RetiredInterval> &retired_intervals() const
+  { return _retired_intervals; }
+
 private:
-  const Configuration &_conf;  
+  // disable these
+  ARG(const ARG&);
+  ARG &operator = (const ARG&);
+
+  const Configuration &_conf;
+  size_t _no_leaves;
 
   // pools of nodes -- FIXME: can be handled more efficiently...
   std::vector<Node*> _node_pool;
+
+  std::vector<RetiredInterval> _retired_intervals;
 };
 
 

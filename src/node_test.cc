@@ -35,16 +35,11 @@ int main(int argc, const char *argv[])
   CHECK(l1->intervals().is_end(1.0));
   CHECK(l1->intervals().first_point() == 0.0);
   CHECK(l1->intervals().last_point() == 1.0);
-  for (size_t i = 0; i < no_positions; ++i)
-    CHECK(l1->intervals().contains_point(positions[i]));
 
   CHECK(l2->intervals().is_start(0.0));
   CHECK(l2->intervals().is_end(1.0));
   CHECK(l2->intervals().first_point() == 0.0);
   CHECK(l2->intervals().last_point() == 1.0);
-  for (size_t i = 0; i < no_positions; ++i)
-    CHECK(l2->intervals().contains_point(positions[i]));
-
 
 
 
@@ -160,7 +155,7 @@ int main(int argc, const char *argv[])
   // current ARG:
   // 
   //                   (c1: [0-0.3)[0.5-0.6)[0.6-1.0) )
-  //                              /    \                          --no nl esc
+  //                              /    \    `-------' <- retired
   //                             /      \                         --no nl esc
   //  (r1: [0--0.5) ) (r2: [0.5--1) ) (g1: [0-0.3)[0.6-1.0) ) (g2: [0.3--0.6) )
   //         \             /                     \              /
@@ -169,20 +164,21 @@ int main(int argc, const char *argv[])
   
     
 
-  CHECK(c1->intervals().size() == 3);
+  CHECK(c1->intervals().size() == 2);
+  CHECK(arg.retired_intervals().size() == 1);
   CHECK(c1->intervals().first_point() == 0.0);
-  CHECK(c1->intervals().last_point()  == 1.0);
+  CHECK(c1->intervals().last_point()  == 0.6);
   CHECK(c1->intervals().is_start(0.0));
   CHECK(c1->intervals().is_end  (0.3));
   CHECK(c1->intervals().is_start(0.5));
   CHECK(c1->intervals().is_end  (0.6));
-  CHECK(c1->intervals().is_start(0.6));
-  CHECK(c1->intervals().is_end  (1.0));
 
   CHECK(c1->intervals().interval(0).leaf_contacts() == 1);
   CHECK(c1->intervals().interval(1).leaf_contacts() == 1);
-  CHECK(c1->intervals().interval(2).leaf_contacts() == 2);
 
+  CHECK(arg.retired_intervals().at(0).is_start(0.6));
+  CHECK(arg.retired_intervals().at(0).is_end  (1.0));
+  CHECK(arg.retired_intervals().at(0).leaf_contacts() == 2);
 
 
   ARG::Node *c2 = arg.coalescence(0.0, r1, g2);
@@ -190,10 +186,13 @@ int main(int argc, const char *argv[])
 
   // current ARG:
   //
-  //                .--(c2: [0-0.3)[0.3-0.5)[0.5-0.6) )---,
+  //                                    .--- retired
+  //                                   /
+  //                               .-------.
+  //                .--(c2: [0-0.3)[0.3-0.5)[0.5-0.6) )---.
   //               /                                       \       --no nl esc
   //              /    (c1: [0-0.3)[0.5-0.6)[0.6-1.0) )     \      --no nl esc
-  //             /                /    \                     \     --no nl esc
+  //             /                /    \    `------' retired \     --no nl esc
   //            /                /      \                     \    --no nl esc
   //  (r1: [0--0.5) ) (r2: [0.5--1) ) (g1: [0-0.3)[0.6-1.0) ) (g2: [0.3--0.6) )
   //         \             /                     \              /
@@ -201,20 +200,41 @@ int main(int argc, const char *argv[])
   //          (l1: [0---1) )                      (l2: [0---1) )
 
 
-  CHECK(c2->intervals().size() == 3);
+  CHECK(c2->intervals().size() == 2);
+  CHECK(arg.retired_intervals().size() == 2);
+
   CHECK(c2->intervals().first_point() == 0.0);
   CHECK(c2->intervals().last_point()  == 0.6);
   CHECK(c2->intervals().is_start(0.0));
   CHECK(c2->intervals().is_end  (0.3));
-  CHECK(c2->intervals().is_start(0.3));
-  CHECK(c2->intervals().is_end  (0.5));
   CHECK(c2->intervals().is_start(0.5));
   CHECK(c2->intervals().is_end  (0.6));
 
   CHECK(c2->intervals().interval(0).leaf_contacts() == 1);
-  CHECK(c2->intervals().interval(1).leaf_contacts() == 2);
-  CHECK(c2->intervals().interval(2).leaf_contacts() == 1);
+  CHECK(c2->intervals().interval(1).leaf_contacts() == 1);
 
+  CHECK(arg.retired_intervals().at(1).is_start(0.3));
+  CHECK(arg.retired_intervals().at(1).is_end  (0.5));
+  CHECK(arg.retired_intervals().at(1).leaf_contacts() == 2);
+
+
+
+
+  ARG::Node *top = arg.coalescence(0.0, c1, c2);
+  CHECK(top != 0);
+
+  CHECK(top->intervals().size() == 0);
+  CHECK(arg.retired_intervals().size() == 4);
+
+  // retired intervals: [0-0.3)[0.3-0.5)[0.5-0.6)[0.6-1)
+
+  CHECK(arg.retired_intervals().at(2).is_start(0.0));
+  CHECK(arg.retired_intervals().at(2).is_end  (0.3));
+  CHECK(arg.retired_intervals().at(2).leaf_contacts() == 2);
+
+  CHECK(arg.retired_intervals().at(3).is_start(0.5));
+  CHECK(arg.retired_intervals().at(3).is_end  (0.6));
+  CHECK(arg.retired_intervals().at(3).leaf_contacts() == 2);
 
 
   try {

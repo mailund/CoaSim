@@ -37,7 +37,7 @@ static void test_Interval()
   Interval(0.0,1.0);
 
   double start = 0.00, end = 0.50;
-  int contacts = 2;
+  unsigned int contacts = 2;
 
   Interval i(start,end,contacts);
 
