@@ -145,6 +145,7 @@ public:
   void to_xml (std::ostream &os, bool print_all_nodes = false) const;
   void to_text(std::ostream &os) const;
 
+  const std::vector<Node*> &leaves() const { return i_leaf_pool; }
 
 private:
   // disable these

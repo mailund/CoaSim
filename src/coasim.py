@@ -16,8 +16,7 @@ class Configuration(object):
                  positions,
                  markers,
                  low_freq, high_freq,
-                 no_values, mutation_rates,
-                 print_all_nodes):
+                 no_values, mutation_rates):
         '''Configuration of a simulation.
 
         Sets options for the simulation.  The options are:
@@ -50,8 +49,7 @@ class Configuration(object):
         mutation_rates -- mutation rate per marker (only used for
         micro-satellite, ignored for snp- and trait-markers.)
 
-        print_all_nodes -- bool flag determining if the entire ARG is
-        printed, or only the leaf-nodes.  '''
+        '''
         
         self.no_leaves = no_leaves
         self.gene_conversion_rate = gene_conversion_rate
@@ -67,7 +65,6 @@ class Configuration(object):
         self.no_values = ' '.join([str(n) for n in no_values])
         self.mutation_rates = ' '.join([str(r) for r in mutation_rates])
         
-        self.print_all_nodes = print_all_nodes
 
     def run_commands(self):
         'Create the run-command options'
@@ -87,28 +84,38 @@ low_freq:  %(low_freq)s
 high_freq: %(high_freq)s
 no_values: %(no_values)s
 mutation_rates: %(mutation_rates)s
-
-print_all_nodes: %(print_all_nodes)d
         '''
         return template % vars(self)
 
 
-def coasim(conf, outfile):
+def coasim(conf):
     '''Run coasim simulation.
 
-    Run a simulation, writing the output to outfile.  Returns 0 for
-    success, non-zero for failure.'''
+    Run a simulation, writing the output to outfile.
+
+    Returns a list of haplotypes if successful, None if a failure occurs.'''
 
     import tempfile, os
     rcfile = tempfile.mktemp()
+    outfile = tempfile.mktemp()
     try:
         f = open(rcfile,'w')
         print >> f, conf.run_commands()
         f.close()
 
-        return os.system(_coasim_cmd+' -r '+rcfile+' -o '+outfile)
+        res = os.system(_coasim_cmd+' -r '+rcfile+' -o '+outfile)
+        if res != 0: return None
+
+        haplotypes = []
+        f = open(outfile)
+        for line in f:
+            marker_vals = map(int, line.split())
+            haplotypes.append(marker_vals)
+        return haplotypes
+
     finally:
         os.unlink(rcfile)
+        os.unlink(outfile)
     
 
 if __name__ == '__main__':
@@ -123,14 +130,8 @@ if __name__ == '__main__':
                       low_freq =  [0.1,     0.1,   0.0,  0.1],
                       high_freq = [0.2,     0.3,   0.0,  0.2],
                       no_values = [0,       0,     4,    0],
-                      mutation_rates = [0.0,0.0,1.0,0.0],
-
-                      print_all_nodes = 1)
+                      mutation_rates = [0.0,0.0,1.0,0.0])
     print c.run_commands()
 
-    print coasim(c,'test.xml')
-
-    f = open('test.xml')
-    print f.read()
-    f.close()
+    print coasim(c)
                  

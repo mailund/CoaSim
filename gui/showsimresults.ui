@@ -1,67 +1,65 @@
 <!DOCTYPE UI><UI version="3.1" stdsetdef="1">
-<class>RunSimulationForm</class>
+<class>ShowSimResultsForm</class>
 <widget class="QDialog">
     <property name="name">
-        <cstring>RunSimulationForm</cstring>
+        <cstring>ShowSimResultsForm</cstring>
     </property>
     <property name="geometry">
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>337</width>
-            <height>98</height>
+            <width>512</width>
+            <height>380</height>
         </rect>
     </property>
     <property name="caption">
-        <string>Run Simulation</string>
+        <string>Simulation Results</string>
     </property>
     <vbox>
         <property name="name">
             <cstring>unnamed</cstring>
         </property>
-        <widget class="QLayoutWidget">
+        <widget class="QGroupBox">
             <property name="name">
-                <cstring>layout14</cstring>
+                <cstring>groupBox1</cstring>
             </property>
-            <hbox>
+            <property name="title">
+                <string>Haplotypes:</string>
+            </property>
+            <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
-                <widget class="QLabel">
+                <widget class="QTable">
                     <property name="name">
-                        <cstring>textLabel1</cstring>
+                        <cstring>i_haplotype_table</cstring>
                     </property>
-                    <property name="text">
-                        <string>Output file:</string>
+                    <property name="numRows">
+                        <number>3</number>
+                    </property>
+                    <property name="numCols">
+                        <number>3</number>
                     </property>
                 </widget>
-                <widget class="QLineEdit">
-                    <property name="name">
-                        <cstring>i_xml_file_name</cstring>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>browseOutFileButton</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Browse</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Select output file</string>
-                    </property>
-                </widget>
-            </hbox>
+            </vbox>
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout3</cstring>
+                <cstring>layout4</cstring>
             </property>
-            <hbox>
+            <grid>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
-                <widget class="QCheckBox">
+                <widget class="QPushButton" row="1" column="2">
+                    <property name="name">
+                        <cstring>pushButton3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Close</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox" row="0" column="0">
                     <property name="name">
                         <cstring>mode</cstring>
                     </property>
@@ -75,52 +73,55 @@
                         <string>Selects whether the entire recomgination graph should be printed, or only the leaves</string>
                     </property>
                 </widget>
-                <widget class="QPushButton">
+                <widget class="QPushButton" row="0" column="2">
                     <property name="name">
-                        <cstring>pushButton3</cstring>
+                        <cstring>saveTextButton</cstring>
                     </property>
                     <property name="text">
-                        <string>Close</string>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>runSimButton</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Run</string>
+                        <string>Save Text</string>
                     </property>
                     <property name="toolTip" stdset="0">
                         <string>Run the simulation</string>
                     </property>
                 </widget>
-            </hbox>
+                <widget class="QPushButton" row="0" column="1">
+                    <property name="name">
+                        <cstring>saveXMLButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Save XML</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Run the simulation</string>
+                    </property>
+                </widget>
+            </grid>
         </widget>
     </vbox>
 </widget>
 <connections>
     <connection>
-        <sender>runSimButton</sender>
+        <sender>saveXMLButton</sender>
         <signal>clicked()</signal>
-        <receiver>RunSimulationForm</receiver>
-        <slot>run_simulation()</slot>
+        <receiver>ShowSimResultsForm</receiver>
+        <slot>save_xml()</slot>
     </connection>
     <connection>
-        <sender>browseOutFileButton</sender>
+        <sender>saveTextButton</sender>
         <signal>clicked()</signal>
-        <receiver>RunSimulationForm</receiver>
-        <slot>set_out_file()</slot>
+        <receiver>ShowSimResultsForm</receiver>
+        <slot>save_text()</slot>
     </connection>
     <connection>
         <sender>pushButton3</sender>
         <signal>clicked()</signal>
-        <receiver>RunSimulationForm</receiver>
-        <slot>reject()</slot>
+        <receiver>ShowSimResultsForm</receiver>
+        <slot>accept()</slot>
     </connection>
 </connections>
 <slots>
-    <slot>run_simulation()</slot>
-    <slot>set_out_file()</slot>
+    <slot>save_xml()</slot>
+    <slot>save_text()</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

@@ -4,8 +4,8 @@
 #ifndef ADD_MARKER_IMPL_HH_INCLUDED
 # include "add_marker_impl.hh"
 #endif
-#ifndef RUN_SIMULATION_IMPL_HH_INCLUDED
-# include "run_simulation_impl.hh"
+#ifndef SHOW_SIM_RESULTS_IMPL_HH_INCLUDED
+# include "show_sim_results_impl.hh"
 #endif
 
 #ifndef CONFIGURATION_HH_INCLUDED
@@ -112,16 +112,6 @@ void CoasimGuiImpl::delete_marker()
 // start simulation
 void CoasimGuiImpl::simulate()
 {
-
-  QString outfile;
-  bool    leaves_only;
-
-  RunSimulationImpl run_dialog(outfile,leaves_only,this);
-  run_dialog.exec();
-
-  if (outfile == "") /* abort */ return;
-
-
   // configure simulation
   int    no_leaves = i_ln->text().toInt();
   double recomb_rate =   i_recomb_rate->text().toDouble();
@@ -168,15 +158,16 @@ void CoasimGuiImpl::simulate()
     while (coasim_main_app->hasPendingEvents())
       coasim_main_app->processEvents();
 
-    std::ofstream xml_file(outfile);
     ARG *arg = Simulator::simulate(conf);
+
     if (!arg)
       {
 	// simulation aborted
       }
     else
       {
-	arg->to_xml(xml_file, !leaves_only);
+	ShowSimResultsImpl show_results_dialog(conf,*arg,this);
+	show_results_dialog.exec();
       }
 
     delete arg;
