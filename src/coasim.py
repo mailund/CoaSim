@@ -107,7 +107,7 @@ def coasim(conf, outfile):
         print >> f, conf.run_commands()
         f.close()
 
-        return os.system('coasim -r '+rcfile+' -o '+outfile)
+        return os.system(_coasim_cmd+' -r '+rcfile+' -o '+outfile)
     finally:
         os.unlink(rcfile)
     
