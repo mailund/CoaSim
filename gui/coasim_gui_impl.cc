@@ -56,6 +56,7 @@ void CoasimGuiImpl::delete_marker()
       for (int row = s.bottomRow(); row >= s.topRow(); --row)
 	to_delete.push_back(row);
     }
+
   // deleting a row renumbers the lower rows, so we have to delete
   // them from the highest and down.
   std::sort(to_delete.begin(), to_delete.end());
@@ -72,8 +73,8 @@ void CoasimGuiImpl::simulate()
   QString outfile;
   bool    leaves_only;
 
-  RunSimulationImpl runner(outfile,leaves_only,this);
-  runner.exec();
+  RunSimulationImpl run_dialog(outfile,leaves_only,this);
+  run_dialog.exec();
 
   if (outfile == "") /* abort */ return;
 
