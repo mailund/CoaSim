@@ -1,10 +1,24 @@
+/* -*- Mode: C++; c-basic-offset: 4; -*- 
+ *
+ *  CoaSim -- A coalescence process simulator
+ *
+ *  Copyright (C) 2004 by Bioinformatics ApS
+ */
 
 #include "testing.hh"
 
-#include "configuration.hh"
-#include "node.hh"
-#include "all_markers.hh"
-#include "test_dist_funcs.hh"
+#ifndef CONFIGURATION_HH_INCLUDED
+# include "configuration.hh"
+#endif
+#ifndef NODE_HH_INCLUDED
+# include "node.hh"
+#endif
+#ifndef ALL_MARKERS_HH_INCLUDED
+# include "all_markers.hh"
+#endif
+#ifndef TEST_DIST_FUNCS_HH_INCLUDED
+# include "test_dist_funcs.hh"
+#endif
 
 
 

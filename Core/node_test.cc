@@ -1,8 +1,23 @@
+/* -*- Mode: C++; c-basic-offset: 4; -*- 
+ *
+ *  CoaSim -- A coalescence process simulator
+ *
+ *  Copyright (C) 2004 by Bioinformatics ApS
+ */
 
-#include "node.hh"
-#include "snp_marker.hh"
 #include "testing.hh"
-#include <fstream>
+
+#ifndef NODE_HH_INCLUDED
+# include "node.hh"
+#endif
+#ifndef SNP_MARKER_HH_INCLUDED
+# include "snp_marker.hh"
+#endif
+
+#ifndef FSTREAM_INCLUDED
+# include <fstream>
+# define FSTREAM_INCLUDED
+#endif
 
 int main(int argc, const char *argv[])
 {

@@ -1,8 +1,16 @@
 
-#include "builder.hh"
-#include "configuration.hh"
-#include "node.hh"
-#include "snp_marker.hh"
+#ifndef BUILDER_HH_INCLUDED
+# include "builder.hh"
+#endif
+#ifndef CONFIGURATION_HH_INCLUDED
+# include "configuration.hh"
+#endif
+#ifndef NODE_HH_INCLUDED
+# include "node.hh"
+#endif
+#ifndef SNP_MARKER_HH_INCLUDED
+# include "snp_marker.hh"
+#endif
 
 #include "testing.hh"
 

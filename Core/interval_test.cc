@@ -1,5 +1,14 @@
+/* -*- Mode: C++; c-basic-offset: 4; -*- 
+ *
+ *  CoaSim -- A coalescence process simulator
+ *
+ *  Copyright (C) 2004 by Bioinformatics ApS
+ */
 
-#include "interval.hh"
+#ifndef INTERVAL_HH_INCLUDED
+# include "interval.hh"
+#endif
+
 #include "testing.hh"
 
 

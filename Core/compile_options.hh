@@ -1,3 +1,10 @@
+/* -*- Mode: C++; c-basic-offset: 4; -*- 
+ *
+ *  CoaSim -- A coalescence process simulator
+ *
+ *  Copyright (C) 2004 by Bioinformatics ApS
+ */
+
 
 #ifndef COMPILE_OPTIONS_HH
 #define COMPILE_OPTIONS_HH

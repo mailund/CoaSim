@@ -1,3 +1,10 @@
+/* -*- Mode: C++; c-basic-offset: 4; -*- 
+ *
+ *  CoaSim -- A coalescence process simulator
+ *
+ *  Copyright (C) 2004 by Bioinformatics ApS
+ */
+
 #ifndef BUILDER_HH_INCLUDED
 #define BUILDER_HH_INCLUDED
 
@@ -9,15 +16,15 @@
 class Builder
 {
 public:
-  Builder(const Configuration &conf) : i_conf(conf) {};
-  ~Builder() {};
+    Builder(const Configuration &conf) : i_conf(conf) {};
+    ~Builder() {};
 
-  // Builds an ARG.  The ARG is dynamically allocated and must be
-  // deleted after use.
-  ARG *build() const;
+    // Builds an ARG.  The ARG is dynamically allocated and must be
+    // deleted after use.
+    ARG *build() const;
 
 private:
-  const Configuration &i_conf;
+    const Configuration &i_conf;
 };
 
 
