@@ -1,5 +1,5 @@
 
-version=2.0.0-b2
+version=2.0.0
 
 install_prefix=/usr/local
 escaped_prefix=\/usr\/local
@@ -12,23 +12,30 @@ escaped_sharedir=$(escaped_prefix)\/share\/coasim
 
 makeflags=bindir=$(bindir) sharedir=$(sharedir)
 
-all:
+all: make_cli make_gui
+
+make_cli:
 	cd src && make all $(makeflags)
+
+make_gui:
 	cd gui && make all $(makeflags)
 
 test:
 	cd src && make test $(makeflags)
 	# FIXME: no gui test
 
-install: all
-	cd src && make install $(makeflags)
-
-	cp gui/coasim_gui	$(bindir)
-
+install: install_cli install_gui
 	cp coasim_to_dot.xsl	$(sharedir)
 	cat coasim_to_ps | sed "s/'coasim_to_dot.xsl'/'$(escaped_sharedir)\/coasim_to_dot.xsl'/" > $(bindir)/coasim_to_ps
 	chmod a+x $(bindir)/coasim_to_ps
 	cp coasim_separate	$(bindir)
+
+install_cli:
+	cd src && make install $(makeflags)
+
+install_gui:
+	cp gui/coasim_gui	$(bindir)
+
 
 dist:
 	mkdir coasim-$(version)
@@ -50,6 +57,7 @@ dist:
 	cp Makefile 	       	coasim-$(version)
 	cp COPYING 	       	coasim-$(version)
 	cp README 		coasim-$(version)
+	cp INSTALL 		coasim-$(version)
 	cp README_separate 	coasim-$(version)
 	cp coasim_to_dot.xsl	coasim-$(version)
 	cp coasim_to_ps		coasim-$(version)

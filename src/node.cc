@@ -32,6 +32,11 @@
 # endif
 #endif
 
+#ifndef CSTDLIB_INCLUDED
+# include <cstdlib>
+# define CSTDLIB_INCLUDED
+#endif
+
 void Node::haplotype_to_xml(std::ostream &os) const
 {
   os << "    <haplotype id=\"h_" << this << "\"> " << std::endl;
@@ -521,6 +526,9 @@ namespace {
 void ARG::to_xml(std::ostream &os, bool print_all_nodes) const
 {
   std::string dtd = DTD_DIR"/coasim.dtd";
+  const char *dtd_dir = getenv("COASIMDIR");
+  if (dtd_dir) dtd = std::string(dtd_dir)+"/coasim.dtd";
+  
 
   const std::vector<Node*>::const_iterator lpb = i_leaf_pool.begin();
   const std::vector<Node*>::const_iterator lpe = i_leaf_pool.end();

@@ -1,0 +1,109 @@
+
+
+CoaSim installation notes, 4-May-2004
+-------------------------------------
+
+The source code of the CoaSim package is distributed in the archive
+coasim-a.b.c.tar.gz, where a.b.c refers to the current version. 
+
+1. Unpacking the archive.
+
+     tar xzf coasim-a.b.c.tar.gz
+
+   This creates the subdirectory coasim-a.b.c of the current directory
+   containing the source code. Enter this directory:
+
+     cd coasim-a.b.c
+
+2. Preparing for compilation.
+
+   Compilation requires a working C++ tool chain. We have succesfully
+   compiled coasim using gnu g++ on Linux and Mac OS X systems. The
+   commandline tool coasim requires the popt library for parsing
+   commandline arguments, and the coasim gui requires the qt library
+   with threading (qt-mt). Install these ibraries if they are not
+   already available on your system. If you do not want to build the
+   gui then you of course do not need to install the qt library
+
+   On most Linux systems the popt and qt-mt libraries are installed
+   but you will probably need to install them by your self on a Mac OS
+   X system. If you install the libraries in 'non-standard' places,
+   e.g. /sw/lib as the fink on OS X tool does, remember to specify
+   this when compiling, otherwise compilation/linking will probably
+   fail. (On a OS X system with popt installed in /sw/lib, we have
+   succesfully compiled coasim by running make with CXXFLAGS set to
+   CXXFLAGS="-Wall -O3 -lpopt -I /sw/include/ -Wl,-L/sw/lib").
+
+   Before compilation, edit the Makefile to set variables
+
+     install_prefix
+     bindir
+     sharedir
+
+   to fit your system. Set 
+
+     escaped_prefix
+     escaped_sharedir
+
+   accordingly. It is important that you have write permission to
+   bindir and sharedir since files will be copied to these
+   directories during installation.
+
+3. Compilation on a Linux system.
+
+   On a common Linux box, e.g. running RedHat 9.0 or SuSE 9.0
+   compilation should be as easy as running make:
+
+     make
+
+   This creates two executables. The commandline tool
+
+     src/coasim
+
+   and the gui tool
+
+     gui/coasim_gui
+
+   To install run
+
+     make install
+
+   which copies the two executables and some python scripts to bindir
+   and the xml dtd coasim.dtd to sharedir. You can also move the
+   executables elsewhere but it is *important* that coasim.dtd is in
+   sharedir.  The location of the dtd can also be set via an
+   environment variable, see README.
+
+   To only compile the command-line interface, use
+
+     make make_cli
+
+   and to install it use
+
+     make install_cli
+   
+4. Compilation on a Mac OS X system.
+
+   On Mac OS X compilation is slightly more complicated 
+
+     cd gui
+     qmake
+     cd ..
+     make
+     
+   The commandline tool is again 
+
+     src/coasim
+
+   but the gui tool is in the directory
+
+     gui/coasim_gui.app
+
+   To install the commandline tool and the coasim.dtd you can run
+   'make install' as above. To install the gui tool move the
+   coasim_gui.app to e.g. the Applications folder in your home
+   directory, simply drag the coasim_gui icon to the desired location.
+
+   In order to be able to launch qt applications from Finder, it is
+   important that you have installed qt correct according to its
+   documentation.

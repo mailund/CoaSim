@@ -78,12 +78,20 @@ from the "Add Marker" dialogue window.
 
 
 
-The simulation output is written to an XML file.  The XML output can
-be processed in a number of ways. Using the XSLT script
-coasim_to_dot.xsl the XML file can be transformed to dot format which
-can be used to construct a postscript version of the generated
+The simulation output is written either to an XML file or to a plain
+text file.  The choice of output format for the command line version
+is through the parameter -x|--print-xml that sets the output to the
+XML format, the default is plain text.  The choice of output format
+for the GUI version is through a dialog.
+
+The XML Output:
+---------------
+
+The XML output can be processed in a number of ways. Using the XSLT
+script coasim_to_dot.xsl the XML file can be transformed to dot format
+which can be used to construct a postscript version of the generated
 ancestral recombination graph. The program 'dot' is part of GraphViz
-<URL:http://www.graphviz.org/>. 
+<URL:http://www.graphviz.org/>.
 
 Transforming the XML file output.xml to a postscript representation of
 the ARG can be done using the script coasim_to_ps.  The script
@@ -111,3 +119,23 @@ result file arg.xml can be done as:
 	-number_cases_with_mutation 80 -number_controls_with_mutation 30 \
 	-number_controls 100 -number_cases 100 -dtd bioinformatics.dtd -randomphase \
 	-text_format
+
+
+
+For xsltproc to process the generated XML file, it must know the
+location of the DTD.  This DTD file is installed in
+$(install_prefix)/share/coasim/ (by default /usr/local/share/coasim/).
+The absolute path to the DTD file is stored in the generated XML
+files.  To store another path than the compiled-in path when
+generating XML files, set the environment variable COASIMDIR to the
+appropriate director.  That is, if you have moved the DTD file to
+/home/me/dtds, you should run coasim with COASIMDIR=/home/me/dtds.
+
+
+The Plain Text Output:
+----------------------
+
+The plain text format consists of a list of rows of numbers; each row
+corresponds to a leaf node in the ARG (or a simulated haplo-type), and
+each column corresponds to a marker (where the markers are ordered
+according to their positions).
