@@ -31,6 +31,7 @@ ARG *Simulator::simulate(const Configuration &conf)
       descender.evolve(*arg);
     } catch (Mutator::retry_arg&) {
       if (mon) mon->retry_arg_building();
+      delete arg;
       goto retry;
     }
 
