@@ -57,14 +57,15 @@ namespace guile {
 	scm_throw(sex.tag, sex.throw_args);
     }
 
-    inline void wrapped_apply(SCM f, SCM args)
+    inline SCM wrapped_apply(SCM f, SCM args)
     {
 	ExCatchData cdata(f, args);
 	ExHandleData hdata;
-	scm_internal_catch(SCM_BOOL_T,
-			   ex_catch_function, &cdata,
-			   ex_handle_function, &hdata);
+	SCM return_val = scm_internal_catch(SCM_BOOL_T,
+					    ex_catch_function, &cdata,
+					    ex_handle_function, &hdata);
 	rethrow_if_failed(hdata);
+	return return_val;
     }
 }
 

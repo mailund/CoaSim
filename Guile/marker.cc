@@ -7,6 +7,13 @@
 
 #include "marker.hh"
 
+#ifndef GUILE__EXCEPTIONS_HH_INCLUDED
+# include "exceptions.hh"
+#endif
+#ifndef GUILE__NODES_HH_INCLUDED
+# include "nodes.hh"
+#endif
+
 #ifndef CORE__ALL_MARKERS_HH_INCLUDED
 # include <Core/all_markers.hh>
 #endif
@@ -20,7 +27,9 @@ scm_t_bits guile::trait_marker_tag;
 scm_t_bits guile::snp_marker_tag;
 scm_t_bits guile::ms_marker_tag;
 
+scm_t_bits guile::scheme_marker_tag;
 
+using namespace guile;
 
 static size_t
 free_trait_marker(SCM s_m)
@@ -87,6 +96,118 @@ print_ms_marker (SCM marker_smob, SCM port, scm_print_state *pstate)
 
     return 1;
 }
+
+
+
+namespace {
+    using namespace core;
+    struct SchemeMarker : public core::Marker {
+
+	SCM default_value_cb;
+	SCM mutate_cb;
+
+	// polymorphic copying
+	virtual Marker *copy() const;
+
+	virtual bool run_first() const;
+	virtual int default_value() const;
+
+	// creates a new mutator -- the mutator must be deleted after use.
+	virtual Mutator *create_mutator(const Configuration &conf,
+					const RetiredInterval &ri) const;
+
+	virtual const char * type() const;
+
+    public:
+
+	SchemeMarker(double position, SCM default_value, SCM mutate) 
+	    : core::Marker(position),
+	      default_value_cb(default_value),
+	      mutate_cb(mutate)
+	{}	
+
+    };
+
+    class SchemeMutator : public core::Mutator {
+	const SchemeMarker i_marker;
+
+	int mutate(const Node &parent, const Node &child, int parent_allele);
+
+    public:
+	SchemeMutator(const SchemeMarker &marker) : i_marker(marker) {}
+    };
+
+    Marker *SchemeMarker::copy() const
+    {
+	return new SchemeMarker(*this);
+    }
+
+    bool SchemeMarker::run_first() const
+    {
+	return false;  // FIXME
+    }
+
+    
+    const char *SchemeMarker::type() const 
+    {
+	return "scheme-marker"; 
+    }
+
+    int SchemeMarker::default_value() const
+    {
+	SCM val = wrapped_apply(default_value_cb, SCM_EOL);
+	// FIXME: exceptions here???
+	return scm_num2int(val, 1, "*default-value*");
+    }
+
+    Mutator *SchemeMarker::create_mutator(const Configuration &conf,
+					  const RetiredInterval &ri) const
+    {
+	return new SchemeMutator(*this);
+    }
+
+    int SchemeMutator::mutate(const Node &parent, const Node &child, 
+			      int parent_allele)
+    {
+	SCM args = scm_list_3(wrap_node(SCM_EOL, &parent),
+			      wrap_node(SCM_EOL, &child),
+			      scm_long2num(parent_allele));
+	SCM val = wrapped_apply(i_marker.mutate_cb, args);
+
+	// FIXME: exceptions here???
+	return scm_num2int(val, 1, "*mutate*");
+    }
+
+}
+
+static SCM 
+mark_scheme_marker (SCM s_m)
+{
+    SchemeMarker *marker = (SchemeMarker*) SCM_SMOB_DATA(s_m);
+    scm_gc_mark(marker->default_value_cb);
+    return SCM_BOOL_F;
+}
+
+static size_t
+free_scheme_marker(SCM s_m)
+{
+    SchemeMarker *m = (SchemeMarker*) SCM_SMOB_DATA(s_m);
+    m->~SchemeMarker();
+    scm_must_free(m);
+    return sizeof(SchemeMarker);
+}
+
+static int
+print_scheme_marker (SCM marker_smob, SCM port, scm_print_state *pstate)
+{
+    SchemeMarker *m = (SchemeMarker*) SCM_SMOB_DATA(marker_smob);
+    scm_puts("*user-define-marker*", port);
+    return 1;
+}
+
+
+
+
 
 
 /* --<GUILE COMMENT>---------------------------------------------
@@ -261,16 +382,28 @@ ms_marker_p(SCM marker_smob)
 static SCM
 position(SCM marker_smob)
 {
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::trait_marker_tag, marker_smob)
-	       or
-	       SCM_SMOB_PREDICATE(guile::snp_marker_tag, marker_smob)
-	       or
-	       SCM_SMOB_PREDICATE(guile::ms_marker_tag, marker_smob),
-	       marker_smob, SCM_ARG1, "position");
-
+    assert_marker(marker_smob, SCM_ARG1, "position");
     core::Marker *marker = (core::Marker*) SCM_SMOB_DATA(marker_smob);
     return scm_make_real(marker->position());
 }
+
+
+
+static SCM
+custom_marker(SCM s_position, SCM default_value, SCM mutate)
+{
+    double position  = scm_num2dbl(s_position,  "c-custom-marker");
+
+    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(default_value)),
+	       default_value, SCM_ARG2, "c-custom-marker");
+    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(mutate)),
+	       mutate, SCM_ARG3, "c-custom-marker");
+
+    void *mem = scm_must_malloc(sizeof(SchemeMarker), "c-custom-marker");
+    SchemeMarker *m = new(mem)SchemeMarker(position, default_value, mutate);
+    SCM_RETURN_NEWSMOB(guile::scheme_marker_tag, m);
+}
+
 
 void
 guile::install_marker()
@@ -291,6 +424,13 @@ guile::install_marker()
     scm_set_smob_free( guile::ms_marker_tag,  free_ms_marker);
     scm_set_smob_print(guile::ms_marker_tag, print_ms_marker);
 
+    guile::scheme_marker_tag = scm_make_smob_type("*user-defined-marker*", 
+						  sizeof(SchemeMarker));
+    scm_set_smob_mark( guile::scheme_marker_tag, mark_scheme_marker);
+    scm_set_smob_free( guile::scheme_marker_tag, free_scheme_marker);
+    scm_set_smob_print(guile::scheme_marker_tag, print_scheme_marker);
+
+
     // install func for creating the types
     scm_c_define_gsubr("trait-marker", 3, 0, 0, 
 		       (scm_unused_struct*(*)())trait_marker);
@@ -298,6 +438,16 @@ guile::install_marker()
 		       (scm_unused_struct*(*)())snp_marker);
     scm_c_define_gsubr("ms-marker", 3, 0, 0, 
 		       (scm_unused_struct*(*)())ms_marker);
+
+    scm_c_define_gsubr("c-custom-marker", 3, 0, 0, 
+		       (scm_unused_struct*(*)())custom_marker);
+    scm_c_eval_string("(define (custom-marker pos default mutate)"
+		      "  (let ((default-func (if (procedure? default) "
+		      "                          default"
+		      "                          (lambda () default))))"
+		      "     (c-custom-marker pos default-func mutate)))");
+
+
 
     // other functions
     scm_c_define_gsubr("trait-marker?", 1, 0, 0, 

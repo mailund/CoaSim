@@ -21,6 +21,26 @@ namespace guile {
     extern scm_t_bits snp_marker_tag;
     extern scm_t_bits ms_marker_tag;
 
+    extern scm_t_bits scheme_marker_tag;
+
+    inline bool marker_p(SCM smob)
+    {
+	return SCM_SMOB_PREDICATE(guile::trait_marker_tag, smob)
+	    or
+	    SCM_SMOB_PREDICATE(guile::snp_marker_tag, smob)
+	    or
+	    SCM_SMOB_PREDICATE(guile::ms_marker_tag, smob)
+	    or
+	    SCM_SMOB_PREDICATE(guile::scheme_marker_tag, smob);
+    }
+
+
+    inline void assert_marker(SCM smob, int arg_no, const char *caller)
+    {
+	SCM_ASSERT(marker_p(smob), smob, arg_no, caller);
+
+    }
+
     void install_marker();
 }
 

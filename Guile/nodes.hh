@@ -15,6 +15,7 @@
 #endif
 
 namespace core {
+    class Node;
     class LeafNode;
     class CoalescentNode;
     class RecombinationNode;
@@ -35,6 +36,9 @@ namespace guile {
 				   const core::RecombinationNode *node);
     SCM wrap_gene_conversion_node (SCM arg, 
 				   const core::GeneConversionNode *node);
+
+    SCM wrap_node                 (SCM arg, const core::Node *node);
+
 }
 
 #endif

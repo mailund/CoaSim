@@ -365,7 +365,7 @@ void Callbacks::coalescence_callback(core::CoalescentNode *n, int k)
     // fake ARG -- real does not exist yet
     SCM node = wrap_coalescent_node(SCM_EOL, n);
     SCM s_k   = scm_int2num(k);
-    wrapped_apply(i_coa_cb, scm_cons(node, scm_cons(s_k, SCM_EOL)));
+    wrapped_apply(i_coa_cb, scm_list_2(node, s_k));
 }
 
 void Callbacks::recombination_callback(core::RecombinationNode *n1,
@@ -377,8 +377,7 @@ void Callbacks::recombination_callback(core::RecombinationNode *n1,
     SCM node1 = wrap_recombination_node(SCM_EOL, n1);
     SCM node2 = wrap_recombination_node(SCM_EOL, n2);
     SCM s_k   = scm_int2num(k);
-    wrapped_apply(i_rc_cb, 
-		  scm_cons(node1, scm_cons(node2, scm_cons(s_k, SCM_EOL))));
+    wrapped_apply(i_rc_cb, scm_list_3(node1, node2, s_k));
 }
 
 void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
@@ -390,8 +389,7 @@ void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
     SCM node1 = wrap_gene_conversion_node(SCM_EOL, n1);
     SCM node2 = wrap_gene_conversion_node(SCM_EOL, n2);
     SCM s_k   = scm_int2num(k);
-    wrapped_apply(i_gc_cb, 
-		  scm_cons(node1, scm_cons(node2, scm_cons(s_k, SCM_EOL))));
+    wrapped_apply(i_gc_cb, scm_list_3(node1, node2, s_k));
 }
 
 static SCM
@@ -424,12 +422,7 @@ simulate(SCM s_markers,		// 1
     while (!SCM_NULLP(itr_markers))
 	{
 	    SCM marker_smob = SCM_CAR(itr_markers);
-	    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::trait_marker_tag, marker_smob)
-		       or
-		       SCM_SMOB_PREDICATE(guile::snp_marker_tag, marker_smob)
-		       or
-		       SCM_SMOB_PREDICATE(guile::ms_marker_tag, marker_smob),
-		       marker_smob, SCM_ARG1, "simulate");
+	    assert_marker(marker_smob, SCM_ARG1, "simulate");
 
 	    core::Marker *marker = (core::Marker*) SCM_SMOB_DATA(marker_smob);
 	    markers.push_back(marker);

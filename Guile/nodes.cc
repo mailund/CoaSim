@@ -184,6 +184,25 @@ guile::wrap_gene_conversion_node(SCM arg, const core::GeneConversionNode *node)
     SCM_RETURN_NEWSMOB(guile::gene_conversion_node_tag, n);
 }
 
+SCM
+guile::wrap_node(SCM arg, const core::Node *node)
+{
+    if (const core::LeafNode *lnode
+	= dynamic_cast<const core::LeafNode*>(node))
+	return wrap_leaf_node(arg, lnode);
+    else if (const core::CoalescentNode *cnode
+	     = dynamic_cast<const core::CoalescentNode*>(node))
+	return wrap_coalescent_node(arg, cnode);
+    else if (const core::RecombinationNode *rnode
+	     = dynamic_cast<const core::RecombinationNode*>(node))
+	return wrap_recombination_node(arg, rnode);
+    else if (const core::GeneConversionNode *gnode
+	     = dynamic_cast<const core::GeneConversionNode*>(node))
+	return wrap_gene_conversion_node(arg, gnode);
+    assert(false); // shouldn't be reached
+    return SCM_BOOL_F;
+}
+
 namespace {
 
     

@@ -21,6 +21,8 @@ EXTRA_DIST += simulate_test.sh simulate-test.scm simulate-test.expected
 
 marker_test_SOURCES =
 marker_test_SOURCES += marker.hh marker.cc 
+marker_test_SOURCES += exceptions.hh exceptions.cc
+marker_test_SOURCES += nodes.hh nodes.cc
 marker_test_SOURCES += marker_test.cc
 
 simulate_test_SOURCES =
