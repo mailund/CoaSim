@@ -9,9 +9,12 @@
 class MicroSatelliteMarker : public Marker
 {
 public:
-  MicroSatelliteMarker() : Marker() {}
+  MicroSatelliteMarker(double mu) : Marker(), _mu(mu) {}
 
-  virtual int default_value() const { return _values.front(); }
+  virtual int default_value() const {
+    if (size() == 0) throw std::out_of_range("No value set");
+    return _values.front(); 
+  }
 
   virtual void add_value(int value) throw(illegal_value)
   {
@@ -20,6 +23,10 @@ public:
   }
 
   virtual Mutator *create_mutator(const RetiredInterval &ri) const;
+  double mu() const { return _mu; }
+
+private:
+  double _mu; // mutation parameter
 };
 
 

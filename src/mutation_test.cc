@@ -34,6 +34,12 @@ int main(int argc, const char *argv[])
     Node *c2  = arg.coalescence(4.0, r1, g2);
     Node *top = arg.coalescence(5.0, c1, c2);
 
+    SNPMarker            snp_m;
+    TraitMarker          trait_m;
+    MicroSatelliteMarker ms_m(0.0);
+
+    ms_m.add_value(42); ms_m.add_value(86);
+
     // ARG retired intervals:
     // 0: [0.6--1.0)  s =  6.0   markers: 4
     // 1: [0.3--0.5)  s =  8.0   markers: 2 3
@@ -41,7 +47,9 @@ int main(int argc, const char *argv[])
     // 3: [0.5--0.6)  s = 10.0   markers:
 
     // Tree for interval 0:
-    //
+    // 
+    //       markers: 4
+    // 
     //          c1
     //         /  \ 1.0
     //    2.0 /    g1
@@ -51,7 +59,6 @@ int main(int argc, const char *argv[])
     //      l1      l2
 
     // SNP mutation, put mutation on c1->r1 edge
-    SNPMarker snp_m;
     Distribution_functions::uniform_result = 0.0;
     Mutator *mutator = snp_m.create_mutator(arg.retired_intervals().at(0));
 
@@ -67,6 +74,8 @@ int main(int argc, const char *argv[])
 
     // Tree for interval 1:
     // 
+    //       markers: 2 3
+    // 
     //          c2
     //         /  \ 2.0
     //        /    |
@@ -76,9 +85,41 @@ int main(int argc, const char *argv[])
     //  1.0  |      |
     //       l1     l2
 
+    // Trait mutation, put mutation on c2->g2 edge
+    Distribution_functions::uniform_result = 0.5;
+    mutator = trait_m.create_mutator(arg.retired_intervals().at(1));
+
+    c2->initialize_marker(2,trait_m);
+    c2->mutate_marker(2,*mutator);
+    delete mutator;
+
+    CHECK(c2->state(2) == 0);
+    CHECK(r1->state(2) == 0);
+    CHECK(l1->state(2) == 0);
+    CHECK(g2->state(2) == 1);
+    CHECK(l2->state(2) == 1);
+
+
+    // micro-satellite mutation, put mutation on all edges 
+    Distribution_functions::uniform_result = 0.5;
+    Distribution_functions::expdist_result = 0.6;
+    mutator = ms_m.create_mutator(arg.retired_intervals().at(3));
+
+    c2->initialize_marker(3,ms_m);
+    c2->mutate_marker(3,*mutator);
+    delete mutator;
+
+    CHECK(c2->state(3) == 42);
+    CHECK(r1->state(3) == 86);
+    CHECK(l1->state(3) == 86);
+    CHECK(g2->state(3) == 86);
+    CHECK(l2->state(3) == 86);
+
 
 
     // Tree for interval 2:
+    // 
+    //       markers: 0 1
     // 
     //          top
     //         /  \ 1.0
@@ -96,6 +137,8 @@ int main(int argc, const char *argv[])
 
     // Tree for interval 3:
     // 
+    //       markers:
+    // 
     //          top
     //         /  \ 1.0
     //    2.0 /    c2
@@ -109,6 +152,8 @@ int main(int argc, const char *argv[])
     //      l2      l2
  
    
+    // to avoid warnings
+    top = 0;
 
 
   } catch (std::exception &ex) {

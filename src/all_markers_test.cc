@@ -75,7 +75,7 @@ int main(int argc, const char *argv[])
 
 
 
-    MicroSatelliteMarker ms_marker;
+    MicroSatelliteMarker ms_marker(0.0);
 
     CHECK(ms_marker.size() == 0);
 
