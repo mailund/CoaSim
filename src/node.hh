@@ -14,7 +14,7 @@ class ARG
 {
 public:
 
-  /* Abstract class for ARG nodes. */
+  // -- Abstract class for ARG nodes --------------------------------------
   class Node 
   {
     // explicitly remove chance of copying
@@ -43,19 +43,19 @@ public:
     size_t no_states()          const { return _states.size(); }
     int state(unsigned int idx) const { return _states[idx]; }
 
+    friend class ARG;
     virtual void node_to_xml(std::ostream &os)                const = 0;
     virtual void mutation_to_xml(std::ostream &os)            const = 0;
     void haplotype_to_xml(std::ostream &os)                   const;
 
   private:
-    friend class ARG;
-
     double    _time;
     Intervals _intervals;
 
     std::valarray<int> _states;
   };
 
+  // -- Intervals that are retired because they connect to all leaves -----
   class RetiredInterval : public Interval
   {
   public:
@@ -82,7 +82,7 @@ public:
   };
 
 
-  // Initialization and book-keeping
+  // -- Initialization and book-keeping -----------------------------------
   ARG(const Configuration &conf) : _conf(conf), _no_leaves(0) {}
 
   // Cleanup.  Destroying the ARG also deletes all nodes in it, so
@@ -90,9 +90,10 @@ public:
   ~ARG();
 
 
-  // Factory methods for building the ARG
+  // -- Factory methods for building the ARG ------------------------------
   Node *leaf()                                            throw();
   Node *coalescence(double time, Node *left, Node *right) throw(null_child);
+
   // these methods return a pair of new nodes, if two nodes were
   // actually created, or the child node (as the first element in
   // pair, the second being 0), if one of the nodes created would
@@ -106,9 +107,11 @@ public:
 			      double conversion_end)
     throw(null_child,Interval::interval_out_of_range,Interval::empty_interval);
 
+
+
+
   const std::vector<RetiredInterval> &retired_intervals() const
   { return _retired_intervals; }
-
 
   void to_xml(std::ostream &os) const;
 

@@ -39,6 +39,7 @@ namespace {
 
     virtual void mutation_to_xml(std::ostream &os) const
     {
+      // nop -- you cannot mutate out of a leaf
     }
   };
 

@@ -76,4 +76,6 @@ private:
   double _mu;
   std::string _log;
 };
+
+
 #endif

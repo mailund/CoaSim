@@ -43,15 +43,16 @@ public:
     out_of_sequence() : std::logic_error("Marker positions not sorted."){}
   };
 
-  // initialize the configuration with the build and evolution
-  // parameters rho, Q, G, and growth; the marker positions given by
+  // initialize the configuration with the marker positions given by
   // the sequence from begin to end -- an exception is thrown if the
-  // positions are not sorted in increasing order -- and a flag
-  // specifying if the full output of the simulation is desired, or
-  // just information about the leaf nodes.
+  // positions are not sorted in increasing order; the build
+  // parameters rho, Q, G, and growth; evolution parameter mu; and a
+  // flag specifying if the full output of the simulation is desired,
+  // or just information about the leaf nodes.
   template <typename InItr>
-  Configuration(double rho, double Q, double G, double growth,
-		InItr positions_begin, InItr positions_end,
+  Configuration(InItr positions_begin, InItr positions_end,
+		double rho, double Q, double G, double growth,
+		double mu,
 		bool print_all_nodes = false)
     throw(out_of_sequence);
   ~Configuration();
@@ -74,6 +75,8 @@ public:
   double G()      const { return _G; }
   double growth() const { return _growth; }
 
+  double mu()     const { return _mu; }
+
   // parameters for output
   bool print_all_nodes() const { return _print_all_nodes; }
 
@@ -86,7 +89,6 @@ private:
   void initialize_value_sets();
 
 
-
   std::vector<double>    _positions;
   std::vector<ValueSet*> _value_sets;
 
@@ -95,20 +97,23 @@ private:
   double _G;
   double _growth;
 
+  double _mu;
+
   bool _print_all_nodes;
 };
 
 
 template <typename InItr>
-Configuration::Configuration(double rho, double Q, double G, double growth,
-			     InItr begin, InItr end,
+Configuration::Configuration(InItr begin, InItr end,
+			     double rho, double Q, double G, double growth,
+			     double mu,
 			     bool print_all_nodes)
   throw(out_of_sequence)
-  : _rho(rho), _Q(Q), _G(G), _growth(growth),
+  : _positions(begin,end),
+    _rho(rho), _Q(Q), _G(G), _growth(growth),
+    _mu(mu),
     _print_all_nodes(print_all_nodes)
 {
-  for (InItr itr = begin; itr != end; ++itr)
-    _positions.push_back(*itr);
   for (size_t m = 1; m < _positions.size(); ++m)
     if (_positions[m-1] >= _positions[m]) throw out_of_sequence();
   initialize_value_sets();
