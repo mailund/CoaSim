@@ -1,0 +1,103 @@
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<class>RunSimulationForm</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>RunSimulationForm</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>336</width>
+            <height>98</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Run Simulation</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout14</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel1</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Output File:</string>
+                    </property>
+                </widget>
+                <widget class="QLineEdit">
+                    <property name="name">
+                        <cstring>xml_file_name</cstring>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>browseOutFileButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Browse</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout20</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>mode</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Print Leaves Only</string>
+                    </property>
+                    <property name="checked">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>runSimButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Run Simulation</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>runSimButton</sender>
+        <signal>clicked()</signal>
+        <receiver>RunSimulationForm</receiver>
+        <slot>run_simulation()</slot>
+    </connection>
+    <connection>
+        <sender>browseOutFileButton</sender>
+        <signal>clicked()</signal>
+        <receiver>RunSimulationForm</receiver>
+        <slot>set_out_file()</slot>
+    </connection>
+</connections>
+<slots>
+    <slot>run_simulation()</slot>
+    <slot>set_out_file()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>
