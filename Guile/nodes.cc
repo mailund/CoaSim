@@ -193,7 +193,7 @@ namespace {
   <brief>Returns the time of the event represented by a node.</brief>
   <prototype>(event-time node)</prototype>
   <example>(define coa-times '())
-(define (coa-cb n) (set! coa-times (cons (event-time n) coa-times)))
+(define (coa-cb n k) (set! coa-times (cons (event-time n) coa-times)))
 (define rc-times '())
 (define (rc-cb n1 n2) (set! rc-times (cons (event-time n1) rc-times)))
 (simulate parameters markers no-leaves
@@ -237,6 +237,88 @@ namespace {
 	return SCM_EOL;
     }
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="recombination-point">
+  <brief>Returns the recombination point of a recombination node.</brief>
+  <prototype>(recombination-point recombination-node)</prototype>
+  <example>(define rc-points '())
+(define (rc-cb n1 n2 k) (set! rc-points (cons (recombination-point n1) rc-points)))
+(simulate parameters markers no-leaves :recombination-callback rc-cb) </example>
+  <description>
+    <p>
+      Returns the recombination point of a recombination node.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+
+    SCM recombination_point(SCM node_smob)
+    {
+	SCM_ASSERT(SCM_SMOB_PREDICATE(recombination_node_tag, node_smob),
+		   node_smob, SCM_ARG1, "recombination-point");
+	
+	RecombinationNode *node 
+	    = (RecombinationNode*)SCM_SMOB_DATA(node_smob);
+	return scm_make_real(node->node->cross_over_point());
+    }
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="gene-conversion-start">
+  <brief>Returns the start point of a gene conversion.</brief>
+  <prototype>(gene-conversion-start gene-conversion-node)</prototype>
+  <example>(define gc-start '())
+(define (gc-cb n1 n2 k) (set! gc-start (cons (gene-conversion-start n1) gc-start)))
+(simulate parameters markers no-leaves :geneconversion-callback gc-cb) </example>
+  <description>
+    <p>
+      Returns the start point of a gene conversion.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM gene_conversion_start(SCM node_smob)
+    {
+	SCM_ASSERT(SCM_SMOB_PREDICATE(gene_conversion_node_tag, node_smob),
+		   node_smob, SCM_ARG1, "gene-conversion-start");
+	
+	GeneConversionNode *node 
+	    = (GeneConversionNode*)SCM_SMOB_DATA(node_smob);
+	return scm_make_real(node->node->conversion_start());
+    }
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="gene-conversion-end">
+  <brief>Returns the end point of a gene conversion.</brief>
+  <prototype>(gene-conversion-end gene-conversion-node)</prototype>
+  <example>(define gc-end '())
+(define (gc-cb n1 n2 k) (set! gc-end (cons (gene-conversion-end n1) gc-end)))
+(simulate parameters markers no-leaves :geneconversion-callback gc-cb) </example>
+  <description>
+    <p>
+      Returns the end point of a gene conversion.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM gene_conversion_end(SCM node_smob)
+    {
+	SCM_ASSERT(SCM_SMOB_PREDICATE(gene_conversion_node_tag, node_smob),
+		   node_smob, SCM_ARG1, "gene-conversion-end");
+	
+	GeneConversionNode *node 
+	    = (GeneConversionNode*)SCM_SMOB_DATA(node_smob);
+	return scm_make_real(node->node->conversion_end());
+    }
+
 }
 
 void
@@ -270,5 +352,11 @@ guile::install_nodes()
 
     scm_c_define_gsubr("event-time", 1, 0, 0, 
 		       (scm_unused_struct*(*)())event_time);
+    scm_c_define_gsubr("recombination-point", 1, 0, 0, 
+		       (scm_unused_struct*(*)())recombination_point);
+    scm_c_define_gsubr("gene-conversion-start", 1, 0, 0, 
+		       (scm_unused_struct*(*)())gene_conversion_start);
+    scm_c_define_gsubr("gene-conversion-end", 1, 0, 0, 
+		       (scm_unused_struct*(*)())gene_conversion_end);
 
 }

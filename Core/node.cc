@@ -382,6 +382,27 @@ LeafNode *ARG::leaf() throw()
     return n;
 }
 
+
+static inline bool contains_marker(const Configuration &conf,
+				   const Interval &i)
+{
+    for (int m = 0; m < conf.no_markers(); ++m)
+	if (i.contains_point(conf.position(m))) return true;
+    return false;
+}
+
+static Intervals filter_contains_marker(const Intervals &intervals,
+					const Configuration &conf)
+{
+    Intervals result;
+    for (int i = 0; i < intervals.size(); ++i)
+	{
+	    const Interval &it = intervals.interval(i);
+	    if (contains_marker(conf,it)) result.add(it);
+	}
+    return result;
+}
+
 CoalescentNode *ARG::coalescence(double time, Node *left, Node *right)
     throw(null_child)
 {
@@ -391,6 +412,7 @@ CoalescentNode *ARG::coalescence(double time, Node *left, Node *right)
     std::vector<Interval> retired;
     Intervals non_retired;
     Intervals merged = left->intervals() | right->intervals();
+    merged = filter_contains_marker(merged, i_conf);
 
 #if 0
     std::cout << "coalescence -- left: " << left->intervals() << std::endl;
@@ -432,26 +454,6 @@ CoalescentNode *ARG::coalescence(double time, Node *left, Node *right)
     return n;
 }
 
-static inline bool contains_marker(const Configuration &conf,
-				   const Interval &i)
-{
-    for (int m = 0; m < conf.no_markers(); ++m)
-	if (i.contains_point(conf.position(m))) return true;
-    return false;
-}
-
-static Intervals filter_contains_marker(const Intervals &intervals,
-					const Configuration &conf)
-{
-    Intervals result;
-    for (int i = 0; i < intervals.size(); ++i)
-	{
-	    const Interval &it = intervals.interval(i);
-	    if (contains_marker(conf,it)) result.add(it);
-	}
-    return result;
-}
-
 
 ARG::recomb_node_pair_t ARG::recombination(double time, Node *child,
 					   double cross_over_point)
@@ -467,11 +469,8 @@ ARG::recomb_node_pair_t ARG::recombination(double time, Node *child,
 
     Intervals left  = child->intervals().copy(0.0,cross_over_point);
     left  = filter_contains_marker(left, i_conf);
-    if (left.size() == 0) throw null_event();
-
     Intervals right = child->intervals().copy(cross_over_point,1.0);
     right = filter_contains_marker(right, i_conf);
-    if (right.size() == 0) throw null_event();
 
 #if 0
     std::cout << "recombination -- child: " << child->intervals() << std::endl;
@@ -508,13 +507,11 @@ ARG::gene_conv_node_pair_t ARG::gene_conversion(double time, Node *child,
     Intervals left  = child->intervals().copy(0.0, conversion_start)
 	+ child->intervals().copy(conversion_end, 1.0);
     left  = filter_contains_marker(left, i_conf);
-    if (left.size() == 0) throw null_event();
-
 
     Intervals right =
 	child->intervals().copy(conversion_start, conversion_end);
     right = filter_contains_marker(right, i_conf);
-    if (right.size() == 0) throw null_event();
+
 
 #if 0
     std::cout << "gene-conversion -- left: " << left << std::endl;

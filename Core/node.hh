@@ -251,6 +251,10 @@ namespace core {
   
     class RecombinationNode : public Node
     {
+    public:
+	double cross_over_point() const { return i_cross_over_point; }
+
+    private:
 	friend ARG::recomb_node_pair_t ARG::recombination(double,Node*,double);
 	RecombinationNode(const Configuration &conf,
 			  double time, Node *child, const Intervals &is,
@@ -273,10 +277,16 @@ namespace core {
 	std::valarray<bool> i_child_mutating;
 	double i_cross_over_point;
 	bool i_is_left;
+
     };
 
     class GeneConversionNode : public Node
     {
+    public:
+	double conversion_start() const { return i_conversion_start; }
+	double conversion_end()   const { return i_conversion_end; }
+
+    private:
 	friend ARG::gene_conv_node_pair_t ARG::gene_conversion(double,Node*,double,double);
 	GeneConversionNode(const Configuration &conf,
 			   double time, Node *child, const Intervals &is,

@@ -200,7 +200,7 @@ namespace {
 
 <method name="total-branch-length">
   <brief>Returns the total tree branch length of the local tree of an interval.</brief>
-  <prototype>(total-branch-length interval)</prototype>
+  <prototype>(total-branch-length interval-or-tree)</prototype>
   <example>(define p (arg-parameters rho Q G beta))
 (define markers (make-random-snp-markers 10 0.1 0.9))
 (define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
@@ -208,19 +208,35 @@ namespace {
   <description>
     <p>
      Returns the total tree branch length of the local tree of an interval.
+     The argument to the function can be either a local interval, as returned
+     by the intervals function, or a local tree, as returned by the local-trees
+     function.
     </p>
   </description>
 </method>
 
 -----</GUILE COMMENT>-------------------------------------------- */
 
-  SCM total_branch_length(SCM interval_smob)
+  SCM total_branch_length(SCM smob)
   {
-      SCM_ASSERT(SCM_SMOB_PREDICATE(guile::interval_tag, interval_smob),
-		 interval_smob, SCM_ARG1, "interval-end");
-      IntervalData *interval_data 
-                        = (IntervalData*) SCM_SMOB_DATA(interval_smob);
-      return scm_make_real(interval_data->rinterval->surface());
+      double surface = 0.0;
+      if (SCM_SMOB_PREDICATE(guile::interval_tag, smob))
+          {
+	      IntervalData *interval_data = (IntervalData*)SCM_SMOB_DATA(smob);
+	      surface = interval_data->rinterval->surface();
+	  }
+      else if (SCM_SMOB_PREDICATE(guile::local_tree_tag, smob))
+          {
+	      TreeData *tree_data = (TreeData*) SCM_SMOB_DATA(smob);
+	      surface = tree_data->rinterval->surface();
+	  }
+      else
+         {
+	     scm_wrong_type_arg("total-branch-length", 1, smob);
+         }
+      
+
+      return scm_make_real(surface);
   }
 
 /* --<GUILE COMMENT>---------------------------------------------
@@ -254,7 +270,7 @@ namespace {
 /* --<GUILE COMMENT>---------------------------------------------
 
 <method name="tree->interval">
-  <brief>Returns interval a local tree local covers.</brief>
+  <brief>Returns interval a local tree covers.</brief>
   <prototype>(tree->interval tree)</prototype>
   <example>(define p (arg-parameters rho Q G beta))
 (define markers (make-random-snp-markers 10 0.1 0.9))
@@ -263,7 +279,7 @@ namespace {
 (define intervals2 (map tree->interval trees))</example>
   <description>
     <p>
-      Returns interval a local tree local covers.  The function is the reverse
+      Returns interval a local tree covers.  The function is the reverse
       of interval->tree.
     </p>
   </description>

@@ -96,7 +96,7 @@ ARG * Builder::build(SimulationMonitor *mon,
 	    unsigned int k = top_nodes.size();
 	    time += get_time_interval(i_conf,time,k);
 
-	    int event = uniform((k-1)/2.,i_conf.G()/2, i_conf.rho()/2);
+	    int event = uniform(double(k-1), i_conf.G(), i_conf.rho());
 
 	    ++no_iterations;
 
@@ -176,6 +176,7 @@ ARG * Builder::build(SimulationMonitor *mon,
 			    ARG::recomb_node_pair_t pair
 				= arg->recombination(time,child,
 						     cross_over_point);
+
 			    if (pair.first->intervals().size() > 0)
 				top_nodes.push(pair.first); 
 			    if (pair.second->intervals().size() > 0)

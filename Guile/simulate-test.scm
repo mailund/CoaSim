@@ -26,6 +26,11 @@
 ;;(define no-gc (no-gene-conversions arg))
 ;;(display no-gc)(newline)
 
+;;(define (print x) (display x)(display " "))
+;;(define (combine f g) (lambda (x) (f (g x))))
+;;(map (combine print total-branch-length) (intervals arg))(newline)
+;;(map (combine print total-branch-length) (local-trees arg))(newline)
+
 (catch 'wrong-number-of-args
        (lambda () (simulate p))
        (lambda (key . args) (display key)(newline)))
