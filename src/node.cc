@@ -444,26 +444,18 @@ ARG::node_pair_t ARG::recombination(double time, Node *child,
     return std::make_pair<Node*,Node*>(child,0);
 
   Intervals left  = child->intervals().copy(0.0,cross_over_point);
-  Intervals right = child->intervals().copy(cross_over_point,1.0);
-
-#if 0
   left  = filter_contains_marker(left, i_conf);
-  right = filter_contains_marker(right, i_conf);
+  if (left.size() == 0) return std::make_pair<Node*,Node*>(child,0);
 
-  if (left.size() == 0)
-    return std::make_pair<Node*,Node*>(child,0);
-  if (right.size() == 0)
-    return std::make_pair<Node*,Node*>(child,0);
-#endif
+  Intervals right = child->intervals().copy(cross_over_point,1.0);
+  right = filter_contains_marker(right, i_conf);
+  if (right.size() == 0) return std::make_pair<Node*,Node*>(child,0);
 
 #if 0
   std::cout << "recombination -- child: " << child->intervals() << std::endl;
   std::cout << "recombination -- left: " << left << std::endl;
   std::cout << "recombination -- right: " << right << std::endl;
 #endif
-
-
-  // FIXME: we could optimize here by not creating intervals without markers
 
   RecombinationNode *n1 = new RecombinationNode(i_conf,time,child,left,
 						cross_over_point, true);
@@ -492,18 +484,13 @@ ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
 
   Intervals left  = child->intervals().copy(0.0, conversion_start)
     + child->intervals().copy(conversion_end, 1.0);
+  left  = filter_contains_marker(left, i_conf);
+  if (left.size() == 0) return std::make_pair<Node*,Node*>(child,0);
+
   Intervals right =
     child->intervals().copy(conversion_start, conversion_end);
-
-#if 0
-  left  = filter_contains_marker(left, i_conf);
   right = filter_contains_marker(right, i_conf);
-
-  if (left.size() == 0)
-    return std::make_pair<Node*,Node*>(child,0);
-  if (right.size() == 0)
-    return std::make_pair<Node*,Node*>(child,0);
-#endif
+  if (right.size() == 0) return std::make_pair<Node*,Node*>(child,0);
 
 #if 0
   std::cout << "gene-conversion -- left: " << left << std::endl;

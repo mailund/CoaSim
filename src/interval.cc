@@ -16,7 +16,8 @@
 #endif
 
 
-using std::min; using std::max;
+using std::min; 
+using std::max;
 
 namespace {
   using std::binary_function;

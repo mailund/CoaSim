@@ -11,9 +11,10 @@
 # include "marker.hh"
 #endif
 
-double RetiredInterval::surface() const
+
+void RetiredInterval::calc_surface() const
 { 
-  return i_top_node->surface_at_point(start()); 
+  i_surface = i_top_node->surface_at_point(start()); 
 }
 
 void RetiredInterval::mutate(const Configuration &conf,
