@@ -9,16 +9,16 @@
 #endif
 
 #ifndef CONFIGURATION_HH_INCLUDED
-# include <coasim/configuration.hh>
+# include <configuration.hh>
 #endif
 #ifndef NODE_HH_INCLUDED
-# include <coasim/node.hh>
+# include <node.hh>
 #endif
 #ifndef SIMULATOR_HH_INCLUDED
-# include <coasim/simulator.hh>
+# include <simulator.hh>
 #endif
 #ifndef ALL_MARKERS_HH_INCLUDED
-# include <coasim/all_markers.hh>
+# include <all_markers.hh>
 #endif
 
 #ifndef QTABLE_H_INCLUDED

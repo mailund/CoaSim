@@ -6,7 +6,7 @@
 # define SIMFEEDBACKFORM_H_INCLUDED
 #endif
 #ifndef MONITOR_HH_INCLUDED
-# include <coasim/monitor.hh>
+# include <monitor.hh>
 #endif
 
 class CoasimGuiImpl;

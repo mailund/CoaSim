@@ -1,0 +1,91 @@
+
+CoaSim is a tool for simulating the coalescent process with
+recombination and gene-conversion under the assumption of exponential
+population growth. It effectively constructs the ancestral
+recombination graph for a given number of individuals and uses this to
+simulate samples of SNP and micro- satellite haplotypes/genotypes. The
+generated sample can afterwards be separated in cases and controls,
+depending on states of selected individual markers. The tool can
+accordingly also be used to construct cases and control data sets for
+association studies.
+
+Usage:
+------
+
+The CoaSim tool comes in two flavours: a command line interface and a
+graphical user interface.  The command line interface (the program
+`coasim') reads a number of run-commands from a file to configure the
+simulation; the graphical user interface (the program `coasim_gui') is
+configured through a number of dialogue windows.
+
+ 
+The parameters that specify the simulation are:
+
+ * number of leaves: The number of leaf-nodes the simulated ancestral
+   recombination graph (ARG) should contain.
+
+ * gene-conversion rate: The rate of gene conversions
+ * gene-conversion length: The rate used in estimating the length of
+   gene conversions.
+ * recombination rate: The recombination rate.
+ * growth: The exponential growth parameter (if 0 a constant
+   population size is used)
+ * mutate rate: The mutation rate for micro satellites.
+
+ * positions: The locations of markers (in the range [0.0,1.0[)
+ * marker types: The type of the markers:
+	  - snp: 	SNP markers
+	  - traits:	Traits, useful e.g. for distinguishing cases
+			from controls
+	  - ms:		Micro-satellites
+ * mutation frequency: low/high frequency of mutation allele, for SNP
+   and trait markers
+ * alphabet size: Alphabet size for micro-satellite markers.
+
+ * print all nodes: Print the full ARG, as opposed to just printing
+   the leaves.
+
+
+The command line interface reads the parameters from a run-command
+file of the form:
+
+-- sample.rc -------------------------------------------------
+
+no_leaves: 		10	# number of leaves
+
+gene_conversion_rate:   250.0	# gene-conversion rate
+gene_conversion_length: 250.0   # gene-conversion length
+
+recombination_rate:     0.01    # recombination rate
+
+growth:			0.0     # growth
+
+mutation_rate:		0.001   # mutation rate
+
+
+positions: 0.1 0.2 0.3   0.4 0.6 0.9   # marker positions
+markers:   snp snp trait ms  snp snp   # types of markers
+low_freq:  0.1 0.1 0.1   0.0 0.2 0.2   # low freq for traits and snps
+high_freq: 0.2 0.2 0.2   0.0 0.4 0.4   # high freq for traits and snps
+no_values: 0   0   0     4   0   0     # no possible values for ms
+
+print_all_nodes: true
+
+-- /sample.rc ------------------------------------------------
+
+
+The GUI program obtains the ARG construction and mutation parameters
+from the main window and the marker types, positions, and parameters
+from the "Add Marker" dialogue window.
+
+
+
+The simulation output is written to an XML file.  The XML output can
+be processed in a number of ways. Using the XSLT script
+coasim_to_dot.xsl the XML file can be transformed to dot format which
+can be used to construct a postscript version of the generated
+ancestral recombination graph. The program 'dot' is part of GraphViz
+<URL:http://www.graphviz.org/>. Using the script seperate.py the
+sequences at the leaf nodes can be separated into cases and controls
+depending on specific alleles.  See the README_seperate file for
+details.
