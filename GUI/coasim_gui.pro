@@ -5,11 +5,11 @@ CONFIG	+= qt warn_on release exceptions debug_on
 
 unix:LIBS	+= -L../Core -lcoasim
 
-INCLUDEPATH	+= ../../QtWidgets/
+INCLUDEPATH	+= custom_widgets
 
-HEADERS	+= ../../QtWidgets/baps_float_spin_box.hh
+HEADERS	+= simulation_monitor.hh
 
-SOURCES	+= ../../QtWidgets/baps_float_spin_box.cc
+SOURCES	+= simulation_monitor.cc
 
 FORMS	= simulationdialog.ui \
 	simresultsdialog.ui \
@@ -21,12 +21,16 @@ IMAGES	= images/coasim-icon.png \
 	images/bioinformatics-exit-icon.png \
 	images/bioinformatics-run-icon.png
 
-HEADERS	+= simulation_monitor.hh 
-
-SOURCES	+= simulation_monitor.cc
-
-
 INCLUDEPATH += ../
+
+
+HEADERS	+= custom_widgets/float_spin_box.hh
+HEADERS	+= custom_widgets/trait_or_snp_table.hh
+
+SOURCES	+= custom_widgets/float_spin_box.cc
+SOURCES	+= custom_widgets/trait_or_snp_table.cc
+
+
 
 
 SOURCES += main.cc

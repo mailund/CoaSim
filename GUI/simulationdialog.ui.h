@@ -17,7 +17,7 @@
 #include "mainwindow.h"
 #include "simulation_monitor.hh"
 
-#include <baps_float_spin_box.hh>
+#include <float_spin_box.hh>
 #include <qspinbox.h>
 #include <qtable.h>
 #include <qmessagebox.h>
@@ -86,6 +86,8 @@ void SimulationDialog::init()
     std::vector<core::Marker*>::iterator m_itr;
     for (m_itr = markers.begin(); m_itr != markers.end(); ++m_itr)
 	delete *m_itr;
+
+    
 
     show();
     simMonitor->run();
