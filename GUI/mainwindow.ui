@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>508</width>
-            <height>564</height>
+            <height>737</height>
         </rect>
     </property>
     <property name="caption">
@@ -56,15 +56,24 @@
                                     <property name="text">
                                         <string>Position</string>
                                     </property>
+                                    <property name="pixmap">
+                                        <pixmap></pixmap>
+                                    </property>
                                 </column>
                                 <column>
                                     <property name="text">
                                         <string>High Freq.</string>
                                     </property>
+                                    <property name="pixmap">
+                                        <pixmap></pixmap>
+                                    </property>
                                 </column>
                                 <column>
                                     <property name="text">
                                         <string>Low Freq.</string>
+                                    </property>
+                                    <property name="pixmap">
+                                        <pixmap></pixmap>
                                     </property>
                                 </column>
                                 <property name="name">
@@ -75,6 +84,12 @@
                                 </property>
                                 <property name="numCols">
                                     <number>3</number>
+                                </property>
+                                <property name="showGrid">
+                                    <bool>false</bool>
+                                </property>
+                                <property name="selectionMode">
+                                    <enum>MultiRow</enum>
                                 </property>
                             </widget>
                             <widget class="QGroupBox">
@@ -258,6 +273,9 @@
                                 <property name="numCols">
                                     <number>3</number>
                                 </property>
+                                <property name="showGrid">
+                                    <bool>false</bool>
+                                </property>
                             </widget>
                             <widget class="QGroupBox">
                                 <property name="name">
@@ -439,6 +457,9 @@
                                 </property>
                                 <property name="numCols">
                                     <number>3</number>
+                                </property>
+                                <property name="showGrid">
+                                    <bool>false</bool>
                                 </property>
                             </widget>
                             <widget class="QGroupBox">
@@ -685,6 +706,10 @@
     <item text="&amp;File" name="fileMenu">
         <action name="fileExitAction"/>
     </item>
+    <item text="&amp;Edit" name="Edit">
+        <action name="editClearAction"/>
+        <action name="editDeleteAction"/>
+    </item>
     <item text="&amp;Simulation" name="Simulation">
         <action name="simParametersAction"/>
         <action name="simSimulateAction"/>
@@ -704,6 +729,9 @@
             <string>Toolbar</string>
         </property>
         <action name="fileExitAction"/>
+        <separator/>
+        <action name="editClearAction"/>
+        <action name="editDeleteAction"/>
         <separator/>
         <action name="simSimulateAction"/>
     </toolbar>
@@ -777,6 +805,43 @@
             <string>Set simulation parameters</string>
         </property>
     </action>
+    <action>
+        <property name="name">
+            <cstring>editDeleteAction</cstring>
+        </property>
+        <property name="iconSet">
+            <iconset>bioinformatics-delete-icon.png</iconset>
+        </property>
+        <property name="text">
+            <string>&amp;Delete</string>
+        </property>
+        <property name="menuText">
+            <string>&amp;Delete</string>
+        </property>
+        <property name="toolTip">
+            <string>Delete selected markers</string>
+        </property>
+        <property name="accel">
+            <string>Del</string>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>editClearAction</cstring>
+        </property>
+        <property name="iconSet">
+            <iconset>bioinformatics-clear-icon.png</iconset>
+        </property>
+        <property name="text">
+            <string>&amp;Clear</string>
+        </property>
+        <property name="menuText">
+            <string>&amp;Clear</string>
+        </property>
+        <property name="toolTip">
+            <string>Clear all markers</string>
+        </property>
+    </action>
 </actions>
 <connections>
     <connection>
@@ -845,6 +910,18 @@
         <receiver>MainWindow</receiver>
         <slot>editSimulationParameters()</slot>
     </connection>
+    <connection>
+        <sender>editDeleteAction</sender>
+        <signal>activated()</signal>
+        <receiver>MainWindow</receiver>
+        <slot>deleteSelectedMarkers()</slot>
+    </connection>
+    <connection>
+        <sender>editClearAction</sender>
+        <signal>activated()</signal>
+        <receiver>MainWindow</receiver>
+        <slot>clearAllMarkers()</slot>
+    </connection>
 </connections>
 <tabstops>
     <tabstop>traitMarkers</tabstop>
@@ -867,6 +944,9 @@
 <includes>
     <include location="local" impldecl="in implementation">mainwindow.ui.h</include>
 </includes>
+<forwards>
+    <forward>class QTable;</forward>
+</forwards>
 <variables>
     <variable access="public">int noLeaves;</variable>
     <variable access="public">double rho;</variable>
@@ -883,11 +963,14 @@
     <slot specifier="non virtual">nextPosChanged( int pos )</slot>
     <slot specifier="non virtual">runSimulation()</slot>
     <slot specifier="non virtual">editSimulationParameters()</slot>
+    <slot>deleteSelectedMarkers()</slot>
+    <slot>clearAllMarkers()</slot>
 </slots>
 <functions>
     <function access="private" specifier="non virtual">init()</function>
     <function access="private" specifier="non virtual" returnType="int">updateNextPosition( int pos )</function>
     <function specifier="non virtual" returnType="bool">checkMarkerPosition( int pos )</function>
+    <function access="private" specifier="non virtual">deleteMarkers( QTable * table )</function>
 </functions>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

@@ -19,7 +19,19 @@ FORMS	= simulationdialog.ui \
 IMAGES	= images/coasim-icon.png \
 	images/CoaSim-splash.png \
 	images/bioinformatics-exit-icon.png \
-	images/bioinformatics-run-icon.png
+	images/bioinformatics-run-icon.png \
+	images/bioinformatics-delete-icon.png \
+	images/bioinformatics-clear-icon.png \
+	images/filenew \
+	images/fileopen \
+	images/filesave \
+	images/print \
+	images/undo \
+	images/redo \
+	images/editcut \
+	images/editcopy \
+	images/editpaste \
+	images/searchfind
 
 INCLUDEPATH += ../
 

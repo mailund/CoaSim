@@ -14,6 +14,7 @@
 #include "simulationparametersdialog.h"
 
 #include <qmessagebox.h>
+#include <vector>
 
 void MainWindow::init()
 {
@@ -47,9 +48,9 @@ void MainWindow::init()
     MSMarkerTable->horizontalHeader()->setLabel(2, tr("Mutation Rate"));
 
     struct PositionCheckerHook : PositionChecker {
-	MainWindow *main_window;
-	PositionCheckerHook(MainWindow *mw) : main_window(mw) {}
-	bool check(int pos) { return main_window->checkMarkerPosition(pos); }
+ MainWindow *main_window;
+ PositionCheckerHook(MainWindow *mw) : main_window(mw) {}
+ bool check(int pos) { return main_window->checkMarkerPosition(pos); }
     };
 
     traitMarkerTable->setPositionChecker(new PositionCheckerHook(this));
@@ -65,19 +66,19 @@ void MainWindow::fileExit()
 void MainWindow::helpAbout()
 {
     QMessageBox::about(this,
-		       tr("About CoaSim"),
-		       tr("<h2>CoaSim 3.0</h2>"
+         tr("About CoaSim"),
+         tr("<h2>CoaSim 3.0</h2>"
 
-			  "<p>Copyright &copy; 2004 Bioinformatics ApS "
-			  "<tt>http://www.bioinformatics.dk</tt>."
+     "<p>Copyright &copy; 2004 Bioinformatics ApS "
+     "<tt>http://www.bioinformatics.dk</tt>."
 
-			  "<p>CoaSim is an ancestral recombination graph "
-			  "simulator that simulates evolution under "
-			  "various population and mutation models."
+     "<p>CoaSim is an ancestral recombination graph "
+     "simulator that simulates evolution under "
+     "various population and mutation models."
      
-			  "<p>If you have any questions or comments, "
-			  "please direct them to <tt>mailund@birc.dk</tt>."
-			  ));
+     "<p>If you have any questions or comments, "
+     "please direct them to <tt>mailund@birc.dk</tt>."
+     ));
 }
 
 int MainWindow::updateNextPosition( int pos )
@@ -181,17 +182,17 @@ void MainWindow::nextPosChanged( int pos )
 void MainWindow::runSimulation()
 {
     if (traitMarkerTable->numRows() == 0
-	and SNPMarkerTable->numRows() == 0
-	and MSMarkerTable->numRows() == 0)
-	{
-	    QMessageBox::warning(this, tr("No Markers!"),
-				 tr("At least one marker must be "
-				    "specified to run a simulation."));
-	    return;
-	}
+ and SNPMarkerTable->numRows() == 0
+ and MSMarkerTable->numRows() == 0)
+ {
+     QMessageBox::warning(this, tr("No Markers!"),
+     tr("At least one marker must be "
+        "specified to run a simulation."));
+     return;
+ }
 
     SimulationDialog *simulation = 
-	new SimulationDialog(this, "Simulate", false, WDestructiveClose);
+ new SimulationDialog(this, "Simulate", false, WDestructiveClose);
     simulation->show();
 }
 
@@ -207,11 +208,49 @@ void MainWindow::editSimulationParameters()
     dialog.beta->setValue((int)beta*100);
 
     if (dialog.exec()) 
-	{
-	    noLeaves = dialog.noChromosomes->text().toInt();
-	    rho = dialog.rho->text().toDouble();
-	    Q = dialog.Q->text().toDouble();
-	    G = dialog.G->text().toDouble();
-	    beta = dialog.beta->text().toDouble();
-	}
+ {
+     noLeaves = dialog.noChromosomes->text().toInt();
+     rho = dialog.rho->text().toDouble();
+     Q = dialog.Q->text().toDouble();
+     G = dialog.G->text().toDouble();
+     beta = dialog.beta->text().toDouble();
+ }
+}
+
+void MainWindow::deleteSelectedMarkers()
+{
+    if (traitMarkerTable->isVisible()) deleteMarkers(traitMarkerTable);
+    if (SNPMarkerTable->isVisible())   deleteMarkers(SNPMarkerTable);
+    if (MSMarkerTable->isVisible())    deleteMarkers(MSMarkerTable);
+}
+
+void MainWindow::deleteMarkers(QTable *table)
+{
+    QTableSelection sel = table->selection(0);
+    if (sel.isEmpty()) return;
+
+    std::vector<int> toDelete;
+
+    int n = table->numSelections();
+    while (n-- > 0)
+ {
+     QTableSelection sel = table->selection(n);
+     for (int row = sel.bottomRow(); row >= sel.topRow(); --row)
+  toDelete.push_back(row);
+ }
+
+    // deleting a row renumbers the lower rows, so we have to delete
+    // them from the highest and down.
+    std::sort(toDelete.begin(), toDelete.end());
+    std::vector<int>::reverse_iterator i;
+    for (i = toDelete.rbegin(); i != toDelete.rend(); ++i)
+ table->removeRow(*i);
+}
+
+
+void MainWindow::clearAllMarkers()
+{
+    traitMarkerTable->setNumRows(0);
+    SNPMarkerTable->setNumRows(0);
+    MSMarkerTable->setNumRows(0);
 }
