@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>336</width>
+            <width>350</width>
             <height>98</height>
         </rect>
     </property>
@@ -32,7 +32,7 @@
                         <cstring>textLabel1</cstring>
                     </property>
                     <property name="text">
-                        <string>Output File:</string>
+                        <string>Output file:</string>
                     </property>
                 </widget>
                 <widget class="QLineEdit">
@@ -66,7 +66,7 @@
                         <cstring>mode</cstring>
                     </property>
                     <property name="text">
-                        <string>Print Leaves Only</string>
+                        <string>Print leaves only</string>
                     </property>
                     <property name="checked">
                         <bool>true</bool>

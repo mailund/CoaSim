@@ -3,26 +3,17 @@
 #include "runsimulationform.h"
 
 class QTable;
+class Configuration;
 
 class RunSimulationImpl : public RunSimulationForm
 {
   Q_OBJECT
-  QTable *_marker_table;
-  int     _no_leaves;
-  double  _recomb_rate;
-  double  _geneconv_rate;
-  double  _geneconv_length;
-  double  _growth;
-  double  _mrate;
+  QString &_output_file;
+  bool    &_leaves_only;
 
 public:
-  RunSimulationImpl(QTable *marker_table,
-		    int no_leaves,
-		    double recomb_rate,
-		    double geneconv_rate, 
-		    double geneconv_length,
-		    double growth,
-		    double mrate, 
+  RunSimulationImpl(QString &output_file,
+		    bool    &leaves_only,
 		    QWidget* parent = 0, const char* name = 0, WFlags fl = 0 );
   ~RunSimulationImpl();
 

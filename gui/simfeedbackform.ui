@@ -1,0 +1,493 @@
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<class>SimFeedbackForm</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>SimFeedbackForm</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>639</width>
+            <height>406</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Simulation Monitor</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout80</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout79</cstring>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QGroupBox">
+                            <property name="name">
+                                <cstring>groupBox19</cstring>
+                            </property>
+                            <property name="title">
+                                <string>Recombination Graph Simulation</string>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout75</cstring>
+                                    </property>
+                                    <grid>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLineEdit" row="0" column="3">
+                                            <property name="name">
+                                                <cstring>_total_nodes</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignRight</set>
+                                            </property>
+                                            <property name="readOnly">
+                                                <bool>true</bool>
+                                            </property>
+                                        </widget>
+                                        <spacer row="0" column="2">
+                                            <property name="name">
+                                                <cstring>spacer18</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>28</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel" row="1" column="0" rowspan="2" colspan="2">
+                                            <property name="name">
+                                                <cstring>textLabel4_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Remaining unprocessed nodes:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+                                            <property name="name">
+                                                <cstring>textLabel4</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Total number of nodes generated:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit" row="1" column="3" rowspan="2" colspan="1">
+                                            <property name="name">
+                                                <cstring>_top_nodes</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignRight</set>
+                                            </property>
+                                            <property name="readOnly">
+                                                <bool>true</bool>
+                                            </property>
+                                        </widget>
+                                    </grid>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout71</cstring>
+                                    </property>
+                                    <grid>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QProgressBar" row="3" column="1">
+                                            <property name="name">
+                                                <cstring>_gene_conv_progress</cstring>
+                                            </property>
+                                            <property name="frameShadow">
+                                                <enum>Plain</enum>
+                                            </property>
+                                            <property name="percentageVisible">
+                                                <bool>false</bool>
+                                            </property>
+                                        </widget>
+                                        <widget class="QProgressBar" row="1" column="1">
+                                            <property name="name">
+                                                <cstring>_coal_events_progress</cstring>
+                                            </property>
+                                            <property name="percentageVisible">
+                                                <bool>false</bool>
+                                            </property>
+                                        </widget>
+                                        <widget class="QProgressBar" row="2" column="1">
+                                            <property name="name">
+                                                <cstring>_recomb_events_progress</cstring>
+                                            </property>
+                                            <property name="percentageVisible">
+                                                <bool>false</bool>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit" row="0" column="2">
+                                            <property name="name">
+                                                <cstring>_leaf_nodes</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>0</hsizetype>
+                                                    <vsizetype>0</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignRight</set>
+                                            </property>
+                                            <property name="readOnly">
+                                                <bool>true</bool>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit" row="2" column="2">
+                                            <property name="name">
+                                                <cstring>_recomb_events</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>0</hsizetype>
+                                                    <vsizetype>0</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignRight</set>
+                                            </property>
+                                            <property name="readOnly">
+                                                <bool>true</bool>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel" row="2" column="0">
+                                            <property name="name">
+                                                <cstring>textLabel5_3</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Recombinations:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QProgressBar" row="0" column="1">
+                                            <property name="name">
+                                                <cstring>_leaf_nodes_progress</cstring>
+                                            </property>
+                                            <property name="percentageVisible">
+                                                <bool>false</bool>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel" row="1" column="0">
+                                            <property name="name">
+                                                <cstring>textLabel5_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Coalescence events:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit" row="3" column="2">
+                                            <property name="name">
+                                                <cstring>_gene_conv</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>0</hsizetype>
+                                                    <vsizetype>0</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignRight</set>
+                                            </property>
+                                            <property name="readOnly">
+                                                <bool>true</bool>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit" row="1" column="2">
+                                            <property name="name">
+                                                <cstring>_coal_events</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>0</hsizetype>
+                                                    <vsizetype>0</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignRight</set>
+                                            </property>
+                                            <property name="readOnly">
+                                                <bool>true</bool>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel" row="0" column="0">
+                                            <property name="name">
+                                                <cstring>textLabel5</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Number of leaves:</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel" row="3" column="0">
+                                            <property name="name">
+                                                <cstring>textLabel5_4</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Geneconversions:</string>
+                                            </property>
+                                        </widget>
+                                    </grid>
+                                </widget>
+                            </vbox>
+                        </widget>
+                        <widget class="QGroupBox">
+                            <property name="name">
+                                <cstring>groupBox20</cstring>
+                            </property>
+                            <property name="title">
+                                <string>Mutation Simulation</string>
+                            </property>
+                            <grid>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel" row="2" column="0">
+                                    <property name="name">
+                                        <cstring>textLabel8</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Position:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit" row="1" column="2">
+                                    <property name="name">
+                                        <cstring>_marker_type</cstring>
+                                    </property>
+                                    <property name="readOnly">
+                                        <bool>true</bool>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit" row="2" column="2">
+                                    <property name="name">
+                                        <cstring>_marker_pos</cstring>
+                                    </property>
+                                    <property name="readOnly">
+                                        <bool>true</bool>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+                                    <property name="name">
+                                        <cstring>textLabel6</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Marker number:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit" row="0" column="2">
+                                    <property name="name">
+                                        <cstring>_marker_no</cstring>
+                                    </property>
+                                    <property name="readOnly">
+                                        <bool>true</bool>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel" row="1" column="0">
+                                    <property name="name">
+                                        <cstring>textLabel7</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Type:</string>
+                                    </property>
+                                </widget>
+                                <spacer row="1" column="1">
+                                    <property name="name">
+                                        <cstring>spacer21_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>33</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <spacer row="2" column="1">
+                                    <property name="name">
+                                        <cstring>spacer21_3</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>33</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                            </grid>
+                        </widget>
+                    </vbox>
+                </widget>
+                <widget class="QGroupBox">
+                    <property name="name">
+                        <cstring>groupBox21</cstring>
+                    </property>
+                    <property name="title">
+                        <string>Simulation Log</string>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QTextEdit">
+                            <property name="name">
+                                <cstring>_sim_log</cstring>
+                            </property>
+                            <property name="minimumSize">
+                                <size>
+                                    <width>200</width>
+                                    <height>0</height>
+                                </size>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>300</width>
+                                    <height>32767</height>
+                                </size>
+                            </property>
+                            <property name="readOnly">
+                                <bool>true</bool>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="Line">
+            <property name="name">
+                <cstring>line3</cstring>
+            </property>
+            <property name="frameShape">
+                <enum>HLine</enum>
+            </property>
+            <property name="frameShadow">
+                <enum>Sunken</enum>
+            </property>
+            <property name="orientation">
+                <enum>Horizontal</enum>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout70</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer19</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>40</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>pushButton21</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Abort</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Abort simulation</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>pushButton22</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>false</bool>
+                    </property>
+                    <property name="text">
+                        <string>Close</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close simulation monitor</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>pushButton22</sender>
+        <signal>clicked()</signal>
+        <receiver>SimFeedbackForm</receiver>
+        <slot>close()</slot>
+    </connection>
+    <connection>
+        <sender>pushButton21</sender>
+        <signal>clicked()</signal>
+        <receiver>SimFeedbackForm</receiver>
+        <slot>abort_simulation()</slot>
+    </connection>
+</connections>
+<slots>
+    <slot>abort_simulation()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

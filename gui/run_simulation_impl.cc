@@ -1,11 +1,6 @@
 
 #include "run_simulation_impl.hh"
 
-#include <coasim/configuration.hh>
-#include <coasim/all_markers.hh>
-#include <coasim/node.hh>
-#include <coasim/simulator.hh>
-
 #include <qtable.h>
 #include <qcheckbox.h>
 #include <qlineedit.h>
@@ -15,23 +10,15 @@
 #include <fstream>
 #include <vector>
 
-RunSimulationImpl::RunSimulationImpl(QTable *marker_table,
-				     int no_leaves,
-				     double recomb_rate,
-				     double geneconv_rate, 
-				     double geneconv_length,
-				     double growth,
-				     double mrate,
-				     QWidget* parent,  const char* name, WFlags fl )
+RunSimulationImpl::RunSimulationImpl(QString &output_file, bool &leaves_only,
+				     QWidget* parent,  const char* name, 
+				     WFlags fl)
   : RunSimulationForm( parent, name, fl ),
-    _marker_table(marker_table),
-    _no_leaves(no_leaves),
-    _recomb_rate(recomb_rate),
-    _geneconv_rate(geneconv_rate),
-    _geneconv_length(geneconv_length),
-    _growth(growth),
-    _mrate(mrate)
+    _output_file(output_file), _leaves_only(leaves_only)
 {
+  // set "abort" defaults
+  _output_file = "";
+  _leaves_only = true;
 }
 
 RunSimulationImpl::~RunSimulationImpl()
@@ -50,6 +37,7 @@ void RunSimulationImpl::set_out_file()
 void RunSimulationImpl::run_simulation()
 {
   QString fname = xml_file_name->text();
+  bool leaves_only = mode->isOn();
 
  retry:
   std::ofstream xml_file(fname);
@@ -69,56 +57,10 @@ void RunSimulationImpl::run_simulation()
       return;
     }
 
-  std::vector<double> positions(_marker_table->numRows());
-  std::vector<Marker*> markers(_marker_table->numRows());
+  // set return values
+  _output_file = fname;
+  _leaves_only = leaves_only;
 
-  bool leaves_only = mode->isOn();
-
-  try {
-  
-    for (int i = 0; i < _marker_table->numRows(); ++i)
-      positions[i] = _marker_table->text(i,0).toDouble();
-
-    Configuration conf(_no_leaves,
-		       positions.begin(), positions.end(),
-		       _recomb_rate,
-		       _geneconv_rate, _geneconv_length,
-		       _growth,
-		       _mrate,
-		       !leaves_only);
-
-    for (int i = 0; i < _marker_table->numRows(); ++i)
-      {
-	if (_marker_table->text(i,1) == "trait")
-	  markers[i] = new TraitMarker(_marker_table->text(i,2).toDouble(),
-				       _marker_table->text(i,3).toDouble());
-	else if (_marker_table->text(i,1) == "snp")
-	  markers[i] = new SNPMarker(_marker_table->text(i,2).toDouble(),
-				     _marker_table->text(i,3).toDouble());
-	else
-	  {
-	    MicroSatelliteMarker *m = new MicroSatelliteMarker(_mrate);
-	    int alpha_size = _marker_table->text(i,4).toInt();
-	    for (int j = 0; j < alpha_size; ++j) m->add_value(j);
-	    markers[i] = m;
-	  }
-      
-	conf.set_marker(i,markers[i]);
-      }
-
-    ARG *arg = Simulator::simulate(conf);
-    xml_file << *arg << std::endl;
-
-
-  } catch (std::exception &ex) {
-    QMessageBox::critical(this, "Unexpected Error",
-			  QString("Unexpected exception \"")
-			  .append(ex.what())
-			  .append("\" raised while simulating!"));
-  }
-
-  for (int i = 0; i < _marker_table->numRows(); ++i)
-    delete markers[i];
-
-  close();			// close run sim. dialog
+  // close run sim. dialog
+  close();
 }

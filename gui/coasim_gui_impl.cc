@@ -1,13 +1,21 @@
 #include "coasim_gui_impl.hh"
 #include "add_marker_impl.hh"
 #include "run_simulation_impl.hh"
+#include "sim_feedback_impl.hh"
 
+#include <coasim/configuration.hh>
+#include <coasim/all_markers.hh>
+#include <coasim/node.hh>
+#include <coasim/simulator.hh>
 
 #include <qspinbox.h>
 #include <qtable.h>
+#include <qmessagebox.h>
+
 #include "baps_float_spin_box.hh"
 
 #include <vector>
+#include <fstream>
 
 
 
@@ -32,7 +40,7 @@ CoasimGuiImpl::~CoasimGuiImpl()
 void CoasimGuiImpl::add_marker()
 {
   static AddMarkerImpl * ami = 0;
-  if (!ami) ami = new AddMarkerImpl(markerTable, this);
+  if (!ami) ami = new AddMarkerImpl(_marker_table, this);
   ami->show();
 }
 
@@ -41,10 +49,10 @@ void CoasimGuiImpl::add_marker()
 void CoasimGuiImpl::delete_marker()
 {
   std::vector<int> to_delete;
-  int n = markerTable->numSelections();
+  int n = _marker_table->numSelections();
   while (n-- > 0)
     {
-      QTableSelection s = markerTable->selection(n);
+      QTableSelection s = _marker_table->selection(n);
       for (int row = s.bottomRow(); row >= s.topRow(); --row)
 	to_delete.push_back(row);
     }
@@ -53,13 +61,24 @@ void CoasimGuiImpl::delete_marker()
   std::sort(to_delete.begin(), to_delete.end());
   std::vector<int>::reverse_iterator i;
   for (i = to_delete.rbegin(); i != to_delete.rend(); ++i)
-    markerTable->removeRow(*i);
+    _marker_table->removeRow(*i);
 }
 
 
 // start simulation
 void CoasimGuiImpl::simulate()
 {
+
+  QString outfile;
+  bool    leaves_only;
+
+  RunSimulationImpl runner(outfile,leaves_only,this);
+  runner.exec();
+
+  if (outfile == "") /* abort */ return;
+
+
+  // configure simulation
   int    no_leaves = _ln->text().toInt();
   double recomb_coef = _rr_coef->text().toDouble();
   double recomb_exp  = _rr_exp->text().toDouble();
@@ -71,14 +90,58 @@ void CoasimGuiImpl::simulate()
   double mrate_exp  = _mr_exp->text().toDouble();
   double mrate =  mrate_coef * ::pow(10,mrate_exp);
 
-  RunSimulationImpl runner(markerTable,
-			   no_leaves,
-			   recomb_rate,
-			   geneconv_rate, geneconv_length,
-			   growth,
-			   mrate,
-			   this);
+  std::vector<double> positions(_marker_table->numRows());
+  std::vector<Marker*> markers(_marker_table->numRows());
 
-  runner.show();
-  runner.exec();
+ 
+  for (int i = 0; i < _marker_table->numRows(); ++i)
+    positions[i] = _marker_table->text(i,0).toDouble();
+
+  Configuration conf(no_leaves,
+		     positions.begin(), positions.end(),
+		     recomb_rate,
+		     geneconv_rate, geneconv_length,
+		     growth,
+		     mrate,
+		     !leaves_only);
+
+  for (int i = 0; i < _marker_table->numRows(); ++i)
+    {
+      if (_marker_table->text(i,1) == "trait")
+	markers[i] = new TraitMarker(_marker_table->text(i,2).toDouble(),
+				     _marker_table->text(i,3).toDouble());
+      else if (_marker_table->text(i,1) == "snp")
+	markers[i] = new SNPMarker(_marker_table->text(i,2).toDouble(),
+				   _marker_table->text(i,3).toDouble());
+      else
+	{
+	  MicroSatelliteMarker *m = new MicroSatelliteMarker(mrate);
+	  int alpha_size = _marker_table->text(i,4).toInt();
+	  for (int j = 0; j < alpha_size; ++j) m->add_value(j);
+	  markers[i] = m;
+	}
+      
+      conf.set_marker(i,markers[i]);
+    }
+
+  try {
+
+    SimFeedbackImpl monitor(this);
+
+    std::ofstream xml_file(outfile);
+    ARG *arg = Simulator::simulate(conf);
+    xml_file << *arg << std::endl;
+
+    // wait for monitor to be closed
+    monitor.exec();
+
+  } catch (std::exception &ex) {
+    QMessageBox::critical(this, "Unexpected Error",
+			  QString("Unexpected exception \"")
+			  .append(ex.what())
+			  .append("\" raised while simulating!"));
+  }
+
+  for (int i = 0; i < _marker_table->numRows(); ++i)
+    delete markers[i];
 }
