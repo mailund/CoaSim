@@ -172,10 +172,11 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
 
     ARGParameters *p = (ARGParameters*) SCM_SMOB_DATA(arg_parameters_smob);
 
+    SCM itr_markers = s_markers;
     std::vector<core::Marker*> markers;
-    while (!SCM_NULLP(s_markers))
+    while (!SCM_NULLP(itr_markers))
 	{
-	    SCM marker_smob = SCM_CAR(s_markers);
+	    SCM marker_smob = SCM_CAR(itr_markers);
 	    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::trait_marker_tag, marker_smob)
 		       or
 		       SCM_SMOB_PREDICATE(guile::snp_marker_tag, marker_smob)
@@ -186,24 +187,34 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
 	    core::Marker *marker = (core::Marker*) SCM_SMOB_DATA(marker_smob);
 	    markers.push_back(marker);
 
-	    s_markers = SCM_CDR(s_markers);
+	    itr_markers = SCM_CDR(itr_markers);
 	}
 
     int no_leaves = scm_num2int(s_no_leaves, SCM_ARG3, "simulate");
 
-    CLISimMonitor mon;
 
-    core::Configuration *conf 
-	= new core::Configuration(no_leaves,
-				  markers.begin(), markers.end(),
-				  p->rho, p->Q, p->G, p->growth);
-    core::ARG *arg = core::Simulator::simulate(*conf,
-					       options::verbose ? &mon : 0);
+    try {
+	CLISimMonitor mon;
+	core::Configuration *conf 
+	    = new core::Configuration(no_leaves,
+				      markers.begin(), markers.end(),
+				      p->rho, p->Q, p->G, p->growth);
+	core::ARG *arg = core::Simulator::simulate(*conf,
+						   options::verbose ? &mon:0);
 
-    void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
-    ARGData *arg_data = new(mem)ARGData(arg,conf);
+	void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
+	ARGData *arg_data = new(mem)ARGData(arg,conf);
     
-    SCM_RETURN_NEWSMOB(guile::arg_tag, arg_data);
+	SCM_RETURN_NEWSMOB(guile::arg_tag, arg_data);
+    } catch(core::Configuration::out_of_sequence&) {
+	scm_throw(scm_str2symbol("out-of-sequence"), s_markers);
+    } catch(std::exception &ex) {
+	scm_throw(scm_str2symbol("unexcepted-exception"), 
+		  scm_mem2string(ex.what(),strlen(ex.what())));
+    }
+
+    // shouldn't really reach...
+    return SCM_EOL;
 }
 
 static SCM 

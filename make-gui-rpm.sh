@@ -1,7 +1,7 @@
 #!/bin/bash
 
 version=3.0.0
-release=3
+release=4
 
 (cd Core; make)
 (cd GUI; make)

@@ -11,7 +11,7 @@
 
 (save-sequences arg "seq.out")
 (define seqs (sequences arg))
-(display seqs)(newline)
+;(display seqs)(newline)
 
 (catch 'wrong-number-of-args
        (lambda () (simulate p))
@@ -29,3 +29,14 @@
        (lambda () (simulate p 0 10))
        (lambda (key . args) (display key)(newline)))
 
+(define overlapping-markers
+  (list (snp-marker 0 0.1 0.9) (snp-marker 0 0.1 0.9)))
+(catch 'out-of-sequence
+       (lambda () (simulate p overlapping-markers 10))
+       (lambda (key . args) (display key)(display " ")(display args)(newline)))
+
+(define out-of-sequence-markers
+  (list (snp-marker 0.1 0.1 0.9) (snp-marker 0.0 0.1 0.9)))
+(catch 'out-of-sequence
+       (lambda () (simulate p out-of-sequence-markers 10))
+       (lambda (key . args) (display key)(display " ")(display args)(newline)))

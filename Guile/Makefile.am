@@ -14,13 +14,13 @@ bin_PROGRAMS += coasim_guile
 TESTS =
 TESTS += marker_test.sh
 TESTS += arg_parameters_test.sh
-TESTS += simulate_test
+TESTS += simulate_test.sh
 
 EXTRA_DIST =
 EXTRA_DIST += marker_test.sh marker-test.scm marker-test.expected
 EXTRA_DIST += arg_parameters_test.sh arg-parameters-test.scm \
               arg-parameters-test.expected
-EXTRA_DIST += simulate-test.scm
+EXTRA_DIST += simulate_test.sh simulate-test.scm simulate-test.expected
 
 marker_test_SOURCES =
 marker_test_SOURCES += marker.hh marker.cc 
