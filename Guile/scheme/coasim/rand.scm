@@ -41,7 +41,7 @@
     (if (two-equal sorted) (make-random-positions no-positions) ; retry
 	sorted)))
 
-(define (make-marker constructor)
+(define (make-markers constructor)
   "General random marker constructor."
   (lambda (no-markers  first-arg second-arg)
     (let ((positions (make-random-positions no-markers))
@@ -80,12 +80,13 @@
 
 ;; <method name='make-random-ms-markers'>
 ;;  <brief>Make a list of random micro-satellite markers.</brief>
-;;  <prototype>(make-random-ms-markers no-markers mu K)</prototype>
+;;  <prototype>(make-random-ms-markers no-markers theta K)</prototype>
 ;;  <example>(define snp-markers (make-random-ms-markers 10 0.1 15))</example>
 ;;  <description>
 ;;   <p>
-;;    Make a list of random positioned micro-satellite markers.  The mu and K
-;;    parameters are similar to the `ms-marker' function.
+;;    Make a list of random positioned micro-satellite markers.
+;;    The theta and K parameters are similar to the `ms-marker'
+;;    function.
 ;;   </p>
 ;;  </description>
 ;; </method>
@@ -93,9 +94,9 @@
 ;; --</GUILE COMMENT>--------------------------------
 
 
-(define-public make-random-trait-markers (make-marker trait-marker))
-(define-public make-random-snp-markers   (make-marker snp-marker))
-(define-public make-random-ms-markers    (make-marker ms-marker))
+(define-public make-random-trait-markers (make-markers trait-marker))
+(define-public make-random-snp-markers   (make-markers snp-marker))
+(define-public make-random-ms-markers    (make-markers ms-marker))
 
 
 ;; --<GUILE COMMENT>---------------------------------

@@ -21,218 +21,222 @@
 # define IOSTREAM_INCLUDED
 #endif
 
-/* A sub-interval on the real interval [0,1), closed on the left and
- * open on the right. */
-class Interval
-{
-public:
+namespace core {
 
-    // exception thrown if the interval is empty (or negative) -- since
-    // it must be closed in one end and open in the other, it cannot be
-    // a point.
-    struct empty_interval : public std::logic_error {
-	empty_interval() : std::logic_error("empty interval.") {}
-    };
-    // exception thrown in the interval is not in the range [0,1)
-    struct interval_out_of_range : public std::logic_error {
-	interval_out_of_range() : std::logic_error("interval out of range.") {}
-    };
+    /* A sub-interval on the real interval [0,1), closed on the left and
+     * open on the right. */
+    class Interval
+    {
+    public:
 
-    Interval(double start, double end, unsigned int leaf_contacts = 0)
-	throw(empty_interval,interval_out_of_range);
-    ~Interval() {}
+	// exception thrown if the interval is empty (or negative) -- since
+	// it must be closed in one end and open in the other, it cannot be
+	// a point.
+	struct empty_interval : public std::logic_error {
+	    empty_interval() : std::logic_error("empty interval.") {}
+	};
+	// exception thrown in the interval is not in the range [0,1)
+	struct interval_out_of_range : public std::logic_error {
+	    interval_out_of_range() : std::logic_error("interval out of range.") {}
+	};
 
-    double start()  const { return i_start; }
-    double end()    const { return i_end; }
-    double length() const { return i_end - i_start; }
+	Interval(double start, double end, unsigned int leaf_contacts = 0)
+	    throw(empty_interval,interval_out_of_range);
+	~Interval() {}
 
-    unsigned int leaf_contacts() const { return i_leaf_contacts; }
+	double start()  const { return i_start; }
+	double end()    const { return i_end; }
+	double length() const { return i_end - i_start; }
 
-    // returns whether point is in the interval
-    bool contains_point(double point) const;
-    // returns whether i overlaps this interval
-    bool overlaps(const Interval &i) const;
+	unsigned int leaf_contacts() const { return i_leaf_contacts; }
 
-    void print(std::ostream &os) const
-    { os << '[' << i_start << ':' << i_end << ")<" << i_leaf_contacts << '>'; }
+	// returns whether point is in the interval
+	bool contains_point(double point) const;
+	// returns whether i overlaps this interval
+	bool overlaps(const Interval &i) const;
 
-    bool operator == (const Interval &i) const;
-    bool operator != (const Interval &i) const;
+	void print(std::ostream &os) const
+	{ os << '[' << i_start << ':' << i_end << ")<" << i_leaf_contacts << '>'; }
 
-private:
-    void check_empty() const throw(empty_interval);
-    void check_range() const throw(interval_out_of_range);
+	bool operator == (const Interval &i) const;
+	bool operator != (const Interval &i) const;
 
-    double i_start;
-    double i_end;
-    unsigned int i_leaf_contacts; // number of leaf nodes that this
-    // interval connects to
-};
+    private:
+	void check_empty() const throw(empty_interval);
+	void check_range() const throw(interval_out_of_range);
 
-
-inline bool Interval::contains_point(double point) const
-{ return (start() <= point) and (point < end()); }
-
-inline bool Interval::overlaps(const Interval &i) const
-{ return (start() <= i.start()) ? (i.start() < end()) : (start() < i.end()); }
-
-
-inline bool Interval::operator == (const Interval &i) const
-{ return (i_start == i.i_start) and (i_end == i.i_end)
-      and (i_leaf_contacts == i.i_leaf_contacts); }
-
-inline bool Interval::operator != (const Interval &i) const
-{ return !(*this == i); }
-
-inline std::ostream & operator << (std::ostream &os, const Interval &i)
-{ i.print(os); return os; }
-
-
-/* A set of non-overlapping intervals. */
-class Intervals
-{
-public:
-    // exception thrown if an interval is added out of sequence (i.e. is
-    // less than a previous added interval.
-    struct out_of_sequence : public std::logic_error {
-	out_of_sequence() : std::logic_error("intervals out of sequence.") {}
+	double i_start;
+	double i_end;
+	unsigned int i_leaf_contacts; // number of leaf nodes that this
+	// interval connects to
     };
 
-    // exception thrown if we try to copy an empty or inverted
-    // (stop<=start) sub-interval.
-    struct illegal_interval : public std::logic_error {
-	illegal_interval() : std::logic_error("illegal interval.") {}
-    };
 
-    // add an interval to the Intervals -- the added interval must start
-    // later than the previously added intervals.
-    void add(const Interval &i) throw(out_of_sequence);
-    void add(double start, double end, int contacts = 0)
-	throw(out_of_sequence, Interval::empty_interval,
-	      Interval::interval_out_of_range);
+    inline bool Interval::contains_point(double point) const
+    { return (start() <= point) and (point < end()); }
 
-    // these methods looks up the intervals NOT CHECKING if the index is
-    // within range!
-    const Interval& interval(int index)     const { return i_intervals[index]; }
-    const Interval& operator [] (int index) const { return interval(index); }
+    inline bool Interval::overlaps(const Interval &i) const
+    { return (start() <= i.start()) ? (i.start() < end()) : (start() < i.end()); }
 
-    int size() const { return i_intervals.size(); }
 
-    // checking the predicates on the relevant intervals.  Throws an
-    // exception if point is outside [0,1).
-    bool contains_point(double pos)  const throw(std::out_of_range);
-    bool overlaps(const Interval &i) const throw(std::out_of_range);
+    inline bool Interval::operator == (const Interval &i) const
+    { return (i_start == i.i_start) and (i_end == i.i_end)
+	  and (i_leaf_contacts == i.i_leaf_contacts); }
 
-    // the first point in the first interval (the left most point)
-    double first_point() const throw(std::out_of_range);
-    // the last point in the last interval (the right most point)
-    double last_point()  const throw(std::out_of_range);
+    inline bool Interval::operator != (const Interval &i) const
+    { return !(*this == i); }
 
-    // number of leaves reached at point -- just a propagation to the
-    // corresponding interval (or 0 if intervals does not contain
-    // point).
-    unsigned int leaf_contacts(double point) const;
+    inline std::ostream & operator << (std::ostream &os, const Interval &i)
+    { i.print(os); return os; }
 
-    void reset() { i_intervals.clear(); }
 
-    // copy the intervals between start and stop, trunkating intervals
-    // that overlap start and stop.
-    Intervals copy(double start, double stop) const throw(illegal_interval);
+    /* A set of non-overlapping intervals. */
+    class Intervals
+    {
+    public:
+	// exception thrown if an interval is added out of sequence (i.e. is
+	// less than a previous added interval.
+	struct out_of_sequence : public std::logic_error {
+	    out_of_sequence() : std::logic_error("intervals out of sequence.") {}
+	};
 
-    // merge this and i, splitting overlapping intervals
-    Intervals merge(const Intervals& i) const;
-    Intervals operator | (const Intervals &i) const;
+	// exception thrown if we try to copy an empty or inverted
+	// (stop<=start) sub-interval.
+	struct illegal_interval : public std::logic_error {
+	    illegal_interval() : std::logic_error("illegal interval.") {}
+	};
 
-    // This method adds two intervals where all Interval on the one
-    // Intervals comes before all Interval on the second Intervals;
-    // throws an exception if one interval does not come before the
-    // other.
-    Intervals add_intervals(const Intervals &i) const throw(out_of_sequence);
-    Intervals operator + (const Intervals &i)   const throw(out_of_sequence);
+	// add an interval to the Intervals -- the added interval must start
+	// later than the previously added intervals.
+	void add(const Interval &i) throw(out_of_sequence);
+	void add(double start, double end, int contacts = 0)
+	    throw(out_of_sequence, Interval::empty_interval,
+		  Interval::interval_out_of_range);
 
-    void print(std::ostream &os) const;
+	// these methods looks up the intervals NOT CHECKING if the index is
+	// within range!
+	const Interval& interval(int index)     const { return i_intervals[index]; }
+	const Interval& operator [] (int index) const { return interval(index); }
 
-private:
+	int size() const { return i_intervals.size(); }
 
-    // INVARIANT: The _intervals vector contains the non-overlapping
-    // intervals in sorted order, wrt to < on intervals.
-    std::vector<Interval> i_intervals;
+	// checking the predicates on the relevant intervals.  Throws an
+	// exception if point is outside [0,1).
+	bool contains_point(double pos)  const throw(std::out_of_range);
+	bool overlaps(const Interval &i) const throw(std::out_of_range);
 
-    std::vector<Interval>::const_iterator interval_starting_before(double point) const;
-    std::vector<Interval>::const_iterator interval_starting_after(double point) const;
-    typedef bool (Interval::*interval_predicate_t)(double point) const;
-    bool check_predicate(double point, interval_predicate_t predicate) const;
+	// the first point in the first interval (the left most point)
+	double first_point() const throw(std::out_of_range);
+	// the last point in the last interval (the right most point)
+	double last_point()  const throw(std::out_of_range);
 
-    // Adds the intervals where first comes before second. If first
-    // overlaps second, an exception is thrown
-    static Intervals add_ordered_intervals(Intervals const &first,
-					   Intervals const &second)
-	throw(out_of_sequence);
+	// number of leaves reached at point -- just a propagation to the
+	// corresponding interval (or 0 if intervals does not contain
+	// point).
+	unsigned int leaf_contacts(double point) const;
+
+	void reset() { i_intervals.clear(); }
+
+	// copy the intervals between start and stop, trunkating intervals
+	// that overlap start and stop.
+	Intervals copy(double start, double stop) const throw(illegal_interval);
+
+	// merge this and i, splitting overlapping intervals
+	Intervals merge(const Intervals& i) const;
+	Intervals operator | (const Intervals &i) const;
+
+	// This method adds two intervals where all Interval on the one
+	// Intervals comes before all Interval on the second Intervals;
+	// throws an exception if one interval does not come before the
+	// other.
+	Intervals add_intervals(const Intervals &i) const throw(out_of_sequence);
+	Intervals operator + (const Intervals &i)   const throw(out_of_sequence);
+
+	void print(std::ostream &os) const;
+
+    private:
+
+	// INVARIANT: The _intervals vector contains the non-overlapping
+	// intervals in sorted order, wrt to < on intervals.
+	std::vector<Interval> i_intervals;
+
+	std::vector<Interval>::const_iterator interval_starting_before(double point) const;
+	std::vector<Interval>::const_iterator interval_starting_after(double point) const;
+	typedef bool (Interval::*interval_predicate_t)(double point) const;
+	bool check_predicate(double point, interval_predicate_t predicate) const;
+
+	// Adds the intervals where first comes before second. If first
+	// overlaps second, an exception is thrown
+	static Intervals add_ordered_intervals(Intervals const &first,
+					       Intervals const &second)
+	    throw(out_of_sequence);
 					 
-};
+    };
 
-inline double Intervals::first_point() const throw(std::out_of_range)
-{
-    if (i_intervals.size() == 0) throw std::out_of_range("no intervals!");
-    return i_intervals.front().start();
-}
-inline double Intervals::last_point() const throw(std::out_of_range)
-{
-    if (i_intervals.size() == 0) throw std::out_of_range("no intervals!");
-    return i_intervals.back().end();
-}
+    inline double Intervals::first_point() const throw(std::out_of_range)
+    {
+	if (i_intervals.size() == 0) throw std::out_of_range("no intervals!");
+	return i_intervals.front().start();
+    }
+    inline double Intervals::last_point() const throw(std::out_of_range)
+    {
+	if (i_intervals.size() == 0) throw std::out_of_range("no intervals!");
+	return i_intervals.back().end();
+    }
 
 
 
 #if 0
 
-inline bool Intervals::contains_point(double point) const
-    throw(std::out_of_range)
-{ return check_predicate(point, &Interval::contains_point); }
+    inline bool Intervals::contains_point(double point) const
+	throw(std::out_of_range)
+    { return check_predicate(point, &Interval::contains_point); }
 
 #else
-// try without the check_predicate...
+    // try without the check_predicate...
 
 
-inline bool Intervals::contains_point(double point) const throw(std::out_of_range)
-{ 
-    if (point == 1.0) // special case, needed to check for endpoint in 1.0
-	return (i_intervals.back().contains_point)(point);
+    inline bool Intervals::contains_point(double point) const throw(std::out_of_range)
+    { 
+	if (point == 1.0) // special case, needed to check for endpoint in 1.0
+	    return (i_intervals.back().contains_point)(point);
 
-    if (point < 0.0 or 1.0 <= point)
-	throw std::out_of_range("checking point out of the [0,1) range.");
+	if (point < 0.0 or 1.0 <= point)
+	    throw std::out_of_range("checking point out of the [0,1) range.");
 
-    if (point < first_point()) return false;
-    if (point > last_point())  return false;
+	if (point < first_point()) return false;
+	if (point > last_point())  return false;
 
-    return interval_starting_before(point)->contains_point(point);
-}
-
-#endif
-
-
-
-inline void Interval::check_empty() const throw(empty_interval)
-{
-    if (length() <= 0.0) throw empty_interval();
-}
-
-inline void Interval::check_range() const throw(interval_out_of_range)
-{
-    if ((start() < 0 or 1 <= start()) or (end() <= 0 or 1 < end()))
-	throw interval_out_of_range();
-}
-
-
-
-inline Intervals Intervals::operator | (const Intervals &i) const
-{ return merge(i); }
-
-inline Intervals Intervals::operator + (const Intervals &in) const
-    throw(out_of_sequence)
-{ return add_intervals(in); }
-
-inline std::ostream & operator << (std::ostream &os, const Intervals &is)
-{ is.print(os); return os; }
+	return interval_starting_before(point)->contains_point(point);
+    }
 
 #endif
+
+
+
+    inline void Interval::check_empty() const throw(empty_interval)
+    {
+	if (length() <= 0.0) throw empty_interval();
+    }
+
+    inline void Interval::check_range() const throw(interval_out_of_range)
+    {
+	if ((start() < 0 or 1 <= start()) or (end() <= 0 or 1 < end()))
+	    throw interval_out_of_range();
+    }
+
+
+
+    inline Intervals Intervals::operator | (const Intervals &i) const
+    { return merge(i); }
+
+    inline Intervals Intervals::operator + (const Intervals &in) const
+	throw(out_of_sequence)
+    { return add_intervals(in); }
+
+    inline std::ostream & operator << (std::ostream &os, const Intervals &is)
+    { is.print(os); return os; }
+
+} // namespace core
+
+#endif // CORE__INTERVAL_HH_INCLUDED

@@ -23,6 +23,7 @@
 (define-module (coasim batch) :use-syntax (ice-9 syncase))
 
 
+
 ;; --<GUILE COMMENT>---------------------------------------------
 ;; <method name='repeat'>
 ;;  <brief>Call a block of code a certain number of times.</brief>
@@ -33,40 +34,28 @@
 ;;         (arg (simulate (list m) 10 :random-seed 10))
 ;;         (tree (car (local-trees arg))))
 ;;    (display tree)))
-;; (newline)
-;; 
-;; (define (f)
-;;  (let* ((m (snp-marker 0.5 0 1))
-;;         (arg (simulate (list m) 10 :random-seed 10))
-;;         (tree (car (local-trees arg))))
-;;    (display tree)))
-;; 
-;; (repeat 20 f)
 ;; (newline) </example>
 ;;  <description>
 ;;   <p>
-;;    Execute the code `c' `n' number of times.  `c' can either be a function,
-;;    as `f' in the example above, or it can be a block of code as the `let*'
-;;    expression above.
+;;    Execute the code `c' `n' number of times.
 ;;   </p>
 ;;  </description>
 ;; </method>
 ;; -----</GUILE COMMENT>----------------------------------------- 
-
 (define-syntax repeat
   (syntax-rules ()
-    ((_ n c)
-     (let ((f (if (procedure? c) c (lambda () c))))
-       (let loop ((m n))
-	 (if (= m 0) #f
-	     (begin (f) (loop (- m 1)))))))))
+    ((_ n e1 e2 ...)
+     (let loop ((m n))
+       (if (= m 0) #f
+	   (begin e1 e2 ... (loop (- m 1))))))))
 (export repeat)
+
 
 
 ;; --<GUILE COMMENT>---------------------------------------------
 ;; <method name='repeat-while'>
 ;;  <brief>Call a block of code until a predicate evaluates to false.</brief>
-;;  <prototype>(repeat-while [p] c)</prototype>
+;;  <prototype>(repeat-while p c)</prototype>
 ;;  <example> (use-modules (ice-9 format) (coasim batch))
 ;;
 ;; (repeat-while (lambda (branch-length) (&lt; branch-length 5))
@@ -76,63 +65,89 @@
 ;;         (branch-length (total-branch-length tree)))
 ;;    (format #t "~4f " branch-length)
 ;;    branch-length))
-;; (newline)
-;; 
-;; (define (f)
-;;   (let* ((m (snp-marker 0.5 0 1))
-;;          (arg (simulate (list m) 10))
-;;          (tree (car (local-trees arg)))
-;;          (branch-length (total-branch-length tree)))
-;;     (format #t "~4f " branch-length)
-;;     branch-length))
-;; (define (p branch-length)
-;;   (&lt; branch-length 5))
-;; 
-;; (repeat-while p f)
-;; (newline)
-;; 
-;; (repeat-while
-;;  (let* ((m (snp-marker 0.5 0 1))
-;;         (arg (simulate (list m) 10))
-;;         (tree (car (local-trees arg)))
-;;         (branch-length (total-branch-length tree)))
-;;    (format #t "~4f " branch-length)
-;;    (&lt; branch-length 5)))
 ;; (newline)</example>
 ;;  <description>
 ;;   <p> Execute the code `c' until the predicate `p', evaluated on
-;;    the result of `c' evaluates to false. `c' can either be a
-;;    function, as `f' in the example above, or it can be a block of
-;;    code as the `let*' expression above.  If `c' itself evaluates to
-;;    a boolean, the predicate can be left out and the execution will
-;;    continue as long as `c' evalutes to true.
+;;    the result of `c' evaluates to false. 
 ;;   </p>
 ;;  </description>
 ;; </method>
 ;; -----</GUILE COMMENT>----------------------------------------- 
 (define-syntax repeat-while
   (syntax-rules ()
-    ((_ p c)
-     (let ((f (if (procedure? c) c (lambda () c))))
-       (let loop ()
-	 (if (p (f)) 
-	     #f
-	     (loop)))))
-    ((_ c)
-     (let ((f (if (procedure? c) c (lambda () c))))
-       (let loop ()
-	 (if (f) 
-	     #f
-	     (loop)))))))
+    ((_ p e1 e2 ...)
+     (let loop ()
+       (if (p (begin e1 e2 ...)) (loop))))))
 (export repeat-while)
+
+
+;; --<GUILE COMMENT>---------------------------------------------
+;; <method name='repeat-with-index'>
+;;  <brief>Call a block of code a certain number of times.</brief>
+;;  <prototype> (repeat-with-index (i n) c)
+;; (repeat-with-index (i start stop) c)
+;; (repeat-with-index (i start stop step) c) </prototype>
+;;  <example> (use-modules (coasim batch))
+;; (repeat-with-index (i 10)
+;;    (let* ((markers (make-random-snp-markers 10 0 1))
+;;           (seqs (simulate-sequences markers 10))
+;;           (pos-file (string-append "positions." (number->string i) ".txt"))
+;;           (seq-file (string-append "sequences." (number->string i) ".txt")))
+;;      (call-with-output-file pos-file (marker-positions-printer markers))
+;;      (call-with-output-file seq-file (sequences-printer seqs))))
+;; 
+;; (repeat-with-index (i 2 12)
+;;    (let* ((markers (make-random-snp-markers 10 0 1))
+;;           (seqs (simulate-sequences markers 10))
+;;           (pos-file (string-append "positions." (number->string i) ".txt"))
+;;           (seq-file (string-append "sequences." (number->string i) ".txt")))
+;;      (call-with-output-file pos-file (marker-positions-printer markers))
+;;      (call-with-output-file seq-file (sequences-printer seqs))))
+;; 
+;; (repeat-with-index (i 2 20 2)
+;;    (let* ((markers (make-random-snp-markers 10 0 1))
+;;           (seqs (simulate-sequences markers 10))
+;;           (pos-file (string-append "positions." (number->string i) ".txt"))
+;;           (seq-file (string-append "sequences." (number->string i) ".txt")))
+;;      (call-with-output-file pos-file (marker-positions-printer markers))
+;;      (call-with-output-file seq-file (sequences-printer seqs)))) </example>
+;;  <description>
+;;   <p> Execute the code `c' a number of times, making the index
+;;    variable `i' visible to the code in `c'.  Comes in three
+;;    variants, a simple iteration from 1 to `n', an iteration from
+;;    `start' to `stop', and an iteration from `start' to `stop' in
+;;    jumps of `step'.
+;;   </p>
+;;  </description>
+;; </method>
+;; -----</GUILE COMMENT>----------------------------------------- 
+(define-syntax repeat-with-index
+  (syntax-rules ()
+    ((_ (idx n) e1 e2 ...)
+     (let ((f (lambda (idx) e1 e2 ...)))
+       (let loop ((m 1))
+         (if (> m n) #f
+             (begin (f m) (loop (+ m 1)))))))
+
+    ((_ (idx start stop) e1 e2 ...)
+     (let ((f (lambda (idx) e1 e2 ...)))
+       (let loop ((m start))
+	 (if (> m stop) #f
+	     (begin (f m) (loop (+ m 1)))))))
+
+    ((_ (idx start stop step) e1 e2 ...)
+     (let ((f (lambda (idx) e1 e2 ...)))
+       (let loop ((m start))
+	 (if (> m stop) #f
+	     (begin (f m) (loop (+ m step)))))))))
+(export repeat-with-index)
+
 
 ;; --<GUILE COMMENT>---------------------------------------------
 ;; <method name='tabulate'>
 ;;  <brief>Call a block of code a certain number of times, collecting
 ;;         the results in a list.</brief>
-;;  <prototype> (tabulate n c)
-;; (tabulate n t c)
-;; (tabulate n t p c)</prototype>
+;;  <prototype> (tabulate n c)</prototype>
 ;;  <example> (use-modules (coasim batch))
 ;; (let* ((no-iterations 10000)
 ;;        (branch-lengths
@@ -142,92 +157,24 @@
 ;;                 (tree (car (local-trees arg)))
 ;;                 (branch-length (total-branch-length tree)))
 ;;            branch-length))))
-;;   (display (/ (apply + branch-lengths) no-iterations))(newline))
-;; 
-;; (define (simulate-branch-length)
-;;   (let* ((m (snp-marker 0.5 0 1))
-;;          (arg (simulate (list m) 10))
-;;          (tree (car (local-trees arg)))
-;;          (branch-length (total-branch-length tree)))
-;;     branch-length))
-;; 
-;; (let* ((no-iterations 10000)
-;;        (branch-lengths (tabulate no-iterations simulate-branch-length)))
-;;   (display (/ (apply + branch-lengths) no-iterations))(newline))  
-;;
-;; ;; Using transformer to translate arg into a branch-length
-;; (let* ((no-iterations 10000)
-;;        (branch-lengths
-;; 	   (tabulate no-iterations
-;;                     ;; transformer: arg -&gt; branch-length
-;; 	             (lambda (arg) (total-branch-length (car (local-trees arg))))
-;; 	             (simulate (list (snp-marker 0.5 0 1)) 10))))
-;;   (display (/ (apply + branch-lengths) no-iterations))(newline))
-;;
-;; ;; Using transformer to translate arg into a branch-length, and
-;; ;; a predicate to only include args with a single recombination
-;; (use-modules (ice-9 format))
-;; (let* ((no-iterations 10000)
-;;        (branch-lengths
-;;         (tabulate no-iterations
-;;                   ;; transformer: arg -&gt; branch-length
-;;                   (lambda (arg) (total-branch-length (car (local-trees arg))))
-;;                   ;; predicate, only accepting ARGs with a single
-;;                   ;; recombination
-;;                   (lambda (arg) (= 1 (no-recombinations arg)))
-;;                   (simulate (list (snp-marker 0.5 0 1)) 10 :rho 0.3))))
-;;   (format #t "~d out of ~d ARGs had a single recombination.\n"
-;;        (length branch-lengths) no-iterations)
-;;   (format #t "The average branch length was: ~4f.\n"
-;;        (/ (apply + branch-lengths) (length branch-lengths)))) </example>
+;;   (display (/ (apply + branch-lengths) no-iterations))(newline)) </example>
 ;;  <description>
 ;;   <p>Execute the code `c' `n' number of times, collecting the
 ;;    results of evaluating `c' in a list that is returned as the
-;;    result of the tabulation.  `c' can either be a function, as
-;;    `simulate-branch-lehgth' in the example above, or it can be a
-;;    block of code as the `let*' expression above.
-;;   </p>
-;;   <p> As a short-cut, two special cases are supported: using a
-;;    transformer-function to translate the simulation result into the
-;;    value to be collected, and combining a transformer and a
-;;    predicate, so only transformed values, for the simultaion
-;;    results accepted by the predicate, are collected.  That is, the
-;;    predicate is evaluated on the simulation result and the
-;;    transformer is only applied if the predicate accepts the
-;;    simulation result.
+;;    result of the tabulation.
 ;;   </p>
 ;;  </description>
 ;; </method>
 ;; -----</GUILE COMMENT>----------------------------------------- 
 (define-syntax tabulate
   (syntax-rules ()
-    ((_ n c)
-     (let ((f (if (procedure? c) c (lambda () c))))
+    ((_ n e1 e2 ...)
        (let loop ((m n)
 		  (acc '()))
 	 (if (= m 0) (reverse acc)
-	     (let* ((x (f)) 
+	     (let* ((x (begin e1 e2 ...)) 
 		    (new-acc (cons x acc)))
-	       (loop (- m 1) new-acc))))))
-
-    ((_ n t c)
-     (let ((f (if (procedure? c) c (lambda () c))))
-       (let loop ((m n)
-		  (acc '()))
-	 (if (= m 0) (reverse acc)
-	     (let* ((x (t (f)))
-		    (new-acc (cons x acc)))
-	       (loop (- m 1) new-acc))))))
-
-    ((_ n t p c)
-     (let ((f (if (procedure? c) c (lambda () c))))
-       (let loop ((m n)
-		  (acc '()))
-	 (if (= m 0) (reverse acc)
-	     (let* ((x (f)))
-	       (if (p x)
-		   (loop (- m 1) (cons (t x) acc))
-		   (loop (- m 1) acc)))))))))
+	       (loop (- m 1) new-acc)))))))
 (export tabulate)
 
 ;; --<GUILE COMMENT>---------------------------------------------
@@ -257,13 +204,12 @@
 ;; -----</GUILE COMMENT>----------------------------------------- 
 (define-syntax fold
   (syntax-rules ()
-    ((_ n comb init code)
-     (let ((f (if (procedure? code) code (lambda () code))))
-       (let loop ((m n) (acc init))
-	 (if (= m 0) acc
-	     (let* ((x (f)) 
-		    (new-acc (comb x acc)))
-	       (loop (- m 1) new-acc))))))))
+    ((_ n comb init e1 e2 ...)
+     (let loop ((m n) (acc init))
+       (if (= m 0) acc
+	   (let* ((x (begin e1 e2 ...)) 
+		  (new-acc (comb x acc)))
+	     (loop (- m 1) new-acc)))))))
 (export fold)
   
 

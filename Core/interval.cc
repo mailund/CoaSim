@@ -24,6 +24,7 @@
 
 using std::min; 
 using std::max;
+using namespace core;
 
 namespace {
     using std::binary_function;
@@ -45,7 +46,7 @@ namespace {
 
 
 
-Interval::Interval(double start, double end, unsigned int leaf_contacts)
+core::Interval::Interval(double start, double end, unsigned int leaf_contacts)
     throw(empty_interval,interval_out_of_range)
     : i_start(start), i_end(end), i_leaf_contacts(leaf_contacts)
 {
@@ -55,7 +56,7 @@ Interval::Interval(double start, double end, unsigned int leaf_contacts)
 
 
 
-void Intervals::add(const Interval &i) throw(out_of_sequence)
+void core::Intervals::add(const Interval &i) throw(out_of_sequence)
 {
     if (i_intervals.size() == 0 or i_intervals.back().end() <= i.start())
 	i_intervals.push_back(i);
@@ -63,7 +64,7 @@ void Intervals::add(const Interval &i) throw(out_of_sequence)
 	throw out_of_sequence();
 }
 
-void Intervals::add(double start, double end, int contacts)
+void core::Intervals::add(double start, double end, int contacts)
     throw(out_of_sequence,
 	  Interval::empty_interval, Interval::interval_out_of_range)
 {

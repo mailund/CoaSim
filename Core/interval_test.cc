@@ -11,7 +11,7 @@
 
 #include "testing.hh"
 
-
+using namespace core;
 static void test_Interval()
 {
     // illegal intervals

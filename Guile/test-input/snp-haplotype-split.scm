@@ -38,7 +38,9 @@
 (define haplotypes (simulate-sequences markers 100 :rho rho))
 
 ;; Split in cases and controls, based on trait marker
-(define cases-and-controls (split-in-cases-controls haplotypes trait-idx))
+(define cases-and-controls (split-in-cases-controls haplotypes trait-idx
+						    :mutant-prob 0.5
+						    :wild-type-prob 0.1))
 (define cases    (car  cases-and-controls))
 (define controls (cadr cases-and-controls))
 

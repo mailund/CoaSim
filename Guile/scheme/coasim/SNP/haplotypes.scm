@@ -19,11 +19,11 @@
 ;;; Code:
 
 (define-module (coasim SNP haplotypes) 
-  :use-module ((coasim SNP shared) 
-	       :select ((split-in-cases-controls . split))))
+  :use-module (ice-9 optargs)
+  :use-module ((coasim markers) :select ((split-in-cases-controls . split))))
 
-(define-public (split-in-cases-controls haplotypes trait-idx)
 
+(define-public (split-in-cases-controls haplotypes trait-idx . args)
   "
    --<GUILE COMMENT>---------------------------------------------
    <method name='split-in-cases-controls'>
@@ -42,8 +42,16 @@
    </method>
    -----</GUILE COMMENT>----------------------------------------- 
    "
-  (let ((is-case? (lambda (h) (= 1 (list-ref h trait-idx)))))
-    (split haplotypes trait-idx is-case?)))
+  (let-keywords args #f ((mutant-prob 1)
+			 (wild-type-prob 0))
+      (let* ((msec (cdr (gettimeofday)))
+	     (random-state (seed->random-state msec))
+	     (is-case? 
+	      (lambda (h) 
+		(if (= 1 (list-ref h trait-idx))
+		    (< (random 1.0 random-state) mutant-prob)
+		    (< (random 1.0 random-state) wild-type-prob)))))
+	(split haplotypes trait-idx is-case?))))
 
 ;; --<GUILE COMMENT>---------------------------------
 ;; </module>
