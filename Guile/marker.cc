@@ -389,6 +389,44 @@ position(SCM marker_smob)
 
 
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="custom-marker">
+  <brief>Creates a custom marker type</brief>
+  <prototype>(custom-marker position ancestral-value mutation-function)</prototype>
+  <example>(define (step-ms-marker pos theta)
+  (let* ((msec (cdr (gettimeofday)))
+         (random-state (seed->random-state msec))
+         (expdist (lambda (x) (- 1.0 (exp (- x)))))
+
+         (mutate? 
+          (lambda (delta-t)
+            (&lt; (random 1.0 random-state) (expdist (* delta-t (/ theta 2))))))
+         (mutate-to
+          (lambda (parent-allele)
+              (if (&lt; (random 1.0 random-state) 0.5)
+                  (- parent-allele 1)
+                  (+ parent-allele 1))))
+
+         (mutate
+          (lambda (parent child parent-allele)
+            (if (mutate? (- (event-time parent) (event-time child)))
+                (mutate-to parent-allele)
+                parent-allele))))
+
+    (custom-marker pos 0 mutate)))</example>
+  <description>
+    <p>
+      Creates a custom marker at position `position', with an
+      ancestral value given by `ancestral-value' (either an integer or
+      a thunk returning an integer), and a mutation function `mutate',
+      that takes arguments `parent-node' and `child-node' of an edge
+      to mutate, and the allele at the parent of the edge.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM
 custom_marker(SCM s_position, SCM default_value, SCM mutate)
 {
