@@ -7,13 +7,13 @@
 
 #include "retired_interval.hh"
 
-#ifndef NODE_HH_INCLUDED
+#ifndef CORE__NODE_HH_INCLUDED
 # include "node.hh"
 #endif
-#ifndef CONFIGURATION_HH_INCLUDED
+#ifndef CORE__CONFIGURATION_HH_INCLUDED
 # include "configuration.hh"
 #endif
-#ifndef MARKER_HH_INCLUDED
+#ifndef CORE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
 

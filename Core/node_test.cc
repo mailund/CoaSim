@@ -7,10 +7,10 @@
 
 #include "testing.hh"
 
-#ifndef NODE_HH_INCLUDED
+#ifndef CORE__NODE_HH_INCLUDED
 # include "node.hh"
 #endif
-#ifndef SNP_MARKER_HH_INCLUDED
+#ifndef CORE__SNP_MARKER_HH_INCLUDED
 # include "snp_marker.hh"
 #endif
 

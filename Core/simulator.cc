@@ -7,16 +7,16 @@
 
 #include "simulator.hh"
 
-#ifndef BUILDER_HH_INCLUDED
+#ifndef CORE__BUILDER_HH_INCLUDED
 # include "builder.hh"
 #endif
-#ifndef DESCENDER_HH_INCLUDED
+#ifndef CORE__DESCENDER_HH_INCLUDED
 # include "descender.hh"
 #endif
-#ifndef MARKER_HH_INCLUDED
+#ifndef CORE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
-#ifndef MONITOR_HH_INCLUDED
+#ifndef CORE__MONITOR_HH_INCLUDED
 # include "monitor.hh"
 #endif
 

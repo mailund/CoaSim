@@ -7,13 +7,13 @@
 
 #include "snp_marker.hh"
 
-#ifndef DIST_FUNCTIONS_HH_INCLUDED
+#ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
 # include "dist_funcs.hh"
 #endif
-#ifndef RETIRED_INTERVAL_HH_INCLUDED
+#ifndef CORE__RETIRED_INTERVAL_HH_INCLUDED
 # include "retired_interval.hh"
 #endif
-#ifndef NODE_HH_INCLUDED
+#ifndef CORE__NODE_HH_INCLUDED
 # include "node.hh"
 #endif
 

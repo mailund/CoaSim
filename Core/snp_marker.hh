@@ -5,10 +5,10 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef SNP_MARKER_HH_INCLUDED
-#define SNP_MARKER_HH_INCLUDED
+#ifndef CORE__SNP_MARKER_HH_INCLUDED
+#define CORE__SNP_MARKER_HH_INCLUDED
 
-#ifndef MARKER_HH_INCLUDED
+#ifndef CORE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
 

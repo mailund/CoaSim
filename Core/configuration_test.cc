@@ -7,13 +7,13 @@
 
 #include "testing.hh"
 
-#ifndef CONFIGURATION_HH_INCLUDED
+#ifndef CORE__CONFIGURATION_HH_INCLUDED
 # include "configuration.hh"
 #endif
-#ifndef TRAIT_MARKER_HH_INCLUDED
+#ifndef CORE__TRAIT_MARKER_HH_INCLUDED
 # include "trait_marker.hh"
 #endif
-#ifndef SNP_MARKER_HH_INCLUDED
+#ifndef CORE__SNP_MARKER_HH_INCLUDED
 # include "snp_marker.hh"
 #endif
 

@@ -65,6 +65,7 @@ node_test_SOURCES += dist_funcs.hh dist_funcs.cc
 node_test_SOURCES += node_test.cc
 
 all_markers_test_SOURCES =
+all_markers_test_SOURCES += testing.hh
 all_markers_test_SOURCES += interval.hh interval.cc
 all_markers_test_SOURCES += node.hh node.cc
 all_markers_test_SOURCES += retired_interval.hh retired_interval.cc

@@ -5,8 +5,8 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef SIMULATOR_HH_INCLUDED
-#define SIMULATOR_HH_INCLUDED
+#ifndef CORE__SIMULATOR_HH_INCLUDED
+#define CORE__SIMULATOR_HH_INCLUDED
 
 namespace core {
 
@@ -20,4 +20,4 @@ namespace core {
 
 }
 
-#endif // SIMULATOR_HH_INCLUDED
+#endif

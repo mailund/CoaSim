@@ -7,13 +7,13 @@
 
 #include "descender.hh"
 
-#ifndef NODE_HH_INCLUDED
+#ifndef CORE__NODE_HH_INCLUDED
 # include "node.hh"
 #endif
-#ifndef MARKER_HH_INCLUDED
+#ifndef CORE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
-#ifndef MONITOR_HH_INCLUDED
+#ifndef CORE__MONITOR_HH_INCLUDED
 # include "monitor.hh"
 #endif
 

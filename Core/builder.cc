@@ -7,10 +7,10 @@
 
 #include "builder.hh"
 
-#ifndef DIST_FUNCTIONS_HH_INCLUDED
+#ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
 # include "dist_funcs.hh"
 #endif
-#ifndef MONITOR_HH_INCLUDED
+#ifndef CORE__MONITOR_HH_INCLUDED
 # include "monitor.hh"
 #endif
 

@@ -1,14 +1,14 @@
 
-#ifndef BUILDER_HH_INCLUDED
+#ifndef CORE__BUILDER_HH_INCLUDED
 # include "builder.hh"
 #endif
-#ifndef CONFIGURATION_HH_INCLUDED
+#ifndef CORE__CONFIGURATION_HH_INCLUDED
 # include "configuration.hh"
 #endif
-#ifndef NODE_HH_INCLUDED
+#ifndef CORE__NODE_HH_INCLUDED
 # include "node.hh"
 #endif
-#ifndef SNP_MARKER_HH_INCLUDED
+#ifndef CORE__SNP_MARKER_HH_INCLUDED
 # include "snp_marker.hh"
 #endif
 

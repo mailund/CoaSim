@@ -5,8 +5,8 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef MARKER_HH_INCLUDED
-#define MARKER_HH_INCLUDED
+#ifndef CORE__MARKER_HH_INCLUDED
+#define CORE__MARKER_HH_INCLUDED
 
 #ifndef STDEXCEPT_INCLUDED
 # include <stdexcept>

@@ -5,8 +5,8 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef INTERVAL_HH_INCLUDED
-#define INTERVAL_HH_INCLUDED
+#ifndef CORE__INTERVAL_HH_INCLUDED
+#define CORE__INTERVAL_HH_INCLUDED
 
 #ifndef STDEXCEPT_INCLUDED
 # include <stdexcept>

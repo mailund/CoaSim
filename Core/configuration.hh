@@ -5,10 +5,10 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef CONFIGURATION_HH_INCLUDED
-#define CONFIGURATION_HH_INCLUDED
+#ifndef CORE__CONFIGURATION_HH_INCLUDED
+#define CORE__CONFIGURATION_HH_INCLUDED
 
-#ifndef MARKER_HH_INCLUDED
+#ifndef CORE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
 
@@ -196,4 +196,4 @@ namespace core {
 
 }
 
-#endif // CONFIGURATION_HH_INCLUDED
+#endif

@@ -5,10 +5,10 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef DESCENDER_HH_INCLUDED
-#define DESCENDER_HH_INCLUDED
+#ifndef CORE__DESCENDER_HH_INCLUDED
+#define CORE__DESCENDER_HH_INCLUDED
 
-#ifndef CONFIGURATION_HH_INCLUDED
+#ifndef CORE__CONFIGURATION_HH_INCLUDED
 # include "configuration.hh"
 #endif
 

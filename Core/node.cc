@@ -7,14 +7,14 @@
 
 #include "node.hh"
 
-#ifndef COMPILE_OPTIONS_HH
+#ifndef CORE__COMPILE_OPTIONS_HH
 # include "compile_options.hh"
 #endif
 
-#ifndef DIST_FUNCTIONS_HH_INCLUDED
+#ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
 # include "dist_funcs.hh"
 #endif
-#ifndef MARKER_HH_INCLUDED
+#ifndef CORE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
 

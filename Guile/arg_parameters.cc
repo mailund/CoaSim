@@ -22,6 +22,7 @@ free_arg_parameters(SCM s_p)
     ARGParameters *p = (ARGParameters*) SCM_SMOB_DATA(s_p);
     p->~ARGParameters();
     scm_must_free(p);
+    return sizeof(ARGParameters);
 }
 
 static int

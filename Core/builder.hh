@@ -5,10 +5,10 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef BUILDER_HH_INCLUDED
-#define BUILDER_HH_INCLUDED
+#ifndef CORE__BUILDER_HH_INCLUDED
+#define CORE__BUILDER_HH_INCLUDED
 
-#ifndef NODE_HH_INCLUDED
+#ifndef CORE__NODE_HH_INCLUDED
 # include "node.hh"
 #endif
 

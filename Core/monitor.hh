@@ -5,8 +5,8 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef MONITOR_HH_INCLUDED
-#define MONITOR_HH_INCLUDED
+#ifndef CORE__MONITOR_HH_INCLUDED
+#define CORE__MONITOR_HH_INCLUDED
 
 #ifndef STDEXCEPT_INCLUDED
 # include <stdexcept>

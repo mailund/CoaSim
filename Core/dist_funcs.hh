@@ -5,8 +5,8 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef DIST_FUNCTIONS_HH_INCLUDED
-#define DIST_FUNCTIONS_HH_INCLUDED
+#ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
+#define CORE__DIST_FUNCTIONS_HH_INCLUDED
 
 
 namespace Distribution_functions

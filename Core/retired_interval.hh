@@ -5,10 +5,10 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef RETIRED_INTERVAL_HH_INCLUDED
-#define RETIRED_INTERVAL_HH_INCLUDED
+#ifndef CORE__RETIRED_INTERVAL_HH_INCLUDED
+#define CORE__RETIRED_INTERVAL_HH_INCLUDED
 
-#ifndef INTERVAL_HH_INCLUDED
+#ifndef CORE__INTERVAL_HH_INCLUDED
 # include "interval.hh"
 #endif
 

@@ -5,13 +5,13 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef DESCENDER_HH_INCLUDED
+#ifndef CORE__DESCENDER_HH_INCLUDED
 # include "descender.hh"
 #endif
-#ifndef CONFIGUTAION_HH_INCLUDED
+#ifndef CORE__CONFIGUTAION_HH_INCLUDED
 # include "configuration.hh"
 #endif
-#ifndef NODE_HH_INCLUDED
+#ifndef CORE__NODE_HH_INCLUDED
 # include "node.hh"
 #endif
 #ifndef CORE__ALL_MARKERS_HH_INCLUDED

@@ -5,10 +5,10 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef TRAIT_MARKER_HH_INCLUDED
-#define TRAIT_MARKER_HH_INCLUDED
+#ifndef CORE__TRAIT_MARKER_HH_INCLUDED
+#define CORE__TRAIT_MARKER_HH_INCLUDED
 
-#ifndef MARKER_HH_INCLUDED
+#ifndef CORE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
 
