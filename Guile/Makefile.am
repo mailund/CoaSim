@@ -79,4 +79,4 @@ dist_scheme_coasim_DATA += scheme/coasim/markers.scm
 scheme_coasim_SNPdir = ${prefix}/share/coasim/scheme/coasim/SNP
 dist_scheme_coasim_SNP_DATA =
 dist_scheme_coasim_SNP_DATA += scheme/coasim/SNP/haplotypes.scm
-#dist_scheme_coasim_SNP_DATA += scheme/coasim/SNP/genotypes.scm
+dist_scheme_coasim_SNP_DATA += scheme/coasim/SNP/genotypes.scm

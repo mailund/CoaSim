@@ -10,6 +10,7 @@
 ;; load module for making random markers
 (use-modules ((ice-9 format) :select (format))
              ((coasim rand)  :select (make-random-snp-markers))
+             ((coasim batch) :select (repeat))
 	     ((coasim io)    :select (print-marker-positions)))
 
 
@@ -32,7 +33,7 @@
   (for-each print-list haplotypes))
 
 
-(define (run-simulation)
+(repeat no-datasets
   (let* (;; Make SNP markers at random positions, accepting the SNP
 	 ;; mutations if between 10% and 90% of the final chromosomes have the
 	 ;; mutant.
@@ -47,5 +48,3 @@
     (print-marker-positions (current-output-port) markers)
     (print-haplotypes (sequences arg))))
 
-(do ((i 0 (+ i 1))) ((= i no-datasets) '())
-  (run-simulation))

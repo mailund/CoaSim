@@ -77,12 +77,14 @@ core::LeafNode::surface_at_point(double point) const
 
 void
 core::LeafNode::print_tree_at_point(std::ostream &os, double point,
-				    double edge_length) const
+				    double edge_length,
+				    bool print_edge) const
     throw(std::out_of_range)
 {
     if (point < 0 or 1.0 <= point) 
 	throw std::out_of_range("Point out of range [0,1).");
-    os << "\"\" : " << edge_length;
+    os << "\"\"";
+    if (print_edge) os << " : " << edge_length;
 }
 
 void
@@ -129,7 +131,8 @@ core::CoalescentNode::surface_at_point(double point) const
 
 void
 core::CoalescentNode::print_tree_at_point(std::ostream &os, double point,
-					  double edge_length) const
+					  double edge_length,
+					  bool print_edge) const
     throw(std::out_of_range)
 {
     double left_dist  = time() - i_left->time();
@@ -139,19 +142,22 @@ core::CoalescentNode::print_tree_at_point(std::ostream &os, double point,
 	and i_right->intervals().contains_point(point))
 	{
 	    os << '(';
-	    i_left->print_tree_at_point(os, point, left_dist);
+	    i_left->print_tree_at_point(os, point, left_dist, true);
 	    os << ',';
-	    i_right->print_tree_at_point(os, point, right_dist);
-	    os << ") : " << edge_length;
+	    i_right->print_tree_at_point(os, point, right_dist, true);
+	    os << ')';
+ 	    if (print_edge) os << " : " << edge_length;
 	}
     else
 	{
 	    if (i_left->intervals().contains_point(point))
 		i_left->print_tree_at_point(os, point, 
-					    edge_length+left_dist);
+					    edge_length+left_dist,
+					    print_edge);
 	    if (i_right->intervals().contains_point(point))
 		i_right->print_tree_at_point(os, point,
-					     edge_length+right_dist);
+					     edge_length+right_dist,
+					     print_edge);
 	}
 }
 
@@ -236,11 +242,12 @@ core::RecombinationNode::surface_at_point(double point) const
 
 void
 core::RecombinationNode::print_tree_at_point(std::ostream &os, double point,
-					     double edge_length) const
+					     double edge_length,
+					     bool print_edge) const
     throw(std::out_of_range)
 {
     double d = time() - i_child->time();
-    i_child->print_tree_at_point(os, point, edge_length+d);
+    i_child->print_tree_at_point(os, point, edge_length+d, print_edge);
 }
 
 
@@ -301,12 +308,13 @@ core::GeneConversionNode::surface_at_point(double point) const
 
 void
 core::GeneConversionNode::print_tree_at_point(std::ostream &os, double point,
-					      double edge_length) const
+					      double edge_length,
+					      bool print_edge) const
     throw(std::out_of_range)
 {
     double d = time() - i_child->time();
-    i_child->print_tree_at_point(os, point, edge_length+d);
-	}
+    i_child->print_tree_at_point(os, point, edge_length+d, print_edge);
+}
 
 
 void

@@ -75,10 +75,14 @@ namespace core {
 	// Prints the local tree to a stream
 	void print_tree_at_point(std::ostream &os, double point) const
 	    throw(std::out_of_range) 
-	{ print_tree_at_point(os, point, 0.0); }
+	{
+	    print_tree_at_point(os, point, 0.0,false);
+	    os << ';';
+	}
 	// Prints the local tree to a stream
 	virtual void print_tree_at_point(std::ostream &os, double point,
-					 double edge_length) const
+					 double edge_length,
+					 bool print_edge) const
 	    throw(std::out_of_range) = 0;
 
 	// Calculate the number of leaves hit by the binary tree in point
@@ -208,7 +212,8 @@ namespace core {
 	virtual double surface_at_point(double point) const
 	    throw(std::out_of_range);
 	virtual void print_tree_at_point(std::ostream &os, double point,
-					 double edge_length) const
+					 double edge_length,
+					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
 	virtual void node_to_xml(std::ostream &os) const;
@@ -236,7 +241,8 @@ namespace core {
 	virtual double surface_at_point(double point) const
 	    throw(std::out_of_range);
 	virtual void print_tree_at_point(std::ostream &os, double point,
-					 double edge_length) const
+					 double edge_length,
+					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
 	virtual void node_to_xml(std::ostream &os) const;
@@ -267,7 +273,8 @@ namespace core {
 	virtual double surface_at_point(double point) const
 	    throw(std::out_of_range);
 	virtual void print_tree_at_point(std::ostream &os, double point,
-					 double edge_length) const
+					 double edge_length,
+					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
 	virtual void node_to_xml(std::ostream &os) const;
@@ -301,7 +308,8 @@ namespace core {
 	virtual double surface_at_point(double point) const
 	    throw(std::out_of_range);
 	virtual void print_tree_at_point(std::ostream &os, double point,
-					 double edge_length) const
+					 double edge_length,
+					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
 	virtual void node_to_xml(std::ostream &os) const;

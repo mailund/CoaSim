@@ -139,7 +139,7 @@
 				(rest  (drop h (+ 1 trait-idx))))
 			    (append first rest))))
 	   (f (lambda (lst cases controls)
-		(cond ((null? lst) (list cases controls))
+		(cond ((null? lst) (list (reverse cases) (reverse controls)))
  		      ((is-case? (car lst)) 
 		       (f (cdr lst) 
 			  (cons (strip-trait (car lst)) cases)

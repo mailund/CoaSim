@@ -29,15 +29,24 @@
    <method name='split-in-cases-controls'>
     <brief>Split a list of haplotypes into cases and controls.</brief>
     <prototype>(split-in-cases-controls haplotypes trait-idx)</prototype>
-    <example> (define haplotypes (simulate-sequences p markers 100))
+    <example> (define haplotypes (simulate-sequences markers 100))
  (define cases-and-controls (split-in-cases-controls haplotypes trait-idx))
  (define cases    (car  cases-and-controls))
  (define controls (cadr cases-and-controls))</example>
     <description>
      <p>
       Split a dataset into cases and controls, based on the value at
-      trait-idx. 
+      trait-idx.   The following keyword arguments can be used to control
+      the split:
      </p>
+     <ul>
+       <li><b>mutant-prob:</b> The probability that a mutant (allele 1) is 
+           considered a case.  By default this is 1.
+       </li>
+       <li><b>wild-type-prob:</b> The probability that a wild-type (allele 0) 
+           is considered a case.  By default this is 0.
+       </li>
+     </ul>
     </description>
    </method>
    -----</GUILE COMMENT>----------------------------------------- 
