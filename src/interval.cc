@@ -1,8 +1,16 @@
-#include "interval.hh"
-#include <valarray>
-#include <iostream>
 
-#include <algorithm>
+#include "interval.hh"
+
+#ifndef VALARRAY_INCLUDED
+# include <valarray>
+# define VALARRAY_INCLUDED
+#endif
+#ifndef ALGORITHM_INCLUDED
+# include <algorithm>
+# define ALGORITHM_INCLUDED
+#endif
+
+
 using std::min; using std::max;
 
 

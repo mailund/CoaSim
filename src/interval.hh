@@ -1,9 +1,18 @@
-#ifndef INTERVAL_HH
-#define INTERVAL_HH
+#ifndef INTERVAL_HH_INCLUDED
+#define INTERVAL_HH_INCLUDED
 
-#include <stdexcept>
-#include <vector>
-#include <iostream>
+#ifndef STDEXCEPT_INCLUDED
+# include <stdexcept>
+# define STDEXCEPT_INCLUDED
+#endif
+#ifndef VECTOR_INCLUDED
+# include <vector>
+# define VECTOR_INCLUDED
+#endif
+#ifndef IOSTREAM_INCLUDED
+# include <iostream>
+# define IOSTREAM_INCLUDED
+#endif
 
 /* A sub-interval on the real interval [0,1), closed on the left and
  * open on the right. */

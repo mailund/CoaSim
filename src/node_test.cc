@@ -1,8 +1,6 @@
 
 #include "node.hh"
 #include "testing.hh"
-#include "dist_funcs.hh"
-
 #include <fstream>
 
 int main(int argc, const char *argv[])

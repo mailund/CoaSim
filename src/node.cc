@@ -1,9 +1,18 @@
-#include "node.hh"
-#include "dist_funcs.hh"
 
-#include <sstream>
-#include <string>
-#include <valarray>
+#include "node.hh"
+
+#ifndef DIST_FUNCTIONS_HH_INCLUDED
+# include "dist_funcs.hh"
+#endif
+
+#ifndef SSTREAM_INCLUDED
+# include <sstream>
+# define SSTREAM_INCLUDED
+#endif
+#ifndef STRING_INCLUDED
+# include <string>
+# define STRING_INCLUDED
+#endif
 
 void ARG::Node::haplotype_to_xml(std::ostream &os) const
 {
@@ -328,8 +337,14 @@ void ARG::to_xml(std::ostream &os) const
       os << "    <marker id=\"marker_" << i << "\">\n"
 	 << "      <position>" << _conf.position(i) << "</position>\n"
 	 << "      <value-set>";
-      for (size_t j = 0; j < _conf.value_set(i).size(); ++j)
-	os << "<value>" << _conf.value_set(i).value(j) << "</value>";
+
+      // FIXME: print marker value set!!!
+#warning marker valuesets not printed
+#if 0
+      for (size_t j = 0; j < _conf.marker(i).size(); ++j)
+	os << "<value>" << _conf.marker(i).value(j) << "</value>";
+#endif
+
       os << "</value-set>\n"
 	 << "    </marker>" << std::endl;
   }

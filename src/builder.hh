@@ -1,9 +1,10 @@
-#ifndef BUILDER_HH
-#define BUILDER_HH
+#ifndef BUILDER_HH_INCLUDED
+#define BUILDER_HH_INCLUDED
 
-#include <vector>
-#include <sstream>
-#include "node.hh"
+#ifndef NODE_HH_INCLUDED
+# include "node.hh"
+#endif
+
 
 class Builder
 {

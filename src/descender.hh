@@ -1,7 +1,29 @@
-#ifndef DESCENDER_HH
-#define DESCENDER_HH
-#include "dist_funcs.hh"
+#ifndef DESCENDER_HH_INCLUDED
+#define DESCENDER_HH_INCLUDED
 
+#ifndef CONFIGURATION_HH_INCLUDED
+# include "configuration.hh"
+#endif
+
+class ARG;
+
+class Descender
+{
+public:
+  Descender(const Configuration &conf) : _conf(conf) {}
+  ~Descender() {}
+
+  // assign evolution to the ARG as specified by the configuration.
+  // If the traits cannot be assigned according to specification, the
+  // method returns `false' which means that a new ARG should be build
+  // and processed.  If everything goes well, evolve returns `true'.
+  bool evolve(ARG &arg) const;
+
+private:
+  const Configuration &_conf;
+};
+
+#if 0
 class Descender 
 {
 public:
@@ -76,6 +98,7 @@ private:
   double _mu;
   std::string _log;
 };
+#endif
 
 
 #endif

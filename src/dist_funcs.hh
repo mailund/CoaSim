@@ -1,8 +1,19 @@
-#ifndef DIST_FUNCTIONS_HH
-#define DIST_FUNCTIONS_HH
-#include <cmath>
-#include <cstdlib>
-#include <algorithm>
+
+#ifndef DIST_FUNCTIONS_HH_INCLUDED
+#define DIST_FUNCTIONS_HH_INCLUDED
+
+#ifndef CMATH_INCLUDED
+# include <cmath>
+# define CMATH_INCLUDED
+#endif
+#ifndef CSTDLIB_INCLUDED
+# include <cstdlib>
+# define CSTDLIB_INCLUDED
+#endif
+#ifndef ALGORITHM_INCLUDED
+# include <algorithm>
+# define ALGORITHM_INCLUDED
+#endif
 
 // when testing we want deterministic functions
 #if TESTING

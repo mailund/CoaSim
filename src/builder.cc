@@ -1,5 +1,10 @@
+
 #include "builder.hh"
-#include "dist_funcs.hh"
+
+#ifndef DIST_FUNCTIONS_HH_INCLUDED
+# include "dist_funcs.hh"
+#endif
+
 
 namespace
 {

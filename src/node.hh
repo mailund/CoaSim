@@ -1,14 +1,30 @@
-#ifndef NODE_HH
-#define NODE_HH
 
-#include "interval.hh"
-#include "configuration.hh"
+#ifndef NODE_HH_INCLUDED
+#define NODE_HH_INCLUDED
 
-#include <stdexcept>
-#include <algorithm>
-#include <vector>
-#include <iostream>
-#include <valarray>
+#ifndef CONFIGURATION_HH_INCLUDED
+# include "configuration.hh"
+#endif
+#ifndef INTERVAL_HH_INCLUDED
+# include "interval.hh"
+#endif
+
+#ifndef STDEXCEPT_INCLUDED
+# include <stdexcept>
+# define STDEXCEPT_INCLUDED
+#endif
+#ifndef VECTOR_INCLUDED
+# include <vector>
+# define VECTOR_INCLUDED
+#endif
+#ifndef IOSTREAM_INCLUDED
+# include <iostream>
+# define IOSTREAM_INCLUDED
+#endif
+#ifndef VALARRAY_INCLUDED
+# include <valarray>
+# define VALARRAY_INCLUDED
+#endif
 
 class ARG
 {
