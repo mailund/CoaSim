@@ -53,6 +53,13 @@ namespace Distribution_functions
 	return r;
     }
   
+    int uniform(double part_1, double part_2)
+    {
+	double r = uniform()*(part_1+part_2);
+	if (r<part_1) return 0;
+	else          return 1;
+    }
+
     int uniform(double part_1, double part_2, double part_3)
     {
 	double r = uniform()*(part_1+part_2+part_3);

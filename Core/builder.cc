@@ -44,9 +44,10 @@ namespace
 	std::vector<Node*> _nodes;
     };
 
-    inline double get_time_interval(const Configuration &conf,
-				    double current_time,
-				    unsigned int nodes_left)
+    typedef std::pair<double,int> time_event_t;
+    inline time_event_t get_time_event(const Configuration &conf,
+				       double current_time,
+				       unsigned int nodes_left)
     {
 	using namespace Distribution_functions;
 
@@ -56,10 +57,25 @@ namespace
 		double yy = exp(-conf.growth()*current_time);
 		double time1 = log(1.0+conf.growth()*xx*yy)/conf.growth();
 		double time2 = expdev(nodes_left,conf.G()/2+conf.rho()/2);
-		return std::min(time1,time2);
+		if (time1 < time2)
+		    {
+			// coalescence event
+			return time_event_t(time1,0);
+		    }
+		else
+		    {
+			// recomb or gene conversion
+			int event = uniform(conf.G(), conf.rho()) + 1;
+			return time_event_t(time2, event);
+		    }
 	    }
 	else
-	    return expdev(nodes_left,double(nodes_left-1)/2+conf.G()/2+conf.rho()/2);
+	    {
+		double time = expdev(nodes_left, double(nodes_left-1)/2
+				                 +conf.G()/2+conf.rho()/2);
+		int event = uniform(double(nodes_left-1), conf.G(), conf.rho());
+		return time_event_t(time,event);
+	    }
     }
 }
 
@@ -94,9 +110,9 @@ ARG * Builder::build(SimulationMonitor *mon,
     while (top_nodes.size() > 1)
 	{
 	    unsigned int k = top_nodes.size();
-	    time += get_time_interval(i_conf,time,k);
-
-	    int event = uniform(double(k-1), i_conf.G(), i_conf.rho());
+	    time_event_t time_event = get_time_event(i_conf,time,k);
+	    time += time_event.first;
+	    int event = time_event.second;
 
 	    ++no_iterations;
 

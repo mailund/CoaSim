@@ -17,6 +17,7 @@ namespace Distribution_functions
     double expdist(const double param, const double x);
 
     double uniform();
+    int uniform(double part_1, double part_2);
     int uniform(double part_1, double part_2, double part_3);
   
     int random_sign();
