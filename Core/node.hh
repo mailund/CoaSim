@@ -72,6 +72,11 @@ namespace core {
 	virtual double surface_at_point(double point) const
 	    throw(std::out_of_range) = 0;
 
+	virtual bool contains_point(double point) const
+	{
+	    return i_intervals.contains_point(point);
+	}
+
 	// Prints the local tree to a stream
 	void print_tree_at_point(std::ostream &os, double point) const
 	    throw(std::out_of_range) 
@@ -231,15 +236,33 @@ namespace core {
 
     class CoalescentNode : public Node
     {
+    public:
+	const Node * const left_child()  const { return i_left; }
+	const Node * const right_child() const { return i_right; }
+
+	const Intervals &retired_intervals() const 
+	{
+	    return i_retired_intervals;
+	}
+
+    private:
 	friend CoalescentNode *ARG::coalescence(double,Node*,Node*);
 	CoalescentNode(const Configuration &conf, double time, 
-		       Node *left, Node *right, const Intervals &is)
+		       Node *left, Node *right, 
+		       const Intervals &is, const Intervals &ris)
 	    : Node(conf,time,is), i_left(left), i_right(right),
-	      i_conf(conf)
+	      i_retired_intervals(ris), i_conf(conf)
 	{}
 
 	virtual double surface_at_point(double point) const
 	    throw(std::out_of_range);
+
+	virtual bool contains_point(double point) const
+	{
+	    return Node::contains_point(point) or
+		i_retired_intervals.contains_point(point);
+	}
+
 	virtual void print_tree_at_point(std::ostream &os, double point,
 					 double edge_length,
 					 bool print_edge) const
@@ -248,13 +271,16 @@ namespace core {
 
 	Node *const i_left;
 	Node *const i_right;
+	Intervals i_retired_intervals;
 	const Configuration &i_conf;
+
     };
   
     class RecombinationNode : public Node
     {
     public:
-	double cross_over_point() const { return i_cross_over_point; }
+	double cross_over_point()  const { return i_cross_over_point; }
+	const Node * const child() const { return i_child; }
 
     private:
 	friend ARG::recomb_node_pair_t ARG::recombination(double,Node*,double);
@@ -284,6 +310,7 @@ namespace core {
     public:
 	double conversion_start() const { return i_conversion_start; }
 	double conversion_end()   const { return i_conversion_end; }
+	const Node * const child() const { return i_child; }
 
     private:
 	friend ARG::gene_conv_node_pair_t ARG::gene_conversion(double,Node*,double,double);

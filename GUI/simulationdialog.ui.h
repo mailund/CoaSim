@@ -73,9 +73,7 @@ void SimulationDialog::init()
 	    double mu      = main->MSMarkerTable->text(i,2).toDouble();
 
 	    core::MicroSatelliteMarker *m = 
-		new core::MicroSatelliteMarker(pos, mu);
-	    for (int j = 0; j < alpha_size; ++j) m->add_value(j);
-
+		new core::MicroSatelliteMarker(pos, mu, alpha_size);
 	    markers.push_back(m);
 	}
 

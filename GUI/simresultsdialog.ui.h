@@ -17,31 +17,6 @@
 
 #include <fstream>
 
-void SimResultsDialog::saveXML()
-{
-    bool leaves_only = mode->isOn();
-    QString fname = QFileDialog::getSaveFileName();
-
- retry:
-    std::ofstream output_file(fname);
-    if (!output_file)
-	{
-	    if (QMessageBox::warning(this, "Error opening file",
-				     QString("Could not open file ")
-				     .append(fname),
-				     "Retry", "Cancel",
-				     0, 0, 1) == 0)
-		{
-		    fname = QFileDialog::getSaveFileName();
-		    if (fname == "") return; // cancel
-		    goto retry;
-		}
-	    return;
-	}
-
-    i_arg->to_xml(output_file, !leaves_only);
-}
-
 
 void SimResultsDialog::saveText()
 {

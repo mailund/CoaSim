@@ -290,7 +290,7 @@ CoalescentNode *ARG::coalescence(double time, Node *left, Node *right)
     if (left == 0 or right == 0) throw null_child();
 
     // sort in retired and non-retired intervals
-    std::vector<Interval> retired;
+    Intervals retired;
     Intervals non_retired;
     Intervals merged = left->intervals() | right->intervals();
     if (!i_keep_empty) merged = filter_contains_marker(merged, i_conf);
@@ -306,31 +306,18 @@ CoalescentNode *ARG::coalescence(double time, Node *left, Node *right)
 	    if (merged.interval(i).leaf_contacts() < i_no_leaves)
 		non_retired.add(merged.interval(i));
 	    else if (merged.interval(i).leaf_contacts() == i_no_leaves)
-		retired.push_back(merged.interval(i));
+		retired.add(merged.interval(i));
 	    else
 		assert(false);
 	}
 
-    CoalescentNode *n = new CoalescentNode(i_conf,time,left,right,non_retired);
+    CoalescentNode *n = new CoalescentNode(i_conf,time,left,right,
+					   non_retired, retired);
 
     i_node_pool.push_back(n);
 
-    std::vector<Interval>::const_iterator itr;
-    for (itr = retired.begin(); itr != retired.end(); ++itr)
-	{
-#if EXPENSIVE_ASSERTS
-	    std::vector<RetiredInterval>::const_iterator jtr;
-	    for (jtr = i_retired_intervals.begin(); 
-		 jtr != i_retired_intervals.end(); ++jtr)
-		//assert(!jtr->overlaps(*itr));
-		if (jtr->overlaps(*itr))
-		    {
-			std::cout << "ERROR: " << *itr << " overlaps " << *jtr << std::endl;
-			assert(!jtr->overlaps(*itr));
-		    }
-#endif
-	    i_retired_intervals.push_back(RetiredInterval(*itr,n));
-	}
+    for (int i = 0; i != retired.size(); ++i)
+	i_retired_intervals.push_back(RetiredInterval(retired.interval(i), n));
 
     return n;
 }

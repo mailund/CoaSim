@@ -186,23 +186,15 @@ namespace core {
 
 
 
-#if 0
-
-    inline bool Intervals::contains_point(double point) const
-	throw(std::out_of_range)
-    { return check_predicate(point, &Interval::contains_point); }
-
-#else
-    // try without the check_predicate...
-
-
     inline bool Intervals::contains_point(double point) const throw(std::out_of_range)
     { 
+	if (point < 0.0 or 1.0 <= point)
+	    throw std::out_of_range("checking point out of the [0,1) range.");
+	if (size() == 0)           return false;
+
 	if (point == 1.0) // special case, needed to check for endpoint in 1.0
 	    return (i_intervals.back().contains_point)(point);
 
-	if (point < 0.0 or 1.0 <= point)
-	    throw std::out_of_range("checking point out of the [0,1) range.");
 
 	if (point < first_point()) return false;
 	if (point > last_point())  return false;
@@ -210,7 +202,6 @@ namespace core {
 	return interval_starting_before(point)->contains_point(point);
     }
 
-#endif
 
 
 
