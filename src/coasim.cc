@@ -202,6 +202,9 @@ int main(int argc, const char *argv[])
     }
 
 
+  // set rand seed
+  std::srand(time(0));
+
   try {
     std::ofstream out(options::xml_file);
     Configuration *conf = parse_rc(options::rc_file);
