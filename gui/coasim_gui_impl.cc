@@ -1,7 +1,6 @@
 #include "coasim_gui_impl.hh"
 #include "add_marker_impl.hh"
 #include "run_simulation_impl.hh"
-#include "sim_feedback_impl.hh"
 
 #include <coasim/configuration.hh>
 #include <coasim/all_markers.hh>
@@ -24,7 +23,8 @@
  *  name 'name' and widget flags set to 'f' 
  */
 CoasimGuiImpl::CoasimGuiImpl( QWidget* parent,  const char* name, WFlags fl )
-    : CoasimGuiForm( parent, name, fl )
+  : CoasimGuiForm( parent, name, fl ),
+    _monitor(this)
 {
 }
 
@@ -126,14 +126,11 @@ void CoasimGuiImpl::simulate()
 
   try {
 
-    SimFeedbackImpl monitor(this);
+    _monitor.show(); // FIXME reset mon
 
     std::ofstream xml_file(outfile);
     ARG *arg = Simulator::simulate(conf);
     xml_file << *arg << std::endl;
-
-    // wait for monitor to be closed
-    monitor.exec();
 
   } catch (std::exception &ex) {
     QMessageBox::critical(this, "Unexpected Error",
