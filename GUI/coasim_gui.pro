@@ -11,9 +11,13 @@ HEADERS	+= ../../QtWidgets/baps_float_spin_box.hh
 
 SOURCES	+= ../../QtWidgets/baps_float_spin_box.cc
 
-FORMS	= maindialog.ui \
-	simulationdialog.ui \
-	simresultsdialog.ui
+FORMS	= simulationdialog.ui \
+	simresultsdialog.ui \
+	mainwindow.ui \
+	simulationparametersdialog.ui
+
+IMAGES	= images/coasim-icon.png \
+	images/CoaSim-splash.png
 
 HEADERS	+= simulation_monitor.hh 
 

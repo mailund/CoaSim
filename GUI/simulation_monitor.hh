@@ -2,13 +2,15 @@
 #define SIMULATION_MONITOR_HH_INCLUDED
 
 #include <Core/monitor.hh>
+#include <qobject.h>
 
 class SimulationDialog;
 namespace core {
     class Configuration;
 }
 
-class Monitor : public core::SimulationMonitor {
+class Monitor : public core::SimulationMonitor, 
+		public QObject /* to get tr() */ {
     bool i_aborting;
 
     int i_no_leaves;

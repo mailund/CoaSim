@@ -131,7 +131,7 @@ void Monitor::builder_termination(unsigned int no_nodes,
   
 void Monitor::start_mutating()
 {
-    i_feedback->simLog->append("Mutating ARG\n");
+    i_feedback->simLog->append(tr("Mutating ARG\n"));
     process_pending_events();
 }
 
@@ -148,7 +148,7 @@ void Monitor::retry_mutation()
 {
     i_feedback->simLog->setColor("gray");
     i_feedback->simLog->setItalic(true);
-    i_feedback->simLog->append("Mutation outside frequency bounds, retrying\n");
+    i_feedback->simLog->append(tr("Mutation outside frequency bounds, retrying\n"));
     i_feedback->simLog->setItalic(false);
     i_feedback->simLog->setColor("black");
 
@@ -159,7 +159,7 @@ void Monitor::retry_arg_building()
 {
     i_feedback->simLog->setColor("red");
     i_feedback->simLog->setItalic(true);
-    i_feedback->simLog->append("Trait mutation outside bounds, rebilding arg...\n");
+    i_feedback->simLog->append(tr("Trait mutation outside bounds, rebilding arg...\n"));
     i_feedback->simLog->setItalic(false);
     i_feedback->simLog->setColor("black");
 
@@ -169,7 +169,7 @@ void Monitor::retry_arg_building()
 void Monitor::simulation_terminated()
 {
     i_feedback->simLog->setBold(true);
-    i_feedback->simLog->append("Simulation completed.\n");
+    i_feedback->simLog->append(tr("Simulation completed.\n"));
     i_feedback->simLog->setBold(false);
 
     // no need to show last marker...

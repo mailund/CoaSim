@@ -1,22 +1,22 @@
 <!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>MainDialog</class>
-<widget class="QDialog">
+<class>MainWindow</class>
+<widget class="QMainWindow">
     <property name="name">
-        <cstring>MainDialog</cstring>
+        <cstring>MainWindow</cstring>
     </property>
     <property name="geometry">
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>503</width>
-            <height>794</height>
+            <width>508</width>
+            <height>529</height>
         </rect>
     </property>
     <property name="caption">
         <string>CoaSim -- An Ancestral Recombination Graph Simulator</string>
     </property>
     <property name="icon">
-        <pixmap>image0</pixmap>
+        <pixmap>coasim-icon.png</pixmap>
     </property>
     <property name="iconText">
         <string>CoaSim</string>
@@ -34,7 +34,7 @@
             </property>
             <vbox>
                 <property name="name">
-                    <cstring>unnamed</cstring>
+                    <cstring>unnamed_2</cstring>
                 </property>
                 <widget class="QTabWidget">
                     <property name="name">
@@ -49,7 +49,7 @@
                         </attribute>
                         <vbox>
                             <property name="name">
-                                <cstring>unnamed</cstring>
+                                <cstring>unnamed_2</cstring>
                             </property>
                             <widget class="QTable">
                                 <column>
@@ -94,7 +94,7 @@
                                 </property>
                                 <vbox>
                                     <property name="name">
-                                        <cstring>unnamed</cstring>
+                                        <cstring>unnamed_2</cstring>
                                     </property>
                                     <widget class="QLayoutWidget">
                                         <property name="name">
@@ -102,7 +102,7 @@
                                         </property>
                                         <grid>
                                             <property name="name">
-                                                <cstring>unnamed</cstring>
+                                                <cstring>unnamed_2</cstring>
                                             </property>
                                             <widget class="BApSFloatSpinBox" row="1" column="1">
                                                 <property name="name">
@@ -110,6 +110,12 @@
                                                 </property>
                                                 <property name="maxValue">
                                                     <number>100</number>
+                                                </property>
+                                                <property name="lineStep">
+                                                    <number>10</number>
+                                                </property>
+                                                <property name="value">
+                                                    <number>10</number>
                                                 </property>
                                             </widget>
                                             <widget class="QLabel" row="2" column="0">
@@ -141,8 +147,11 @@
                                                 <property name="maxValue">
                                                     <number>100</number>
                                                 </property>
+                                                <property name="lineStep">
+                                                    <number>10</number>
+                                                </property>
                                                 <property name="value">
-                                                    <number>100</number>
+                                                    <number>20</number>
                                                 </property>
                                             </widget>
                                             <widget class="QLabel" row="0" column="0">
@@ -177,7 +186,7 @@
                                         </property>
                                         <hbox>
                                             <property name="name">
-                                                <cstring>unnamed</cstring>
+                                                <cstring>unnamed_2</cstring>
                                             </property>
                                             <spacer>
                                                 <property name="name">
@@ -218,11 +227,11 @@
                             <cstring>SNPPage</cstring>
                         </property>
                         <attribute name="title">
-                            <string>&amp;SNP Markers</string>
+                            <string>S&amp;NP Markers</string>
                         </attribute>
                         <vbox>
                             <property name="name">
-                                <cstring>unnamed</cstring>
+                                <cstring>unnamed_2</cstring>
                             </property>
                             <widget class="QTable">
                                 <column>
@@ -267,7 +276,7 @@
                                 </property>
                                 <vbox>
                                     <property name="name">
-                                        <cstring>unnamed</cstring>
+                                        <cstring>unnamed_2</cstring>
                                     </property>
                                     <widget class="QLayoutWidget">
                                         <property name="name">
@@ -275,7 +284,7 @@
                                         </property>
                                         <grid>
                                             <property name="name">
-                                                <cstring>unnamed</cstring>
+                                                <cstring>unnamed_2</cstring>
                                             </property>
                                             <widget class="BApSFloatSpinBox" row="1" column="1">
                                                 <property name="name">
@@ -283,6 +292,12 @@
                                                 </property>
                                                 <property name="maxValue">
                                                     <number>100</number>
+                                                </property>
+                                                <property name="lineStep">
+                                                    <number>10</number>
+                                                </property>
+                                                <property name="value">
+                                                    <number>10</number>
                                                 </property>
                                             </widget>
                                             <widget class="QLabel" row="2" column="0">
@@ -300,8 +315,11 @@
                                                 <property name="maxValue">
                                                     <number>100</number>
                                                 </property>
+                                                <property name="lineStep">
+                                                    <number>10</number>
+                                                </property>
                                                 <property name="value">
-                                                    <number>100</number>
+                                                    <number>90</number>
                                                 </property>
                                             </widget>
                                             <widget class="QLabel" row="1" column="0">
@@ -350,7 +368,7 @@
                                         </property>
                                         <hbox>
                                             <property name="name">
-                                                <cstring>unnamed</cstring>
+                                                <cstring>unnamed_2</cstring>
                                             </property>
                                             <spacer>
                                                 <property name="name">
@@ -371,7 +389,7 @@
                                             </spacer>
                                             <widget class="QPushButton">
                                                 <property name="name">
-                                                    <cstring>addSNPButton_2</cstring>
+                                                    <cstring>addSNPButton</cstring>
                                                 </property>
                                                 <property name="text">
                                                     <string>Add SNP Marker</string>
@@ -395,7 +413,7 @@
                         </attribute>
                         <vbox>
                             <property name="name">
-                                <cstring>unnamed</cstring>
+                                <cstring>unnamed_2</cstring>
                             </property>
                             <widget class="QTable">
                                 <column>
@@ -440,7 +458,7 @@
                                 </property>
                                 <vbox>
                                     <property name="name">
-                                        <cstring>unnamed</cstring>
+                                        <cstring>unnamed_2</cstring>
                                     </property>
                                     <widget class="QLayoutWidget">
                                         <property name="name">
@@ -448,7 +466,7 @@
                                         </property>
                                         <grid>
                                             <property name="name">
-                                                <cstring>unnamed</cstring>
+                                                <cstring>unnamed_2</cstring>
                                             </property>
                                             <widget class="QLabel" row="0" column="0">
                                                 <property name="name">
@@ -529,7 +547,7 @@
                                         </property>
                                         <hbox>
                                             <property name="name">
-                                                <cstring>unnamed</cstring>
+                                                <cstring>unnamed_2</cstring>
                                             </property>
                                             <spacer>
                                                 <property name="name">
@@ -550,7 +568,7 @@
                                             </spacer>
                                             <widget class="QPushButton">
                                                 <property name="name">
-                                                    <cstring>addMSButton_2</cstring>
+                                                    <cstring>addMSButton</cstring>
                                                 </property>
                                                 <property name="text">
                                                     <string>Add MS Marker</string>
@@ -575,7 +593,7 @@
                     </property>
                     <vbox>
                         <property name="name">
-                            <cstring>unnamed</cstring>
+                            <cstring>unnamed_2</cstring>
                         </property>
                         <widget class="QSlider">
                             <property name="name">
@@ -600,7 +618,7 @@
                             </property>
                             <hbox>
                                 <property name="name">
-                                    <cstring>unnamed</cstring>
+                                    <cstring>unnamed_2</cstring>
                                 </property>
                                 <widget class="QLabel">
                                     <property name="name">
@@ -658,350 +676,184 @@
                 </widget>
             </vbox>
         </widget>
-        <widget class="QGroupBox">
-            <property name="name">
-                <cstring>groupBox6</cstring>
-            </property>
-            <property name="title">
-                <string>ARG Simulation Parameters</string>
-            </property>
-            <vbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout12</cstring>
-                    </property>
-                    <grid>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QSpinBox" row="0" column="1">
-                            <property name="name">
-                                <cstring>noChromosomes</cstring>
-                            </property>
-                            <property name="maxValue">
-                                <number>10000</number>
-                            </property>
-                            <property name="minValue">
-                                <number>2</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>10</number>
-                            </property>
-                            <property name="value">
-                                <number>500</number>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="0" column="0">
-                            <property name="name">
-                                <cstring>textLabel1_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Number of chromosomes:</string>
-                            </property>
-                        </widget>
-                        <widget class="BApSFloatSpinBox" row="1" column="1">
-                            <property name="name">
-                                <cstring>rho</cstring>
-                            </property>
-                            <property name="maxValue">
-                                <number>100000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                            <property name="value">
-                                <number>20000</number>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="1" column="0">
-                            <property name="name">
-                                <cstring>textLabel2_3</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>7</hsizetype>
-                                    <vsizetype>5</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="text">
-                                <string>Recombination rate (&lt;i&gt;rho&lt;/i&gt;):</string>
-                            </property>
-                        </widget>
-                    </grid>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout13</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer5</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>40</width>
-                                    <height>20</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>moreButton</cstring>
-                            </property>
-                            <property name="text">
-                                <string>&amp;More</string>
-                            </property>
-                            <property name="accel">
-                                <string>Alt+M</string>
-                            </property>
-                            <property name="toggleButton">
-                                <bool>true</bool>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>extraSimParameters</cstring>
-                    </property>
-                    <property name="frameShape">
-                        <enum>StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                    <grid>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="BApSFloatSpinBox" row="1" column="1">
-                            <property name="name">
-                                <cstring>Q</cstring>
-                            </property>
-                            <property name="maxValue">
-                                <number>100000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                        </widget>
-                        <widget class="BApSFloatSpinBox" row="2" column="1">
-                            <property name="name">
-                                <cstring>beta</cstring>
-                            </property>
-                            <property name="maxValue">
-                                <number>100000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="2" column="0">
-                            <property name="name">
-                                <cstring>textLabel1_3_3</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Population growth (&lt;i&gt;beta&lt;/i&gt;):</string>
-                            </property>
-                        </widget>
-                        <widget class="BApSFloatSpinBox" row="0" column="1">
-                            <property name="name">
-                                <cstring>G</cstring>
-                            </property>
-                            <property name="maxValue">
-                                <number>100000</number>
-                            </property>
-                            <property name="lineStep">
-                                <number>100</number>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="1" column="0">
-                            <property name="name">
-                                <cstring>textLabel1_3_2</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>7</hsizetype>
-                                    <vsizetype>5</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="text">
-                                <string>Gene conversion mean tract length (&lt;i&gt;Q&lt;/i&gt;):</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="0" column="0">
-                            <property name="name">
-                                <cstring>textLabel1_3</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Gene conversion rate (&lt;i&gt;G&lt;/i&gt;):</string>
-                            </property>
-                        </widget>
-                    </grid>
-                </widget>
-            </vbox>
-        </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout20</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer4</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Horizontal</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>240</width>
-                            <height>20</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>pushButton13</cstring>
-                    </property>
-                    <property name="text">
-                        <string>&amp;Close</string>
-                    </property>
-                    <property name="accel">
-                        <string>Alt+C</string>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>simulateButton</cstring>
-                    </property>
-                    <property name="text">
-                        <string>&amp;Run...</string>
-                    </property>
-                    <property name="accel">
-                        <string>Alt+R</string>
-                    </property>
-                </widget>
-            </hbox>
-        </widget>
     </vbox>
 </widget>
-<images>
-    <image name="image0">
-        <data format="PNG" length="1979">89504e470d0a1a0a0000000d4948445200000040000000400806000000aa6971de0000078249444154789ced9a7b6c95e51dc73fef8d737a7ae8a1947129b4ce48c61c8e2163630ce3988b8c98a5443324caa030597621085ae70c524a15860a4e541444064be6b86c9225d300e980742110d482e065eba46bb9b594de5b5acfe5bdfcf6c79b16b9f5c2790fa5723e27e78ff7cdf37c7fdfe77d9ffbf3429224499224b979517adb4057141414e401ab3b4bb369d3239c3e9dd54d45e5a232abd76aacaf120a85b60483c195edd737dd03f0f97c1886d171adf7a297ee72a0a9a9e995dadada6f5a9635e84a091ce7ef0402e91dd722861a0edf3f0aa05fbfb74b1d2722baaea3aa97bf6f05406057779c144d99c2c18913bb4af69fc2c2c2c7bba3d75d745dcf505575aca66943ba4aeb38c37db158d10291c1b768dabc2d8eb33d2422d586611cd5751dc7711091ea582cb60f2ed480a95e996d6e6e1e1d0c062b4dd33c148d460f78a16959563db0b7eb943218f82738e9f0eb05b6bd6d1c7014d8649a6693699a97e5f0bc0f701c272510088c320c63a8d7da9d2343817d6047e1fe02d830093805ac079aae96abbd061c685494508daa0e511405c371b45b1d67a00d7242d31a6c457100aa22111a1b1b3bb5d1d2d2d2ec4d817a828c01f680550e635f824f2701ef03db814867393bc6c44020304e51949fb6b793273ffffc8e3cdb9efa6fa8cb0d04f69e318cd3ddb563db76ab699a07a3d168f13596a807c858a008c24760f4db50311ef8176ee19d7894955761720d9c6d84d6c7e1296eb85143a68184a1753bf87381d7806978d9b4e743e6a7501c036b1bbcdb1f323c138f0b7900240ae73642bf85c05ae09e4445ebb7179e0f43f41094e6c0dd890ad43d24cf2dfc8915c0a3c02bc0f7131d55f933e4d4416d15342e7403f7429390256ee18f3d032c06fe008cbe6ee1f3e0d632288982b501fe128201d727b2e820ebdd36bff337403eb012b8fdfac4bf18ff7e5867817d003e190bdf4a6c38d141b681b4c0b645c0ef81678061898ddb39ca5678b8011a4f40dd7c98474296d73200643748352c791858051400d779a275159e83dbcbe1a33688ae810d40d03b751908f23ed855307f2ef02290e76d0c0f980a6987e02d13ec22786f227c3d7e5519097218ac6330e941e055e03120357eedc4a06f875fb4425b39544f8707b9e62621a340ce807914c6cf02d60073b8e1266257e065f8f61938de0ce155eef8ecef99824c00390be177206316b00e984d820aef79a72530dd86d51a6403d443431a9c37c0ba346d3a8d345d3e8a8e007c70be1ec23aec7e1d729f76a5bd27114f35adbdf000193010f7df43fa67407f7cbeda0986115cdcd6d6b65944aa3cf409f4813d41c3b0837ebf3f435114a3ebd43d271135e0780bfcb542d3b21b346d88a2288808768a689539661602c3761a67d466c7b26fdb95cac4d860ad7850b57636105694cb5ba4ae1f3f9f008f1d24e45c40d3b40186617c47d7f5d18aa2604db60645d6477e266992ae3fa5ef92f562d9b6dda20fd14f5a47ac4769017d9cbedbaff94b1545b968df4a44701ca7361c0eef1691fa44f84d2cc23484064cf6f313e6e18e0cbf03dc0dce724611a5851d94000ff4a2538f1152105e40b0a9e6755258803ba4cde4d2a1f124b3b1b078927780f1bde0d663841108ef21d4b18305c0b3c0cbc084abe639c31a2244f8216fe00e857d142107a1069343e43017770afb3490d9453e83260e51493569e40381ebe0d64304b5a3cad7f22629ccc7dd929e0df8baa5f15f8613a686623e016625d0adc7b8557e3f4223eff218b09c0bdb543d1b692ab80f0b8be7d803fcc07bb35e23dc8350834509337804b7e04bf9c26cb0c754b0181393e9bc05dce691538f71abfc72048b063613e457c01bc05c20254e6d850676534f1dd9ac04421e38f6106118c25e8406f6f2045088fbe6efc6abc9d5870ca095931c36ca8cec3b7f3b34afe406e914851f219cc5e2236630870b55feab5e874adbb92c3773739964af11c95a156ece2cac7c08d0bc8c71612d205dbe3905771b7a098d6c650c2554f23d544a18c216aa08d3fef6156f96ae033e2b98d911dcf0a729ba6f233012d804547a11c35d0d0acb71cfd13afbdbb8131a1fe9cce1346b71f825366f5245db45695b1986374de1e283562b6ae3d6b41f7ba00d2468391cbc2bb836353535df03a985765bdd4127dcd42666d8b2edea287e4de10a9b2bf1e1f6e69efd067e77e08ef4f4f4a51eb90b02537c2327ff71c40badd18c9fffe943608647da1d7dc01ef53335a41fd3c7e8613dee931eb549356dec7865da69058aa265c5454e5bfdfed431b99ba2391fcc69fdc76b65c0e178c53bdaa9aeeb5f5155f54e4dd3aef821524f701cc71191ca582cb63f5ead4b19feecb9756a4a28f7dcc6bbb6c64a4b9601ddfe6ee14b41e6d20aff88e75b8e64aea8a8565307e5d3e35de72f0199f9e5b764ad8ed40f9ebfef6314754e6ffbe91532f3ff776fd64bb69df6d0b2627afd7b855e22b3b0b230ebc558cc3f6eea56e06bd7a271c37f2c9dbd469ee0ea8b2b551c3bcf89345b91d2a2a329dfb8efa0ea4f8b7622577a6a91f2b72fdee80b0fa00148ef326137b0eaca3ea85f75c70acbb23eb66dbb1cfac0c18897689186a1a15068aacfe71bd97eefa67a0057e2863f6e3eb548199a9a9a7aafa66933753d7ebbb66d63591e2f2592244992244992247d92ff035395e481af1319070000000049454e44ae426082</data>
-    </image>
-</images>
+<menubar>
+    <property name="name">
+        <cstring>MenuBar</cstring>
+    </property>
+    <item text="&amp;File" name="fileMenu">
+        <action name="fileExitAction"/>
+    </item>
+    <item text="&amp;Simulation" name="Simulation">
+        <action name="simParametersAction"/>
+        <action name="simSimulateAction"/>
+    </item>
+    <item text="&amp;Help" name="helpMenu">
+        <separator/>
+        <action name="helpAboutAction"/>
+    </item>
+    <separator/>
+</menubar>
+<toolbars>
+</toolbars>
+<actions>
+    <action>
+        <property name="name">
+            <cstring>fileExitAction</cstring>
+        </property>
+        <property name="iconSet">
+            <iconset></iconset>
+        </property>
+        <property name="text">
+            <string>Exit</string>
+        </property>
+        <property name="menuText">
+            <string>E&amp;xit</string>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>helpAboutAction</cstring>
+        </property>
+        <property name="text">
+            <string>About</string>
+        </property>
+        <property name="menuText">
+            <string>&amp;About</string>
+        </property>
+        <property name="toolTip">
+            <string>About CoaSim</string>
+        </property>
+        <property name="accel">
+            <string></string>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>simSimulateAction</cstring>
+        </property>
+        <property name="text">
+            <string>&amp;Simulate...</string>
+        </property>
+        <property name="menuText">
+            <string>&amp;Simulate...</string>
+        </property>
+        <property name="toolTip">
+            <string>Run simulation</string>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>simParametersAction</cstring>
+        </property>
+        <property name="text">
+            <string>&amp;Parameters...</string>
+        </property>
+        <property name="menuText">
+            <string>&amp;Parameters...</string>
+        </property>
+        <property name="toolTip">
+            <string>Set simulation parameters</string>
+        </property>
+    </action>
+</actions>
 <connections>
     <connection>
-        <sender>nextPosSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>MainDialog</receiver>
-        <slot>nextPosChanged(int)</slot>
+        <sender>fileExitAction</sender>
+        <signal>activated()</signal>
+        <receiver>MainWindow</receiver>
+        <slot>fileExit()</slot>
+    </connection>
+    <connection>
+        <sender>helpAboutAction</sender>
+        <signal>activated()</signal>
+        <receiver>MainWindow</receiver>
+        <slot>helpAbout()</slot>
     </connection>
     <connection>
         <sender>addTraitButton</sender>
         <signal>clicked()</signal>
-        <receiver>MainDialog</receiver>
+        <receiver>MainWindow</receiver>
         <slot>addTraitMarker()</slot>
     </connection>
     <connection>
-        <sender>addSNPButton_2</sender>
+        <sender>addSNPButton</sender>
         <signal>clicked()</signal>
-        <receiver>MainDialog</receiver>
+        <receiver>MainWindow</receiver>
         <slot>addSNPMarker()</slot>
     </connection>
     <connection>
-        <sender>addMSButton_2</sender>
+        <sender>addMSButton</sender>
         <signal>clicked()</signal>
-        <receiver>MainDialog</receiver>
+        <receiver>MainWindow</receiver>
         <slot>addMSMarker()</slot>
     </connection>
     <connection>
-        <sender>simulateButton</sender>
-        <signal>clicked()</signal>
-        <receiver>MainDialog</receiver>
+        <sender>nextPosSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>MainWindow</receiver>
+        <slot>nextPosChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>nextPosSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>MSPosition</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>nextPosSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>SNPPosition</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>nextPosSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>traitPosition</receiver>
+        <slot>setValue(int)</slot>
+    </connection>
+    <connection>
+        <sender>simSimulateAction</sender>
+        <signal>activated()</signal>
+        <receiver>MainWindow</receiver>
         <slot>runSimulation()</slot>
     </connection>
     <connection>
-        <sender>pushButton13</sender>
-        <signal>clicked()</signal>
-        <receiver>MainDialog</receiver>
-        <slot>accept()</slot>
-    </connection>
-    <connection>
-        <sender>moreButton</sender>
-        <signal>toggled(bool)</signal>
-        <receiver>extraSimParameters</receiver>
-        <slot>setShown(bool)</slot>
+        <sender>simParametersAction</sender>
+        <signal>activated()</signal>
+        <receiver>MainWindow</receiver>
+        <slot>editSimulationParameters()</slot>
     </connection>
 </connections>
-<tabstops>
-    <tabstop>tabWidget2</tabstop>
-    <tabstop>traitMarkerTable</tabstop>
-    <tabstop>traitPosition</tabstop>
-    <tabstop>traitLowFreq</tabstop>
-    <tabstop>traitHighFreq</tabstop>
-    <tabstop>addTraitButton</tabstop>
-    <tabstop>SNPMarkerTable</tabstop>
-    <tabstop>SNPPosition</tabstop>
-    <tabstop>SNPLowFreq</tabstop>
-    <tabstop>SNPHighFreq</tabstop>
-    <tabstop>addSNPButton_2</tabstop>
-    <tabstop>MSMarkerTable</tabstop>
-    <tabstop>MSPosition</tabstop>
-    <tabstop>MSAlphabetSize</tabstop>
-    <tabstop>MStheta</tabstop>
-    <tabstop>addMSButton_2</tabstop>
-    <tabstop>nextPosSlider</tabstop>
-    <tabstop>nextPos</tabstop>
-    <tabstop>nextPositionStepSize</tabstop>
-</tabstops>
 <includes>
-    <include location="global" impldecl="in implementation">qmessagebox.h</include>
-    <include location="local" impldecl="in implementation">simulationdialog.h</include>
-    <include location="local" impldecl="in implementation">maindialog.ui.h</include>
+    <include location="local" impldecl="in implementation">mainwindow.ui.h</include>
 </includes>
+<variables>
+    <variable access="public">int noLeaves;</variable>
+    <variable access="public">double rho;</variable>
+    <variable access="public">double G;</variable>
+    <variable access="public">double Q;</variable>
+    <variable access="public">double beta;</variable>
+</variables>
 <slots>
-    <slot specifier="non virtual">nextPosChanged( int pos )</slot>
-    <slot>addTraitMarker()</slot>
+    <slot>fileExit()</slot>
+    <slot>helpAbout()</slot>
+    <slot specifier="non virtual">addTraitMarker()</slot>
     <slot specifier="non virtual">addSNPMarker()</slot>
     <slot specifier="non virtual">addMSMarker()</slot>
-    <slot access="private" specifier="non virtual">runSimulation()</slot>
+    <slot specifier="non virtual">nextPosChanged( int pos )</slot>
+    <slot specifier="non virtual">runSimulation()</slot>
+    <slot specifier="non virtual">editSimulationParameters()</slot>
 </slots>
 <functions>
     <function access="private" specifier="non virtual">init()</function>
     <function access="private" specifier="non virtual" returnType="int">updateNextPosition( int pos )</function>
     <function access="private" specifier="non virtual" returnType="bool">checkMarkerPosition( int pos )</function>
 </functions>
+<pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
-    <includehint>baps_float_spin_box.hh</includehint>
-    <includehint>baps_float_spin_box.hh</includehint>
-    <includehint>baps_float_spin_box.hh</includehint>
-    <includehint>baps_float_spin_box.hh</includehint>
     <includehint>baps_float_spin_box.hh</includehint>
     <includehint>baps_float_spin_box.hh</includehint>
     <includehint>baps_float_spin_box.hh</includehint>

@@ -14,7 +14,7 @@
 #include <Core/all_markers.hh>
 #include <Core/configuration.hh>
 
-#include "maindialog.h"
+#include "mainwindow.h"
 #include "simulation_monitor.hh"
 
 #include <baps_float_spin_box.hh>
@@ -37,13 +37,13 @@ void SimulationDialog::init()
 {
     aborting = false;
 
-    MainDialog *main = dynamic_cast<MainDialog*>(parentWidget());
+    MainWindow *main = dynamic_cast<MainWindow*>(parentWidget());
 
-    int no_leaves = main->noChromosomes->text().toInt();
-    double rho    = main->rho->text().toDouble();
-    double Q      = 0; 		// FIXME
-    double G      = 0; 		// FIXME
-    double growth = 0; 		// FIXME
+    int no_leaves = main->noLeaves;
+    double rho    = main->rho;
+    double Q      = main->Q;
+    double G      = main->G;
+    double beta   = main->beta;
 
     std::vector<core::Marker*> markers;
 
@@ -80,7 +80,7 @@ void SimulationDialog::init()
 			     new core::Configuration(no_leaves,
 						     markers.begin(), 
 						     markers.end(),
-						     rho, Q, G, growth));
+						     rho, Q, G, beta));
 
     std::vector<core::Marker*>::iterator m_itr;
     for (m_itr = markers.begin(); m_itr != markers.end(); ++m_itr)
