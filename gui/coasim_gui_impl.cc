@@ -1,20 +1,59 @@
+
 #include "coasim_gui_impl.hh"
-#include "add_marker_impl.hh"
-#include "run_simulation_impl.hh"
 
-#include <coasim/configuration.hh>
-#include <coasim/all_markers.hh>
-#include <coasim/node.hh>
-#include <coasim/simulator.hh>
+#ifndef ADD_MARKER_IMPL_HH_INCLUDED
+# include "add_marker_impl.hh"
+#endif
+#ifndef RUN_SIMULATION_IMPL_HH_INCLUDED
+# include "run_simulation_impl.hh"
+#endif
 
-#include <qspinbox.h>
-#include <qtable.h>
-#include <qmessagebox.h>
+#ifndef CONFIGURATION_HH_INCLUDED
+# include <coasim/configuration.hh>
+#endif
+#ifndef NODE_HH_INCLUDED
+# include <coasim/node.hh>
+#endif
+#ifndef SIMULATOR_HH_INCLUDED
+# include <coasim/simulator.hh>
+#endif
+#ifndef ALL_MARKERS_HH_INCLUDED
+# include <coasim/all_markers.hh>
+#endif
 
-#include "baps_float_spin_box.hh"
+#ifndef QTABLE_H_INCLUDED
+# include <qtable.h>
+# define QTABLE_H_INCLUDED
+#endif
+#ifndef QSPINBOX_H_INCLUDED
+# include <qspinbox.h>
+# define QSPINBOX_H_INCLUDED
+#endif
+#ifndef QMESSAGEBOX_H_INCLUDED
+# include <qmessagebox.h>
+# define QMESSAGEBOX_H_INCLUDED
+#endif
+#ifndef QAPPLICATION_H_INCLUDED
+# include <qapplication.h>
+# define QAPPLICATION_H_INCLUDED
+#endif
 
-#include <vector>
-#include <fstream>
+#ifndef BAPS_FLOAT_SPIN_BOX_HH_INCLUDED
+# include "baps_float_spin_box.hh"
+#endif
+
+#ifndef FSTREAM_INCLUDED
+# include <fstream>
+# define FSTREAM_INCLUDED
+#endif
+#ifndef VECTOR_INCLUDED
+# include <vector>
+# define VECTOR_INCLUDED
+#endif
+
+// global var defined in coasim.cc -- needed to process events while
+// simulating
+extern QApplication *coasim_main_app;
 
 
 
@@ -24,7 +63,7 @@
  */
 CoasimGuiImpl::CoasimGuiImpl( QWidget* parent,  const char* name, WFlags fl )
   : CoasimGuiForm( parent, name, fl ),
-    _monitor(this)
+    _monitor(*this)
 {
 }
 
@@ -104,7 +143,8 @@ void CoasimGuiImpl::simulate()
 		     geneconv_rate, geneconv_length,
 		     growth,
 		     mrate,
-		     !leaves_only);
+		     !leaves_only,
+		     &_monitor);
 
   for (int i = 0; i < _marker_table->numRows(); ++i)
     {
@@ -127,11 +167,20 @@ void CoasimGuiImpl::simulate()
 
   try {
 
-    _monitor.show(); // FIXME reset mon
+    _monitor.show(); _monitor.reset();
+    while (coasim_main_app->hasPendingEvents())
+      coasim_main_app->processEvents();
 
     std::ofstream xml_file(outfile);
     ARG *arg = Simulator::simulate(conf);
-    xml_file << *arg << std::endl;
+    if (!arg)
+      {
+	// simulation aborted
+      }
+    else
+      {
+	xml_file << *arg << std::endl;
+      }
 
   } catch (std::exception &ex) {
     QMessageBox::critical(this, "Unexpected Error",

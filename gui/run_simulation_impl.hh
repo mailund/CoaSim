@@ -1,6 +1,10 @@
-#ifndef RUN_SIMULATION_IMPL_H
-#define RUN_SIMULATION_IMPL_H
-#include "runsimulationform.h"
+#ifndef RUN_SIMULATION_IMPL_HH_INCLUDED
+#define RUN_SIMULATION_IMPL_HH_INCLUDED
+
+#ifndef RUNSIMULATIONFORM_H_INCLUDED
+# include "runsimulationform.h"
+# define RUNSIMULATIONFORM_H_INCLUDED
+#endif
 
 class QTable;
 class Configuration;

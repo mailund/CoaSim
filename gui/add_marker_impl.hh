@@ -1,6 +1,10 @@
-#ifndef ADD_MARKER_IMPL_H
-#define ADD_MARKER_IMPL_H
-#include "addmarkerform.h"
+#ifndef ADD_MARKER_IMPL_HH_INCLUDED
+#define ADD_MARKER_IMPL_HH_INCLUDED
+
+#ifndef ADDMARKERFORM_H_INCLUDED
+# include "addmarkerform.h"
+# define ADDMARKERFORM_H_INCLUDED
+#endif
 
 class QTable;
 

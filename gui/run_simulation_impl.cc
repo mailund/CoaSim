@@ -1,14 +1,31 @@
 
 #include "run_simulation_impl.hh"
 
-#include <qtable.h>
-#include <qcheckbox.h>
-#include <qlineedit.h>
-#include <qfiledialog.h>
-#include <qmessagebox.h>
+#ifndef QTABLE_H_INCLUDED
+# include <qtable.h>
+# define QTABLE_H_INCLUDED
+#endif
+#ifndef QCHECKBOX_H_INCLUDED
+# include <qcheckbox.h>
+# define QCHECKBOX_H_INCLUDED
+#endif
+#ifndef QLINEEDIT_H_INCLUDED
+# include <qlineedit.h>
+# define QLINEEDIT_H_INCLUDED
+#endif
+#ifndef QFILEDIALOG_H_INCLUDED
+# include <qfiledialog.h>
+# define QFILEDIALOG_H_INCLUDED
+#endif
+#ifndef QMESSAGEBOX_H_INCLUDED
+# include <qmessagebox.h>
+# define QMESSAGEBOX_H_INCLUDED
+#endif
 
-#include <fstream>
-#include <vector>
+#ifndef FSTREAM_INCLUDED
+# include <fstream>
+# define FSTREAM_INCLUDED
+#endif
 
 RunSimulationImpl::RunSimulationImpl(QString &output_file, bool &leaves_only,
 				     QWidget* parent,  const char* name, 

@@ -1,12 +1,28 @@
 #include "add_marker_impl.hh"
 
-#include <qtable.h>
-#include <qlineedit.h>
-#include <qspinbox.h>
-#include <qmessagebox.h>
-#include <qslider.h>
-
-#include "baps_float_spin_box.hh"
+#ifndef QTABLE_H_INCLUDED
+# include <qtable.h>
+# define QTABLE_H_INCLUDED
+#endif
+#ifndef QLINEEDIT_H_INCLUDED
+# include <qlineedit.h>
+# define QLINEEDIT_H_INCLUDED
+#endif
+#ifndef QSPINBOX_H_INCLUDED
+# include <qspinbox.h>
+# define QSPINBOX_H_INCLUDED
+#endif
+#ifndef QMESSAGEBOX_H_INCLUDED
+# include <qmessagebox.h>
+# define QMESSAGEBOX_H_INCLUDED
+#endif
+#ifndef QSLIDER_H_INCLUDED
+# include <qslider.h>
+# define QSLIDER_H_INCLUDED
+#endif
+#ifndef BAPS_FLOAT_SPIN_BOX_HH_INCLUDED
+# include "baps_float_spin_box.hh"
+#endif
 
 
 // FIXME: it is hardwired througout this module, that the positions
