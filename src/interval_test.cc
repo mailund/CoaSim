@@ -127,21 +127,9 @@ static void test_Intervals()	// sorted, non-overlapping intervals
   CHECK(intervals.size() == no_intervals);
 
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(intervals[i].is_start(starts[i]));
+    CHECK(intervals[i].start() == starts[i]);
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(intervals[i].is_end(ends[i]));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(intervals.is_start(starts[i]));
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(intervals.is_end(ends[i]));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(intervals.is_start(interval_array[i].start()));
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(intervals.is_end(interval_array[i].end()));
-
-  CHECK(!intervals.is_end(1.0));
+    CHECK(intervals[i].end() == ends[i]);
 
   for (int i = 0; i < no_intervals; ++i)
     CHECK(intervals.contains_point(starts[i]+(ends[i]-starts[i])/2));
@@ -214,10 +202,6 @@ static void test_Intervals()	// sorted, non-overlapping intervals
   CHECK(cp.size() == 2);
   CHECK(cp.first_point() == 0.05);
   CHECK(cp.last_point()  == 0.15);
-  CHECK(cp.is_start(0.05));
-  CHECK(cp.is_end  (0.10));
-  CHECK(cp.is_start(0.10));
-  CHECK(cp.is_end  (0.15));
 
   cp = intervals.copy(0.22,0.24);
   CHECK(cp.size() == 0);
@@ -237,23 +221,11 @@ static void test_Intervals()	// sorted, non-overlapping intervals
   CHECK(cp.size() == 3);
   CHECK(cp.first_point() == 0.25);
   CHECK(cp.last_point()  == 0.45);
-  CHECK(cp.is_start(0.25));
-  CHECK(cp.is_end  (0.30));
-  CHECK(cp.is_start(0.30));
-  CHECK(cp.is_end  (0.40));
-  CHECK(cp.is_start(0.40));
-  CHECK(cp.is_end  (0.45));
 
   cp = intervals.copy(0.25,0.50);
   CHECK(cp.size() == 3);
   CHECK(cp.first_point() == 0.25);
   CHECK(cp.last_point()  == 0.50);
-  CHECK(cp.is_start(0.25));
-  CHECK(cp.is_end  (0.30));
-  CHECK(cp.is_start(0.30));
-  CHECK(cp.is_end  (0.40));
-  CHECK(cp.is_start(0.40));
-  CHECK(cp.is_end  (0.50));
 
 
   // try copying from before and after an interval
@@ -278,13 +250,9 @@ static void test_Intervals()	// sorted, non-overlapping intervals
 
   cp = intervals2.copy(0.00,0.65);
   CHECK(cp.size() == 1);
-  CHECK(cp.is_start(0.60));
-  CHECK(cp.is_end  (0.65));
 
   cp = intervals2.copy(0.85,0.95);
   CHECK(cp.size() == 1);
-  CHECK(cp.is_start(0.85));
-  CHECK(cp.is_end  (0.90));
 }
 
 static void test_Intervals2()	// reverse sorted intervals
@@ -404,25 +372,13 @@ static void test_Intervals_sum()
   Intervals empty;
   Intervals sum = intervals + empty;
   CHECK(sum.size() == intervals.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_start(interval_array[i].start()));
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_end(interval_array[i].end()));
+    CHECK(sum.contains_point(interval_array[i].start()));
 
   sum = empty + intervals;
   CHECK(sum.size() == intervals.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    {
-      CHECK(sum.is_start(starts[i]));
-      CHECK(sum.is_start(interval_array[i].start()));
-    }
-  for (int i = 0; i < no_intervals; ++i)
-    {
-      CHECK(sum.is_end(ends[i]));
-      CHECK(sum.is_end(interval_array[i].end()));
-    }
+    CHECK(sum.contains_point(interval_array[i].start()));
 
 
   // --- sum with a gap between the intervals ------------------------------
@@ -447,29 +403,18 @@ static void test_Intervals_sum()
 
   sum = intervals + intervals2;
   CHECK(sum.size() == intervals.size() + intervals2.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_start(interval_array[i].start()));
+    CHECK(sum.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals2; ++i)
-    CHECK(sum.is_start(interval_array2[i].start()));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals2; ++i)
-    CHECK(sum.is_end(interval_array2[i].end()));
+    CHECK(sum.contains_point(interval_array2[i].start()));
 
   sum = intervals2 + intervals;
   CHECK(sum.size() == intervals.size() + intervals2.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_start(interval_array[i].start()));
+    CHECK(sum.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals2; ++i)
-    CHECK(sum.is_start(interval_array2[i].start()));
+    CHECK(sum.contains_point(interval_array2[i].start()));
 
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals2; ++i)
-    CHECK(sum.is_end(interval_array2[i].end()));
 
   // --- sum with where intervals almost touch in the middle  --------------
   //   0.50 0.60 0.70 0.80
@@ -493,29 +438,17 @@ static void test_Intervals_sum()
 
   sum = intervals + intervals3;
   CHECK(sum.size() == intervals.size() + intervals3.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_start(interval_array[i].start()));
+    CHECK(sum.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals3; ++i)
-    CHECK(sum.is_start(interval_array3[i].start()));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals3; ++i)
-    CHECK(sum.is_end(interval_array3[i].end()));
+    CHECK(sum.contains_point(interval_array3[i].start()));
 
   sum = intervals3 + intervals;
   CHECK(sum.size() == intervals.size() + intervals3.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_start(interval_array[i].start()));
+    CHECK(sum.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals3; ++i)
-    CHECK(sum.is_start(interval_array3[i].start()));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(sum.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals3; ++i)
-    CHECK(sum.is_end(interval_array3[i].end()));
+    CHECK(sum.contains_point(interval_array3[i].start()));
 
   // --- sum with where intervals touch in the middle  ---------------------
   //    0.50 0.60 0.70 0.80
@@ -576,19 +509,13 @@ static void test_Intervals_merge()
   Intervals empty;
   Intervals merge = intervals | empty;
   CHECK(merge.size() == intervals.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
+    CHECK(merge.contains_point(interval_array[i].start()));
 
   merge = empty | intervals;
   CHECK(merge.size() == intervals.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
+    CHECK(merge.contains_point(interval_array[i].start()));
 
   
   // --- merge with a gap between the intervals ------------------------------
@@ -613,29 +540,17 @@ static void test_Intervals_merge()
 
   merge = intervals | intervals2;
   CHECK(merge.size() == intervals.size() + intervals2.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
+    CHECK(merge.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals2; ++i)
-    CHECK(merge.is_start(interval_array2[i].start()));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals2; ++i)
-    CHECK(merge.is_end(interval_array2[i].end()));
+    CHECK(merge.contains_point(interval_array2[i].start()));
 
   merge = intervals2 | intervals;
   CHECK(merge.size() == intervals.size() + intervals2.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
+    CHECK(merge.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals2; ++i)
-    CHECK(merge.is_start(interval_array2[i].start()));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals2; ++i)
-    CHECK(merge.is_end(interval_array2[i].end()));
+    CHECK(merge.contains_point(interval_array2[i].start()));
 
 
   // --- merge with where intervals almost touch in the middle  --------------
@@ -660,29 +575,18 @@ static void test_Intervals_merge()
 
   merge = intervals | intervals3;
   CHECK(merge.size() == intervals.size() + intervals3.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
+    CHECK(merge.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals3; ++i)
-    CHECK(merge.is_start(interval_array3[i].start()));
+    CHECK(merge.contains_point(interval_array3[i].start()));
 
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals3; ++i)
-    CHECK(merge.is_end(interval_array3[i].end()));
 
   merge = intervals3 | intervals;
   CHECK(merge.size() == intervals.size() + intervals3.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
+    CHECK(merge.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals3; ++i)
-    CHECK(merge.is_start(interval_array3[i].start()));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals3; ++i)
-    CHECK(merge.is_end(interval_array3[i].end()));
+    CHECK(merge.contains_point(interval_array3[i].start()));
 
   // --- merge with where intervals touch in the middle  ---------------------
   //   0.50 0.60 0.70 0.80
@@ -706,29 +610,17 @@ static void test_Intervals_merge()
 
   merge = intervals | intervals4;
   CHECK(merge.size() == intervals.size() + intervals4.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
+    CHECK(merge.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals4; ++i)
-    CHECK(merge.is_start(interval_array4[i].start()));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals4; ++i)
-    CHECK(merge.is_end(interval_array4[i].end()));
+    CHECK(merge.contains_point(interval_array4[i].start()));
 
   merge = intervals4 | intervals;
   CHECK(merge.size() == intervals.size() + intervals4.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
+    CHECK(merge.contains_point(interval_array[i].start()));
   for (int i = 0; i < no_intervals4; ++i)
-    CHECK(merge.is_start(interval_array4[i].start()));
-
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
-  for (int i = 0; i < no_intervals4; ++i)
-    CHECK(merge.is_end(interval_array4[i].end()));
+    CHECK(merge.contains_point(interval_array4[i].start()));
 
 
   // --- merging two intervals that are actually merged
@@ -770,19 +662,13 @@ static void test_Intervals_merge()
   // the merge should give us the same intervals as the first interval
   merge = intervals5 | intervals6;
   CHECK(merge.size() == intervals.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
+    CHECK(merge.contains_point(interval_array[i].start()));
 
   merge = intervals6 | intervals5;
   CHECK(merge.size() == intervals.size());
-
   for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_start(interval_array[i].start()));
-  for (int i = 0; i < no_intervals; ++i)
-    CHECK(merge.is_end(interval_array[i].end()));
+    CHECK(merge.contains_point(interval_array[i].start()));
 
 
   // -- overlaps in the merge -----------------------------------------
@@ -813,17 +699,11 @@ static void test_Intervals_merge()
   
 
   CHECK(merge.size() == 5);
-  CHECK(merge.is_start(0.10));
-  CHECK(merge.is_start(0.15));
-  CHECK(merge.is_start(0.20));
-  CHECK(merge.is_start(0.30));
-  CHECK(merge.is_start(0.32));
-
-  CHECK(merge.is_end(0.15));
-  CHECK(merge.is_end(0.20));
-  CHECK(merge.is_end(0.30));
-  CHECK(merge.is_end(0.32));
-  CHECK(merge.is_end(0.40));
+  CHECK(merge.contains_point(0.10));
+  CHECK(merge.contains_point(0.15));
+  CHECK(merge.contains_point(0.20));
+  CHECK(merge.contains_point(0.30));
+  CHECK(merge.contains_point(0.32));
 
   CHECK(merge[0].leaf_contacts() == 1);
   CHECK(merge[1].leaf_contacts() == 2);	// both cover from intervals 6 and 7
@@ -834,17 +714,11 @@ static void test_Intervals_merge()
   merge = intervals7 | intervals6;
 
   CHECK(merge.size() == 5);
-  CHECK(merge.is_start(0.10));
-  CHECK(merge.is_start(0.15));
-  CHECK(merge.is_start(0.20));
-  CHECK(merge.is_start(0.30));
-  CHECK(merge.is_start(0.32));
-
-  CHECK(merge.is_end(0.15));
-  CHECK(merge.is_end(0.20));
-  CHECK(merge.is_end(0.30));
-  CHECK(merge.is_end(0.32));
-  CHECK(merge.is_end(0.40));
+  CHECK(merge.contains_point(0.10));
+  CHECK(merge.contains_point(0.15));
+  CHECK(merge.contains_point(0.20));
+  CHECK(merge.contains_point(0.30));
+  CHECK(merge.contains_point(0.32));
 
   CHECK(merge[0].leaf_contacts() == 1);
   CHECK(merge[1].leaf_contacts() == 2);	// both cover from intervals 6 and 7
@@ -882,10 +756,8 @@ static void test_Intervals_merge()
 
   merge = intervals7 | intervals8;
   CHECK(merge.size() == 2);
-  CHECK(merge.is_start(0.15));
-  CHECK(merge.is_start(0.25));
-  CHECK(merge.is_end(0.25));
-  CHECK(merge.is_end(0.32));
+  CHECK(merge.contains_point(0.15));
+  CHECK(merge.contains_point(0.25));
 
   CHECK(merge[0].leaf_contacts() == 2);
   CHECK(merge[1].leaf_contacts() == 2);
@@ -922,14 +794,10 @@ static void test_Intervals_merge()
   merge = intervals9 | intervals10;
 
   CHECK(merge.size() == 5);
-  CHECK(merge.is_start(0.05));
-  CHECK(merge.is_end  (0.10));
-  CHECK(merge.is_start(0.10));
-  CHECK(merge.is_end  (0.20));
-  CHECK(merge.is_start(0.20));
-  CHECK(merge.is_end  (0.30));
-  CHECK(merge.is_start(0.40));
-  CHECK(merge.is_end  (0.45));
+  CHECK(merge.contains_point(0.05));
+  CHECK(merge.contains_point(0.10));
+  CHECK(merge.contains_point(0.20));
+  CHECK(merge.contains_point(0.40));
 
   CHECK(merge[0].leaf_contacts() == 2);
   CHECK(merge[1].leaf_contacts() == 3);
@@ -940,14 +808,10 @@ static void test_Intervals_merge()
   merge = intervals10 | intervals9;
 
   CHECK(merge.size() == 5);
-  CHECK(merge.is_start(0.05));
-  CHECK(merge.is_end  (0.10));
-  CHECK(merge.is_start(0.10));
-  CHECK(merge.is_end  (0.20));
-  CHECK(merge.is_start(0.20));
-  CHECK(merge.is_end  (0.30));
-  CHECK(merge.is_start(0.40));
-  CHECK(merge.is_end  (0.45));
+  CHECK(merge.contains_point(0.05));
+  CHECK(merge.contains_point(0.10));
+  CHECK(merge.contains_point(0.20));
+  CHECK(merge.contains_point(0.40));
 
   CHECK(merge[0].leaf_contacts() == 2);
   CHECK(merge[1].leaf_contacts() == 3);

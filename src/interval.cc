@@ -25,7 +25,7 @@ namespace {
   struct interval_start_less : 
     public binary_function<const Interval&,const Interval&,bool> {
     bool operator () (const Interval &i1, const Interval &i2) const
-    { return i1.start() < i2.start(); }
+    { return i1.start() <= i2.start(); }
   };
   struct interval_less : 
     public binary_function<const Interval&,const Interval&,bool> {
@@ -119,6 +119,8 @@ bool Intervals::check_predicate(double point,
   return res != stop;
 }
 
+// FIXME: can this be handled without the two searches
+// (starting_before and starting_after)?
 bool Intervals::overlaps(const Interval &i) const throw(std::out_of_range)
 {
   using std::bind2nd;   using std::mem_fun_ref;
@@ -192,17 +194,9 @@ unsigned int Intervals::leaf_contacts(double point) const
       else return 0;
     }
 
-  using std::bind2nd;   using std::mem_fun_ref;
-  std::vector<Interval>::const_iterator start, stop, res;
-  start = interval_starting_before(point);
-  stop = interval_starting_after(point);
-  res = find_if(start,stop,
-		bind2nd(mem_fun_ref(&Interval::contains_point),point));
-
-  if (res != stop)
-    return res->leaf_contacts();
-  else
-    return 0;
+  std::vector<Interval>::const_iterator i = interval_starting_before(point);
+  if (i->contains_point(point)) return i->leaf_contacts();
+  else return 0;
 }
 
 

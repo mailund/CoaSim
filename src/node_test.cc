@@ -33,13 +33,11 @@ int main(int argc, const char *argv[])
   CHECK(l1->leaves_at_point(0.5) == 1);
   CHECK(l2->leaves_at_point(0.5) == 1);
 
-  CHECK(l1->intervals().is_start(0.0));
-  CHECK(l1->intervals().is_end(1.0));
+  CHECK(l1->intervals().contains_point(0.0));
   CHECK(l1->intervals().first_point() == 0.0);
   CHECK(l1->intervals().last_point() == 1.0);
 
-  CHECK(l2->intervals().is_start(0.0));
-  CHECK(l2->intervals().is_end(1.0));
+  CHECK(l2->intervals().contains_point(0.0));
   CHECK(l2->intervals().first_point() == 0.0);
   CHECK(l2->intervals().last_point() == 1.0);
 
@@ -108,13 +106,22 @@ int main(int argc, const char *argv[])
 	CHECK(r2->intervals().contains_point(positions[i]));
       }
 
-  for (size_t i = 0; i < no_positions; ++i)
-    if (positions[i] < 0.5) CHECK(r1->surface_at_point(positions[i]) == 1.0)
-    else                    CHECK(r1->surface_at_point(positions[i]) == 0.0)
+  // don't call "surface_at_point" for nodes not containing the
+  // interval -- that is no longer valid as the invariant is that the
+  // _caller_ checks that.  The reason for this is that the parent
+  // must check that for its children anyway.
 
   for (size_t i = 0; i < no_positions; ++i)
-    if (positions[i] < 0.5) CHECK(r2->surface_at_point(positions[i]) == 0.0)
-    else                    CHECK(r2->surface_at_point(positions[i]) == 1.0)
+    if (positions[i] < 0.5) 
+      CHECK(r1->surface_at_point(positions[i]) == 1.0)
+    else 
+      CHECK(!r1->intervals().contains_point(positions[i]))
+
+  for (size_t i = 0; i < no_positions; ++i)
+    if (positions[i] < 0.5) 
+      CHECK(!r2->intervals().contains_point(positions[i]))
+    else
+      CHECK(r2->surface_at_point(positions[i]) == 1.0)
 
 
   CHECK(r1->leaves_at_point(0.2) == 1);
@@ -171,10 +178,6 @@ int main(int argc, const char *argv[])
   CHECK(g1->intervals().size() == 2);
   CHECK(g1->intervals().first_point() == 0.0);
   CHECK(g1->intervals().last_point()  == 1.0);
-  CHECK(g1->intervals().is_start(0.0));
-  CHECK(g1->intervals().is_end  (0.3));
-  CHECK(g1->intervals().is_start(0.6));
-  CHECK(g1->intervals().is_end  (1.0));
 
   CHECK(g2->intervals().interval(0).leaf_contacts() == 1);
 
@@ -200,13 +203,13 @@ int main(int argc, const char *argv[])
       }
     else
       {
-	CHECK(g1->surface_at_point(positions[i]) == 0.0);
+	CHECK(!g1->intervals().contains_point(positions[i]));
       }
 
   for (size_t i = 0; i < no_positions; ++i)
     if (positions[i] < 0.3 or 0.6 <= positions[i])
       {
-	CHECK(g2->surface_at_point(positions[i]) == 0.0);
+	CHECK(!g2->intervals().contains_point(positions[i]));
       }
     else
       {
@@ -242,18 +245,14 @@ int main(int argc, const char *argv[])
   CHECK(arg.retired_intervals().size() == 1);
   CHECK(c1->intervals().first_point() == 0.0);
   CHECK(c1->intervals().last_point()  == 0.6);
-  CHECK(c1->intervals().is_start(0.0));
-  CHECK(c1->intervals().is_end  (0.3));
-  CHECK(c1->intervals().is_start(0.5));
-  CHECK(c1->intervals().is_end  (0.6));
 
   CHECK(c1->intervals().interval(0).leaf_contacts() == 1);
   CHECK(c1->intervals().interval(1).leaf_contacts() == 1);
 
   CHECK(arg.retired_intervals().at(0).top_node() == c1);
 
-  CHECK(arg.retired_intervals().at(0).is_start(0.6));
-  CHECK(arg.retired_intervals().at(0).is_end  (1.0));
+  CHECK(arg.retired_intervals().at(0).start() == 0.6);
+  CHECK(arg.retired_intervals().at(0).end()   == 1.0);
   CHECK(arg.retired_intervals().at(0).leaf_contacts() == 2);
   CHECK(arg.retired_intervals().at(0).top_node() == c1);
 
@@ -297,16 +296,12 @@ int main(int argc, const char *argv[])
 
   CHECK(c2->intervals().first_point() == 0.0);
   CHECK(c2->intervals().last_point()  == 0.6);
-  CHECK(c2->intervals().is_start(0.0));
-  CHECK(c2->intervals().is_end  (0.3));
-  CHECK(c2->intervals().is_start(0.5));
-  CHECK(c2->intervals().is_end  (0.6));
 
   CHECK(c2->intervals().interval(0).leaf_contacts() == 1);
   CHECK(c2->intervals().interval(1).leaf_contacts() == 1);
 
-  CHECK(arg.retired_intervals().at(1).is_start(0.3));
-  CHECK(arg.retired_intervals().at(1).is_end  (0.5));
+  CHECK(arg.retired_intervals().at(1).start() == 0.3);
+  CHECK(arg.retired_intervals().at(1).end()   == 0.5);
   CHECK(arg.retired_intervals().at(1).leaf_contacts() == 2);
   CHECK(arg.retired_intervals().at(1).top_node() == c2);
 
@@ -336,13 +331,13 @@ int main(int argc, const char *argv[])
 
   // retired intervals: [0-0.3)[0.3-0.5)[0.5-0.6)[0.6-1)
 
-  CHECK(arg.retired_intervals().at(2).is_start(0.0));
-  CHECK(arg.retired_intervals().at(2).is_end  (0.3));
+  CHECK(arg.retired_intervals().at(2).start() == 0.0);
+  CHECK(arg.retired_intervals().at(2).end()   == 0.3);
   CHECK(arg.retired_intervals().at(2).leaf_contacts() == 2);
   CHECK(arg.retired_intervals().at(2).top_node() == top);
 
-  CHECK(arg.retired_intervals().at(3).is_start(0.5));
-  CHECK(arg.retired_intervals().at(3).is_end  (0.6));
+  CHECK(arg.retired_intervals().at(3).start() == 0.5);
+  CHECK(arg.retired_intervals().at(3).end()   == 0.6);
   CHECK(arg.retired_intervals().at(3).leaf_contacts() == 2);
   CHECK(arg.retired_intervals().at(3).top_node() == top);
 

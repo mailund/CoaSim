@@ -206,7 +206,9 @@ namespace {
     virtual double surface_at_point(double point) const
       throw(std::out_of_range)
     {
-      if (! intervals().contains_point(point)) return 0.0;
+      // no need to check here, it is the parents responsibility to
+      //check that
+      //if (! intervals().contains_point(point)) return 0.0;
 
       double surface = 0.0;
       if (i_child->intervals().contains_point(point))
@@ -274,7 +276,9 @@ namespace {
     virtual double surface_at_point(double point) const
       throw(std::out_of_range)
     {
-      if (! intervals().contains_point(point)) return 0.0;
+      // no need to check here, it is the parents responsibility to
+      //check that
+      //if (! intervals().contains_point(point)) return 0.0;
 
       double surface = 0.0;
       if (i_child->intervals().contains_point(point))

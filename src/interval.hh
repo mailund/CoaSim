@@ -14,7 +14,6 @@
 # define IOSTREAM_INCLUDED
 #endif
 
-
 /* A sub-interval on the real interval [0,1), closed on the left and
  * open on the right. */
 class Interval
@@ -41,13 +40,6 @@ public:
   double length() const { return i_end - i_start; }
 
   unsigned int leaf_contacts() const { return i_leaf_contacts; }
-
-
-  // it is better to use these for comparison as exact double equality
-  // is hard to get.
-  bool is_start(double point) const { return point == i_start; }
-  bool is_end(double point)   const { return point == i_end; }
-
 
   // returns whether point is in the interval
   bool contains_point(double point) const;
@@ -121,8 +113,6 @@ public:
 
   // checking the predicates on the relevant intervals.  Throws an
   // exception if point is outside [0,1).
-  bool is_start(double point)      const throw(std::out_of_range);
-  bool is_end(double point)        const throw(std::out_of_range);
   bool contains_point(double pos)  const throw(std::out_of_range);
   bool overlaps(const Interval &i) const throw(std::out_of_range);
 
@@ -189,57 +179,12 @@ inline double Intervals::last_point() const throw(std::out_of_range)
 
 #if 0
 
-inline bool Intervals::is_start(double point) const throw(std::out_of_range)
-{ return check_predicate(point, &Interval::is_start); }
-
-inline bool Intervals::is_end(double point) const throw(std::out_of_range)
-{ return check_predicate(point, &Interval::is_end); }
-
 inline bool Intervals::contains_point(double point) const
   throw(std::out_of_range)
 { return check_predicate(point, &Interval::contains_point); }
 
 #else
 // try without the check_predicate...
-
-inline bool Intervals::is_start(double point) const throw(std::out_of_range)
-{ 
-  if (point == 1.0) // special case, needed to check for endpoint in 1.0
-    return (i_intervals.back().is_start)(point);
-
-  if (point < 0.0 or 1.0 <= point)
-    throw std::out_of_range("checking point out of the [0,1) range.");
-
-  if (point < first_point()) return false;
-  if (point > last_point())  return false;
-
-  std::vector<Interval>::const_iterator start, stop, itr;
-  start = interval_starting_before(point);
-  stop = interval_starting_after(point);
-  for (itr = start; itr != stop; ++itr)
-    if (itr->is_start(point)) return true;
-  return false;
-}
-
-
-inline bool Intervals::is_end(double point) const throw(std::out_of_range)
-{ 
-  if (point == 1.0) // special case, needed to check for endpoint in 1.0
-    return (i_intervals.back().is_end)(point);
-
-  if (point < 0.0 or 1.0 <= point)
-    throw std::out_of_range("checking point out of the [0,1) range.");
-
-  if (point < first_point()) return false;
-  if (point > last_point())  return false;
-
-  std::vector<Interval>::const_iterator start, stop, itr;
-  start = interval_starting_before(point);
-  stop = interval_starting_after(point);
-  for (itr = start; itr != stop; ++itr)
-    if (itr->is_end(point)) return true;
-  return false;
-}
 
 
 inline bool Intervals::contains_point(double point) const throw(std::out_of_range)
@@ -253,12 +198,7 @@ inline bool Intervals::contains_point(double point) const throw(std::out_of_rang
   if (point < first_point()) return false;
   if (point > last_point())  return false;
 
-  std::vector<Interval>::const_iterator start, stop, itr;
-  start = interval_starting_before(point);
-  stop = interval_starting_after(point);
-  for (itr = start; itr != stop; ++itr)
-    if (itr->contains_point(point)) return true;
-  return false;
+  return interval_starting_before(point)->contains_point(point);
 }
 
 #endif
