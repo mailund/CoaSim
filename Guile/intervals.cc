@@ -16,10 +16,10 @@ using namespace guile;
 #endif
 
 
-// FIXME: this is g++ specific!
-#ifndef EXT__STDIO_FILEBUF_H_INCLUDED
-# include <ext/stdio_filebuf.h>
-# define EXT__STDIO_FILEBUF_H_INCLUDED
+// FIXME: this might be g++ specific!
+#ifndef GPP_FILEBUF_H_INCLUDED
+# include "gpp_filebuf.h"
+# define GPP_FILEBUF_H_INCLUDED
 #endif
 #ifndef UNISTD_H_INCLUDED
 # include <unistd.h>
