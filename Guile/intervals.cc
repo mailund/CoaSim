@@ -200,9 +200,10 @@ namespace {
 <method name="total-branch-length">
   <brief>Returns the total tree branch length of the local tree of an interval.</brief>
   <prototype>(total-branch-length interval-or-tree)</prototype>
-  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
-(map total-branch-length intervals)</example>
+  <example>  (use-modules (coasim rand))
+ (define markers (make-random-snp-markers 10 0.1 0.9))
+ (define intervals (intervals (simulate markers 100 :rho 400)))
+ (map total-branch-length intervals)</example>
   <description>
     <p>
      Returns the total tree branch length of the local tree of an interval.
@@ -236,6 +237,50 @@ namespace {
 
       return scm_make_real(surface);
   }
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="tree-height">
+  <brief>Returns the height of the local tree of an interval.</brief>
+  <prototype>(tree-height interval-or-tree)</prototype>
+  <example> (use-modules (coasim rand))
+ (define markers (make-random-snp-markers 10 0.1 0.9))
+ (define intervals (local-trees (simulate markers 100 :rho 400)))
+ (map tree-height intervals)</example>
+  <description>
+    <p>
+     Returns the height of the local tree of an interval.
+     The argument to the function can be either a local interval, as returned
+     by the intervals function, or a local tree, as returned by the local-trees
+     function.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+  SCM tree_height(SCM smob)
+  {
+      double height = 0.0;
+      if (SCM_SMOB_PREDICATE(guile::interval_tag, smob))
+          {
+	      IntervalData *interval_data = (IntervalData*)SCM_SMOB_DATA(smob);
+	      height = interval_data->rinterval->top_node()->time();
+	  }
+      else if (SCM_SMOB_PREDICATE(guile::local_tree_tag, smob))
+          {
+	      TreeData *tree_data = (TreeData*) SCM_SMOB_DATA(smob);
+	      height = tree_data->rinterval->top_node()->time();
+	  }
+      else
+         {
+	     scm_wrong_type_arg("tree-height", 1, smob);
+         }
+      
+
+      return scm_make_real(height);
+  }
+
 
 /* --<GUILE COMMENT>---------------------------------------------
 
@@ -327,6 +372,8 @@ guile::install_intervals()
 		       (scm_unused_struct*(*)())interval_end);
     scm_c_define_gsubr("total-branch-length", 1, 0, 0, 
 		       (scm_unused_struct*(*)())total_branch_length);
+    scm_c_define_gsubr("tree-height", 1, 0, 0, 
+		       (scm_unused_struct*(*)())tree_height);
 
     scm_c_define_gsubr("interval->tree", 1, 0, 0, 
 		       (scm_unused_struct*(*)())interval2tree);
