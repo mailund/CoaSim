@@ -23,13 +23,19 @@ interval_test: interval_test.o interval.o
 node_test: node_test.o node.o interval.o
 	$(CXX) $(CXXFLAGS) -o node_test node_test.o node.o  interval.o
 
+
+
 coasim.o : coasim.cc node.o builder.o descender.hh reporter.hh dist_funcs.hh
+
+interval.o : interval.hh interval.cc
+interval_test.o: interval.hh interval.cc interval_test.cc testing.hh
 
 node.o : node.hh node.cc dist_funcs.hh interval.o
 node_test.o: node.hh node.cc
 
 builder.o : builder.hh builder.cc reporter.hh dist_funcs.hh node.o
-interval.o : interval.hh interval.cc
+
+
 
 clean : 
 	rm -f coasim $(objects)

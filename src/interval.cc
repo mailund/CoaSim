@@ -85,25 +85,32 @@ bool Intervals::contains_point(double pos)
   return false;
 }  
 
-
-Intervals* Intervals::copy(double s, double st)
+Intervals* Intervals::copy(double start, double stop)
 {
   Intervals* r = new Intervals();
   Interval* pr = 0;
   for (int i=0; i<size(); i++){
     pr = 0;
-    if (_intervals[i]->start()>=st) break;
-    if ((_intervals[i]->start()<s)&&(_intervals[i]->end()>=st)){
-      pr = new Interval(s, st-s,_intervals[i]->leaf_contacts());
+
+    // FIXME: this is only safe is the intervals are sorted -- is that
+    // an invariant of the class?  otherwise, use continue instead of
+    // break.
+    if (_intervals[i]->start() >= stop) break;
+    
+    if ((_intervals[i]->start() < start) and (stop <= _intervals[i]->end())){
+      pr = new Interval(start, stop-start,_intervals[i]->leaf_contacts());
     }
-    else if((_intervals[i]->start()<s)&&(_intervals[i]->end()>=s)){
-      pr = new Interval(s, _intervals[i]->end()-s,_intervals[i]->leaf_contacts());
+    else if((_intervals[i]->start() < start) and (start <= _intervals[i]->end())){
+      pr = new Interval(start, _intervals[i]->end()-start,
+			_intervals[i]->leaf_contacts());
     }
-    else if((_intervals[i]->start()>=s)&&(_intervals[i]->end()>=st)){
-      pr = new Interval(_intervals[i]->start(),st-_intervals[i]->start(),_intervals[i]->leaf_contacts());
+    else if((start <= _intervals[i]->start()) and (stop <= _intervals[i]->end())){
+      pr = new Interval(_intervals[i]->start(),stop-_intervals[i]->start(),
+			_intervals[i]->leaf_contacts());
     }
-    else if((_intervals[i]->start()>=s)&&(_intervals[i]->end()<st)){
-      pr = new Interval(_intervals[i]->start(),_intervals[i]->length(),_intervals[i]->leaf_contacts());
+    else if((start <= _intervals[i]->start()) and (_intervals[i]->end() < stop)){
+      pr = new Interval(_intervals[i]->start(),_intervals[i]->length(),
+			_intervals[i]->leaf_contacts());
     }
     if (pr) r->add(pr);
   }

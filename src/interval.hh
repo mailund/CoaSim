@@ -34,16 +34,24 @@ public:
   Interval& interval(int index) { return *_intervals[index]; };
 
   void add(Interval* i){ _intervals.push_back(i);};
-  Intervals* copy(double s, double st);
+
+  // copy the intervals between start and stop, trunkating intervals
+  // that overlap start and stop.
+  Intervals* copy(double start, double stop);
+
   Intervals* operator+(Intervals in);
-  Intervals* merge( Intervals& in);
+
+  Intervals* merge(Intervals& in);
+
   Intervals* add_interval(Intervals* i_val);
 
   void reset() {
     Interval* ival;
     for (unsigned int i=0; i<_intervals.size(); i++) {
       ival = _intervals[i];
-      delete ival;
+      delete ival;		// FIXME: this copy construction makes
+				// assignment and the copy constructor
+				// dangerous!
     }
     _intervals.resize(0);
   };
