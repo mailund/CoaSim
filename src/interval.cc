@@ -109,6 +109,9 @@ bool Intervals::check_predicate(double point,
   if (point < 0.0 or 1.0 <= point)
     throw std::out_of_range("checking point out of the [0,1) range.");
 
+  if (point < first_point()) return false;
+  if (point > last_point())  return false;
+
   std::vector<Interval>::const_iterator start, stop, res;
   start = interval_starting_before(point);
   stop = interval_starting_after(point);
