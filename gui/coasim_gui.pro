@@ -11,7 +11,7 @@ HEADERS	+= coasim_gui_impl.hh \
         baps_float_spin_box.hh
 
 unix {
-  UI_DIR = .ui
+  UI_DIR = .
   MOC_DIR = .moc
   OBJECTS_DIR = .obj
 }
