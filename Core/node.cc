@@ -83,7 +83,7 @@ core::LeafNode::print_tree_at_point(std::ostream &os, double point,
 {
     if (point < 0 or 1.0 <= point) 
 	throw std::out_of_range("Point out of range [0,1).");
-    os << '"' << i_id << '"';
+    os << '\'' << i_id << '\'';
     if (print_edge) os << " : " << edge_length;
 }
 
