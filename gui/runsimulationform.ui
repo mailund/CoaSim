@@ -55,7 +55,7 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout20</cstring>
+                <cstring>layout3</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -77,10 +77,18 @@
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
+                        <cstring>pushButton3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Close</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
                         <cstring>runSimButton</cstring>
                     </property>
                     <property name="text">
-                        <string>Run Simulation</string>
+                        <string>Run</string>
                     </property>
                     <property name="toolTip" stdset="0">
                         <string>Run the simulation</string>
@@ -102,6 +110,12 @@
         <signal>clicked()</signal>
         <receiver>RunSimulationForm</receiver>
         <slot>set_out_file()</slot>
+    </connection>
+    <connection>
+        <sender>pushButton3</sender>
+        <signal>clicked()</signal>
+        <receiver>RunSimulationForm</receiver>
+        <slot>reject()</slot>
     </connection>
 </connections>
 <slots>
