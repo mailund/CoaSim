@@ -47,6 +47,9 @@
                     <property name="text">
                         <string>Browse</string>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Select output file</string>
+                    </property>
                 </widget>
             </hbox>
         </widget>
@@ -75,6 +78,9 @@
                     </property>
                     <property name="text">
                         <string>Run Simulation</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Run the simulation</string>
                     </property>
                 </widget>
             </hbox>

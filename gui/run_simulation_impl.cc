@@ -58,13 +58,14 @@ void RunSimulationImpl::run_simulation()
       if (QMessageBox::warning(this, "Error opening file",
 			       QString("Could not open file ")
 			       .append(fname),
-			       "Retry", "Quit",
+			       "Retry", "Cancel",
 			       0, 0, 1) == 0)
 	{
 	  fname = QFileDialog::getSaveFileName();
 	  if (fname == "") return; // cancel    
 	  goto retry;
 	}
+      close();
       return;
     }
 

@@ -1,10 +1,13 @@
 SOURCES	+= coasim_gui.cc \
 	coasim_gui_impl.cc \
         add_marker_impl.cc \
-        run_simulation_impl.cc
+        run_simulation_impl.cc \
+        baps_float_spin_box.cc
 HEADERS	+= coasim_gui_impl.hh \
         add_marker_impl.hh \
-        run_simulation_impl.hh
+        run_simulation_impl.hh \
+        baps_float_spin_box.hh
+
 unix {
   UI_DIR = .ui
   MOC_DIR = .moc

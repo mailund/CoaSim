@@ -11,6 +11,7 @@ public:
   ~CoasimGuiImpl();
 
   virtual void add_marker();
+  virtual void delete_marker();
   virtual void simulate();
 };
 

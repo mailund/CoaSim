@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>326</width>
+            <width>317</width>
             <height>395</height>
         </rect>
     </property>
@@ -66,41 +66,62 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout6</cstring>
+                        <cstring>layout29</cstring>
                     </property>
                     <vbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="QLineEdit">
+                        <widget class="BapsFloatSpinBox">
                             <property name="name">
-                                <cstring>trait_pos</cstring>
+                                <cstring>_trait_pos</cstring>
                             </property>
-                            <property name="text">
-                                <string>0.0</string>
+                            <property name="maxValue">
+                                <number>1000</number>
+                            </property>
+                            <property name="lineStep">
+                                <number>100</number>
+                            </property>
+                            <property name="decimals">
+                                <number>3</number>
                             </property>
                         </widget>
-                        <widget class="QLineEdit">
+                        <widget class="BapsFloatSpinBox">
                             <property name="name">
-                                <cstring>trait_low_freq</cstring>
+                                <cstring>_trait_low_freq</cstring>
                             </property>
-                            <property name="text">
-                                <string>0.0</string>
+                            <property name="maxValue">
+                                <number>1000</number>
+                            </property>
+                            <property name="lineStep">
+                                <number>100</number>
+                            </property>
+                            <property name="decimals">
+                                <number>3</number>
                             </property>
                         </widget>
-                        <widget class="QLineEdit">
+                        <widget class="BapsFloatSpinBox">
                             <property name="name">
-                                <cstring>trait_high_freq</cstring>
+                                <cstring>_trait_high_freq</cstring>
                             </property>
-                            <property name="text">
-                                <string>1.0</string>
+                            <property name="maxValue">
+                                <number>1000</number>
+                            </property>
+                            <property name="lineStep">
+                                <number>100</number>
+                            </property>
+                            <property name="value">
+                                <number>1000</number>
+                            </property>
+                            <property name="decimals">
+                                <number>3</number>
                             </property>
                         </widget>
                     </vbox>
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout7</cstring>
+                        <cstring>layout28</cstring>
                     </property>
                     <vbox>
                         <property name="name">
@@ -108,7 +129,7 @@
                         </property>
                         <spacer>
                             <property name="name">
-                                <cstring>spacer2</cstring>
+                                <cstring>spacer6</cstring>
                             </property>
                             <property name="orientation">
                                 <enum>Vertical</enum>
@@ -129,6 +150,9 @@
                             </property>
                             <property name="text">
                                 <string>Add Trait Marker</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Add a trait marker</string>
                             </property>
                         </widget>
                     </vbox>
@@ -182,34 +206,55 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout6_2</cstring>
+                        <cstring>layout30</cstring>
                     </property>
                     <vbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="QLineEdit">
+                        <widget class="BapsFloatSpinBox">
                             <property name="name">
-                                <cstring>snp_pos</cstring>
+                                <cstring>_snp_pos</cstring>
                             </property>
-                            <property name="text">
-                                <string>0.0</string>
+                            <property name="maxValue">
+                                <number>1000</number>
+                            </property>
+                            <property name="lineStep">
+                                <number>100</number>
+                            </property>
+                            <property name="decimals">
+                                <number>3</number>
                             </property>
                         </widget>
-                        <widget class="QLineEdit">
+                        <widget class="BapsFloatSpinBox">
                             <property name="name">
-                                <cstring>snp_low_freq</cstring>
+                                <cstring>_snp_low_freq</cstring>
                             </property>
-                            <property name="text">
-                                <string>0.0</string>
+                            <property name="maxValue">
+                                <number>1000</number>
+                            </property>
+                            <property name="lineStep">
+                                <number>100</number>
+                            </property>
+                            <property name="decimals">
+                                <number>3</number>
                             </property>
                         </widget>
-                        <widget class="QLineEdit">
+                        <widget class="BapsFloatSpinBox">
                             <property name="name">
-                                <cstring>snp_high_freq</cstring>
+                                <cstring>_snp_high_freq</cstring>
                             </property>
-                            <property name="text">
-                                <string>1.0</string>
+                            <property name="maxValue">
+                                <number>1000</number>
+                            </property>
+                            <property name="lineStep">
+                                <number>100</number>
+                            </property>
+                            <property name="value">
+                                <number>1000</number>
+                            </property>
+                            <property name="decimals">
+                                <number>3</number>
                             </property>
                         </widget>
                     </vbox>
@@ -245,6 +290,9 @@
                             </property>
                             <property name="text">
                                 <string>Add SNP Marker</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Add a SNP marker</string>
                             </property>
                         </widget>
                     </vbox>
@@ -290,26 +338,35 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout15</cstring>
+                        <cstring>layout31</cstring>
                     </property>
                     <vbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <widget class="QLineEdit">
+                        <widget class="BapsFloatSpinBox">
                             <property name="name">
-                                <cstring>ms_pos</cstring>
+                                <cstring>_ms_pos</cstring>
                             </property>
-                            <property name="text">
-                                <string>0.0</string>
+                            <property name="maxValue">
+                                <number>1000</number>
+                            </property>
+                            <property name="lineStep">
+                                <number>100</number>
+                            </property>
+                            <property name="decimals">
+                                <number>3</number>
                             </property>
                         </widget>
-                        <widget class="QLineEdit">
+                        <widget class="QSpinBox">
                             <property name="name">
-                                <cstring>ms_size</cstring>
+                                <cstring>_ms_size</cstring>
                             </property>
-                            <property name="text">
-                                <string>2</string>
+                            <property name="minValue">
+                                <number>2</number>
+                            </property>
+                            <property name="value">
+                                <number>2</number>
                             </property>
                         </widget>
                     </vbox>
@@ -346,6 +403,9 @@
                             <property name="text">
                                 <string>Add MS Marker</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Add a micro-satellite marker</string>
+                            </property>
                         </widget>
                     </vbox>
                 </widget>
@@ -381,7 +441,10 @@
                         <cstring>pushButton12</cstring>
                     </property>
                     <property name="text">
-                        <string>OK</string>
+                        <string>Close</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close dialog</string>
                     </property>
                 </widget>
             </hbox>
@@ -420,4 +483,13 @@
     <slot>add_ms()</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
+<includehints>
+    <includehint>baps_float_spin_box.hh</includehint>
+    <includehint>baps_float_spin_box.hh</includehint>
+    <includehint>baps_float_spin_box.hh</includehint>
+    <includehint>baps_float_spin_box.hh</includehint>
+    <includehint>baps_float_spin_box.hh</includehint>
+    <includehint>baps_float_spin_box.hh</includehint>
+    <includehint>baps_float_spin_box.hh</includehint>
+</includehints>
 </UI>
