@@ -18,8 +18,8 @@ static ARG *build_arg(Configuration &conf)
 {
   ARG *arg = new ARG(conf);
 
-  ARG::Node *l1 = arg->leaf();
-  ARG::Node *l2 = arg->leaf();
+  Node *l1 = arg->leaf();
+  Node *l2 = arg->leaf();
 
   // current ARG:
   //
@@ -28,8 +28,8 @@ static ARG *build_arg(Configuration &conf)
   ARG::node_pair_t p;
 
   p = arg->recombination(0.0,l1,0.5);
-  ARG::Node *r1 = p.first;
-  ARG::Node *r2 = p.second;
+  Node *r1 = p.first;
+  Node *r2 = p.second;
 
   // current ARG:
   //
@@ -40,8 +40,8 @@ static ARG *build_arg(Configuration &conf)
 
 
   p = arg->gene_conversion(0.0, l2, 0.30, 0.60);
-  ARG::Node *g1 = p.first;
-  ARG::Node *g2 = p.second;
+  Node *g1 = p.first;
+  Node *g2 = p.second;
 
   // current ARG:
   //
@@ -51,7 +51,7 @@ static ARG *build_arg(Configuration &conf)
   //          (l1: [0---1) )                      (l2: [0---1) )
 
 
-  ARG::Node *c1 = arg->coalescence(0.0, r2, g1);
+  Node *c1 = arg->coalescence(0.0, r2, g1);
 
   // current ARG:
   // 
@@ -65,7 +65,7 @@ static ARG *build_arg(Configuration &conf)
   
     
 
-  ARG::Node *c2 = arg->coalescence(0.0, r1, g2);
+  Node *c2 = arg->coalescence(0.0, r1, g2);
 
   // current ARG:
   //
@@ -103,7 +103,6 @@ int main(int argc, const char *argv[])
     Descender desc(conf);
 
     ARG *arg = build_arg(conf);
-
     desc.evolve(*arg);
 
 

@@ -12,8 +12,12 @@ public:
   TraitMarker() : Marker()
   { _values.push_back(0); _values.push_back(1); }
   
+  virtual int default_value() const { return 0; }
+
   virtual void add_value(int value) throw(illegal_value)
   { throw illegal_value(); } // don't add to trait markers
+
+  virtual Mutator *create_mutator(const RetiredInterval &ri) const;
 };
 
 

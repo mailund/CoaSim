@@ -8,6 +8,9 @@
 #ifndef INTERVAL_HH_INCLUDED
 # include "interval.hh"
 #endif
+#ifndef RETIRED_INTERVAL_HH_INCLUDED
+# include "retired_interval.hh"
+#endif
 
 #ifndef STDEXCEPT_INCLUDED
 # include <stdexcept>
@@ -26,71 +29,76 @@
 # define VALARRAY_INCLUDED
 #endif
 
+class Marker;
+class Mutator;
+
+// -- Abstract class for ARG nodes --------------------------------------
+class Node 
+{
+  // explicitly remove chance of copying
+  Node(const Node&);
+  Node &operator = (const Node&);
+
+public:
+  Node(const Configuration &conf, double time) 
+    : _time(time), _states(-1,conf.no_markers()) 
+  {}
+  Node(const Configuration &conf, double time, const Intervals &i)
+    : _time(time), _intervals(i),  _states(-1,conf.no_markers())
+  {}
+  virtual ~Node() {};
+
+  double time() const { return _time; }
+
+  // the sub-intervals of the range [0,1) that connects this node to
+  // a leaf node in the ARG -- if a point is not in one of these
+  // intervals it is lost somewhere from here to the leaves.  As an
+  // invariant, two points on the same interval correspond to the
+  // same binary tree of the ARG.
+  const Intervals &intervals() const { return _intervals; }
+
+  // calculate the "surface" (i.e. the total edge-length) of the
+  // tree in point, with this node as root (zero if the point is not
+  // in this node's intervals).
+  virtual double surface_at_point(double point) const
+    throw(std::out_of_range) = 0;
+
+
+  // FIXME: I am not sure this is the access-protection for these...
+  void initialize_marker(unsigned int idx, const Marker &m)
+    throw(std::out_of_range);
+  virtual void mutate_marker(unsigned int idx, Mutator &m)
+    throw(std::out_of_range) = 0;
+
+  
+  int state(unsigned int s) const throw(std::out_of_range)
+  { if (_states.size() <= s) throw std::out_of_range("s out of range");
+    return _states[s]; }
+
+protected:
+  unsigned int no_states()  const { return _states.size(); }
+  void set_state(unsigned int s, int val) { _states[s] = val; }
+
+  // hack to work around C++'s crappy "don't access protected through
+  // other than this" protection...
+  static void set_state(Node *n, unsigned int s, int val)
+  { n->_states[s] = val; }
+
+private:
+  friend class ARG;
+  virtual void node_to_xml(std::ostream &os)                const = 0;
+  virtual void mutation_to_xml(std::ostream &os)            const = 0;
+  void haplotype_to_xml(std::ostream &os)                   const;
+
+  double    _time;
+  Intervals _intervals;
+  std::valarray<int> _states;
+};
+
+
 class ARG
 {
 public:
-
-  // -- Abstract class for ARG nodes --------------------------------------
-  class Node 
-  {
-    // explicitly remove chance of copying
-    Node(const Node&);
-    Node &operator = (const Node&);
-
-  public:
-    Node(const Configuration &conf, double time) 
-      : _time(time), _states(-1,conf.no_markers()) 
-    {}
-    Node(const Configuration &conf, double time, const Intervals &i)
-      : _time(time), _intervals(i),  _states(-1,conf.no_markers())
-    {}
-    virtual ~Node() {};
-
-    double time() const { return _time; }
-
-    // the sub-intervals of the range [0,1) that connects this node to
-    // a leaf node in the ARG -- if a point is not in one of these
-    // intervals it is lost somewhere from here to the leaves.  As an
-    // invariant, two points on the same interval correspond to the
-    // same binary tree of the ARG.
-    const Intervals &intervals() const { return _intervals; }
-
-  protected:
-    size_t no_states()          const { return _states.size(); }
-    int state(unsigned int idx) const { return _states[idx]; }
-
-    friend class ARG;
-    virtual void node_to_xml(std::ostream &os)                const = 0;
-    virtual void mutation_to_xml(std::ostream &os)            const = 0;
-    void haplotype_to_xml(std::ostream &os)                   const;
-
-  private:
-    double    _time;
-    Intervals _intervals;
-
-    std::valarray<int> _states;
-  };
-
-  // -- Intervals that are retired because they connect to all leaves -----
-  class RetiredInterval : public Interval
-  {
-  public:
-    struct null_top_node : public std::logic_error {
-      null_top_node() : std::logic_error("null top node") {}
-    };
-
-    RetiredInterval(const Interval &interval, Node *const top_node)
-      throw(null_top_node)
-      : Interval(interval), _top_node(top_node)
-    { if (top_node == 0) throw null_top_node(); }
-
-    Node *top_node() const { return _top_node; }
-
-    void to_xml(std::ostream &os) const;
-
-  private:
-    Node *_top_node;
-  };
 
   // Exception thrown if a node is created with a 0-child
   struct null_child : public std::logic_error {

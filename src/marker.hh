@@ -11,6 +11,16 @@
 # define VECTOR_INCLUDED
 #endif
 
+class RetiredInterval;
+
+// Abstract class for mutating the ARG
+class Mutator
+{
+public:
+  virtual bool edge_has_mutation(double parent_time, double child_time) = 0;
+  virtual int  mutate_to(int current_value) = 0;
+};
+
 // Abstract class for the different possible marker types
 class Marker
 {
@@ -26,8 +36,12 @@ public:
 
   size_t size()     const { return _values.size(); }
 
+  virtual int default_value() const = 0;
   int value(size_t index)     const throw(std::out_of_range);
   virtual void add_value(int value) throw(illegal_value) = 0;
+
+  // creates a new mutator -- the mutator must be deleted after use.
+  virtual Mutator *create_mutator(const RetiredInterval &ri) const = 0;
 
 protected:
   Marker() {};

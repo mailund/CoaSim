@@ -13,17 +13,17 @@ namespace
     TopNodeSet() {};
 
     // add a node to the set
-    void push(ARG::Node *n)
+    void push(Node *n)
     {
       _nodes.push_back(n);
     }
 
     // pop a random node from the set
-    ARG::Node *pop()
+    Node *pop()
     {
       size_t index = Distribution_functions::irand(_nodes.size());
       std::swap(_nodes[index], _nodes.back());
-      ARG::Node *n = _nodes.back();
+      Node *n = _nodes.back();
       _nodes.pop_back();
       return n;
     }
@@ -31,7 +31,7 @@ namespace
     size_t size() const { return _nodes.size(); }
 
   private:
-    std::vector<ARG::Node*> _nodes;
+    std::vector<Node*> _nodes;
   };
 
   inline double get_time_interval(const Configuration &conf,
@@ -76,9 +76,9 @@ ARG * Builder::build(size_t no_leaf_nodes) const
 	{
 	case 0: // coalescent
 	  {
-	    ARG::Node *child1 = top_nodes.pop();
-	    ARG::Node *child2 = top_nodes.pop();
-	    ARG::Node *coa_node = arg->coalescence(time, child1, child2);
+	    Node *child1 = top_nodes.pop();
+	    Node *child2 = top_nodes.pop();
+	    Node *coa_node = arg->coalescence(time, child1, child2);
 	    top_nodes.push(coa_node);
 	  }
 	  break;
@@ -99,7 +99,7 @@ ARG * Builder::build(size_t no_leaf_nodes) const
 	    // gene conversion outside an active interval.
 	    if (stop-start <= 0.0) break;
 
-	    ARG::Node *child = top_nodes.pop();
+	    Node *child = top_nodes.pop();
 	    ARG::node_pair_t pair = arg->gene_conversion(time,child,
 							 start,stop);
 	    if (pair.second == 0) top_nodes.push(child);
@@ -110,7 +110,7 @@ ARG * Builder::build(size_t no_leaf_nodes) const
 	case 2: // recombination
 	  {
 	    double cross_over_point = uniform();
-	    ARG::Node *child = top_nodes.pop();
+	    Node *child = top_nodes.pop();
 	    ARG::node_pair_t pair = arg->recombination(time,child,
 						       cross_over_point);
 	    if (pair.second == 0) top_nodes.push(child);

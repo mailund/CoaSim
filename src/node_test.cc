@@ -17,9 +17,9 @@ int main(int argc, const char *argv[])
 
   ARG arg(conf);
 
-  ARG::Node *l1 = arg.leaf();
+  Node *l1 = arg.leaf();
   CHECK(l1 != 0);
-  ARG::Node *l2 = arg.leaf();
+  Node *l2 = arg.leaf();
   CHECK(l2 != 0);
 
   // current ARG:
@@ -45,6 +45,11 @@ int main(int argc, const char *argv[])
   for (size_t i = 0; i < no_positions; ++i)
     CHECK(l2->intervals().contains_point(positions[i]));
 
+  for (size_t i = 0; i < no_positions; ++i)
+    CHECK(l1->surface_at_point(positions[i]) == 0.0);
+  for (size_t i = 0; i < no_positions; ++i)
+    CHECK(l2->surface_at_point(positions[i]) == 0.0);
+
 
   ARG::node_pair_t p;
 
@@ -56,17 +61,18 @@ int main(int argc, const char *argv[])
   CHECK(p.first == l1);
   CHECK(p.second == 0);
 
-  p = arg.recombination(0.0,l1,0.5);
+  p = arg.recombination(1.0,l1,0.5);
   CHECK(p.first != 0);
   CHECK(p.second != 0);
 
-  ARG::Node *r1 = p.first;
-  ARG::Node *r2 = p.second;
+  Node *r1 = p.first;
+  Node *r2 = p.second;
 
   // current ARG:
   //
   //  (r1: [0--0.5) )  (r2: [0.5--1) )
-  //         \              /
+  //        \                /
+  //     1.0 \              / 1.0
   //          \            /
   //          (l1: [0---1) )                  (l2: [0---1) )
 
@@ -98,6 +104,15 @@ int main(int argc, const char *argv[])
 	CHECK(r2->intervals().contains_point(positions[i]));
       }
 
+  for (size_t i = 0; i < no_positions; ++i)
+    if (positions[i] < 0.5) CHECK(r1->surface_at_point(positions[i]) == 1.0)
+    else                    CHECK(r1->surface_at_point(positions[i]) == 0.0)
+
+  for (size_t i = 0; i < no_positions; ++i)
+    if (positions[i] < 0.5) CHECK(r2->surface_at_point(positions[i]) == 0.0)
+    else                    CHECK(r2->surface_at_point(positions[i]) == 1.0)
+
+
   p = arg.recombination(0.0, r2, 0.25);
   CHECK(p.first == r2);
   CHECK(p.second == 0);
@@ -122,17 +137,20 @@ int main(int argc, const char *argv[])
   CHECK(p.first == r2);
   CHECK(p.second == 0);
 
-  p = arg.gene_conversion(0.0, l2, 0.30, 0.60);
+  p = arg.gene_conversion(2.0, l2, 0.30, 0.60);
   CHECK(p.first != 0);
   CHECK(p.second != 0);
 
-  ARG::Node *g1 = p.first;
-  ARG::Node *g2 = p.second;
+  Node *g1 = p.first;
+  Node *g2 = p.second;
 
   // current ARG:
-  //
-  //  (r1: [0--0.5) ) (r2: [0.5--1) ) (g1: [0-0.3)[0.6-1.0) ) (r2: [0.3--0.6) )
-  //         \             /                     \              /
+  //                             (g1: [0-0.3)[0.6-1.0) )     (r2: [0.3--0.6) )
+  //                                         \                      /
+  //                                          \                    /
+  //  (r1: [0--0.5) ) (r2: [0.5--1) )       2.0\                  /2.0
+  //        \               /                   \                /
+  //      1.0\          1.0/                     \              /
   //          \           /                       \            /
   //          (l1: [0---1) )                      (l2: [0---1) )
 
@@ -164,21 +182,43 @@ int main(int argc, const char *argv[])
 	CHECK(g2->intervals().contains_point(positions[i]));
       }
 
+  for (size_t i = 0; i < no_positions; ++i)
+    if (positions[i] < 0.3 or 0.6 <= positions[i])
+      {
+	CHECK(g1->surface_at_point(positions[i]) == 2.0);
+      }
+    else
+      {
+	CHECK(g1->surface_at_point(positions[i]) == 0.0);
+      }
+
+  for (size_t i = 0; i < no_positions; ++i)
+    if (positions[i] < 0.3 or 0.6 <= positions[i])
+      {
+	CHECK(g2->surface_at_point(positions[i]) == 0.0);
+      }
+    else
+      {
+	CHECK(g2->surface_at_point(positions[i]) == 2.0);
+      }
 
 
 
-  ARG::Node *c1 = arg.coalescence(0.0, r2, g1);
+
+  Node *c1 = arg.coalescence(3.0, r2, g1);
   CHECK(c1 != 0);
 
   // current ARG:
   // 
-  //                   (c1: [0-0.3)[0.5-0.6)[0.6-1.0) )
-  //                              /    \    `-------' <- retired
-  //                             /      \                         --no nl esc
-  //  (r1: [0--0.5) ) (r2: [0.5--1) ) (g1: [0-0.3)[0.6-1.0) ) (g2: [0.3--0.6) )
-  //         \             /                     \              /
-  //          \           /                       \            /
-  //          (l1: [0---1) )                      (l2: [0---1) )
+  // t=3                 (c1: [0-0.3)[0.5-0.6)[0.6-1.0) )
+  //                                /    \    `-------' <- retired
+  //                               /      \                         --no nl esc
+  // t=2                          /  (g1: [0-0.3)[0.6-1.0) ) (g2: [0.3--0.6) )
+  //                             /               \                  /
+  // t=1 (r1: [0--0.5) ) (r2: [0.5--1) )          \                /
+  //           \             /                     \              /
+  //            \           /                       \            /
+  // t=0        (l1: [0---1) )                      (l2: [0---1) )
   
     
 
@@ -193,6 +233,8 @@ int main(int argc, const char *argv[])
 
   CHECK(c1->intervals().interval(0).leaf_contacts() == 1);
   CHECK(c1->intervals().interval(1).leaf_contacts() == 1);
+
+  CHECK(arg.retired_intervals().at(0).top_node() == c1);
 
   CHECK(arg.retired_intervals().at(0).is_start(0.6));
   CHECK(arg.retired_intervals().at(0).is_end  (1.0));
@@ -210,8 +252,12 @@ int main(int argc, const char *argv[])
 	CHECK(arg.retired_intervals().at(0).contains_point(positions[i]));
       }
 
+  CHECK(c1->surface_at_point(0.0) == 3.0);
+  CHECK(c1->surface_at_point(0.5) == 3.0);
+  CHECK(c1->surface_at_point(0.6) == 6.0);
+  CHECK(arg.retired_intervals().at(0).surface() == 6.0);
 
-  ARG::Node *c2 = arg.coalescence(0.0, r1, g2);
+  Node *c2 = arg.coalescence(4.0, r1, g2);
   CHECK(c1 != 0);
 
   // current ARG:
@@ -219,9 +265,9 @@ int main(int argc, const char *argv[])
   //                                    .--- retired
   //                                   /
   //                               .-------.
-  //                .--(c2: [0-0.3)[0.3-0.5)[0.5-0.6) )---.
+  // t=4            .--(c2: [0-0.3)[0.3-0.5)[0.5-0.6) )---.
   //               /                                       \       --no nl esc
-  //              /    (c1: [0-0.3)[0.5-0.6)[0.6-1.0) )     \      --no nl esc
+  // t=3          /    (c1: [0-0.3)[0.5-0.6)[0.6-1.0) )     \      --no nl esc
   //             /                /    \    `------' retired \     --no nl esc
   //            /                /      \                     \    --no nl esc
   //  (r1: [0--0.5) ) (r2: [0.5--1) ) (g1: [0-0.3)[0.6-1.0) ) (g2: [0.3--0.6) )
@@ -260,8 +306,13 @@ int main(int argc, const char *argv[])
       }
 
 
+  CHECK(c2->surface_at_point(0.00) == 4.0);
+  CHECK(c2->surface_at_point(0.33) == 8.0);
+  CHECK(c2->surface_at_point(0.55) == 4.0);
+  CHECK(arg.retired_intervals().at(1).surface() == 8.0);
 
-  ARG::Node *top = arg.coalescence(0.0, c1, c2);
+
+  Node *top = arg.coalescence(5.0, c1, c2);
   CHECK(top != 0);
 
   CHECK(top->intervals().size() == 0);
@@ -278,6 +329,11 @@ int main(int argc, const char *argv[])
   CHECK(arg.retired_intervals().at(3).is_end  (0.6));
   CHECK(arg.retired_intervals().at(3).leaf_contacts() == 2);
   CHECK(arg.retired_intervals().at(3).top_node() == top);
+
+  CHECK(arg.retired_intervals().at(0).surface() ==  6.0);
+  CHECK(arg.retired_intervals().at(1).surface() ==  8.0);
+  CHECK(arg.retired_intervals().at(2).surface() == 10.0);
+  CHECK(arg.retired_intervals().at(3).surface() == 10.0);
 
 
   try {

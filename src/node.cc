@@ -4,6 +4,9 @@
 #ifndef DIST_FUNCTIONS_HH_INCLUDED
 # include "dist_funcs.hh"
 #endif
+#ifndef MARKER_HH_INCLUDED
+# include "marker.hh"
+#endif
 
 #ifndef SSTREAM_INCLUDED
 # include <sstream>
@@ -14,31 +17,46 @@
 # define STRING_INCLUDED
 #endif
 
-void ARG::Node::haplotype_to_xml(std::ostream &os) const
+void Node::haplotype_to_xml(std::ostream &os) const
 {
   os << "    <haplotype id=\"h_" << this << "\"> " << std::endl;
-  for (unsigned int i = 0; i < no_states(); ++i){
+  for (unsigned int i = 0; i < _states.size(); ++i){
     os << "      <loci marker_ref=\"marker_" << i << "\">";
-    os << "<allele>" << state(i) << "</allele>";
+    os << "<allele>" << _states[i] << "</allele>";
     os << "</loci>" << std::endl;
   }
   os << "    </haplotype>" << std::endl;
 }
 
-void ARG::RetiredInterval::to_xml(std::ostream &os) const
+void Node::initialize_marker(unsigned int idx, const Marker &m)
+  throw(std::out_of_range)
 {
-  os << "  <interval_node id=\"i_" << this << "\">" << std::endl
-     << "    <child ref=\"i_" << top_node() << "\"/>" << std::endl
-     << "    <interval start=\"" << start() << "\" end=\"" << end() << "\"/>\n"
-     << "  </interval_node>" << std::endl;
+  if (_states.size() <= idx) 
+    throw std::out_of_range("marker index out of range");
+  _states[idx] = m.default_value();
 }
+
 
 namespace {
 
-  class LeafNode : public ARG::Node
+  class LeafNode : public Node
   {
     friend Node *ARG::leaf();
     LeafNode(const Configuration &conf) : Node(conf,0.0) {}
+
+    virtual double surface_at_point(double point) const
+      throw(std::out_of_range)
+    {
+      if (point < 0 or 1.0 <= point) 
+	throw std::out_of_range("Point out of range [0,1).");
+      return 0.0;
+    }
+
+    virtual void mutate_marker(unsigned int idx, Mutator &m)
+      throw(std::out_of_range)
+    {
+      // no mutations out of leaf
+    }
 
     virtual void node_to_xml(std::ostream &os) const
     {
@@ -48,7 +66,7 @@ namespace {
 
     virtual void mutation_to_xml(std::ostream &os) const
     {
-      // nop -- you cannot mutate out of a leaf
+      // nope -- you cannot mutate out of a leaf
     }
   };
 
@@ -59,7 +77,7 @@ namespace {
   // method anyway, and it checks for it, so *DON'T* create these
   // objects in any other way!
 
-  class CoalescentNode : public ARG::Node
+  class CoalescentNode : public Node
   {
     friend Node *ARG::coalescence(double,Node*,Node*);
     CoalescentNode(const Configuration &conf, double time, 
@@ -68,6 +86,57 @@ namespace {
 	_left_mutating(false,conf.no_markers()),
 	_right_mutating(false,conf.no_markers())
     {}
+
+    virtual double surface_at_point(double point) const
+      throw(std::out_of_range)
+    {
+      // NB! don't check if this node contains it -- it could be
+      // retired, if that is the case it's children will contain it.
+      // if this node does not contain it, neither of it's children
+      // will, so it still works out (althoug we call recursively at
+      // little more than strictly necessary)
+      double surface = 0.0;
+      if (_left->intervals().contains_point(point))
+	{
+	  surface += _left->surface_at_point(point);
+	  surface += time() - _left->time();
+	}
+      if (_right->intervals().contains_point(point))
+	{
+	  surface += _right->surface_at_point(point);
+	  surface += time() - _right->time();
+	}
+      return surface;
+    }
+
+    virtual void mutate_marker(unsigned int idx, Mutator &m)
+      throw(std::out_of_range)
+    {
+      if (! (idx < no_states()) )
+	throw std::out_of_range("marker index out of range");
+
+      if (m.edge_has_mutation(time(),_left->time()))
+	{
+	  set_state(_left,idx,m.mutate_to(state(idx)));
+	  _left_mutating[idx] = true;
+	}
+      else
+	{
+	  set_state(_left,idx,state(idx));
+	}
+      _left->mutate_marker(idx,m);
+
+      if (m.edge_has_mutation(time(),_right->time()))
+	{
+	  set_state(_right,idx,m.mutate_to(state(idx)));
+	  _right_mutating[idx] = true;
+	}
+      else
+	{
+	  set_state(_right,idx,state(idx));
+	}
+      _right->mutate_marker(idx,m);
+    }
 
     virtual void node_to_xml(std::ostream &os) const
     {
@@ -100,7 +169,7 @@ namespace {
     std::valarray<bool> _right_mutating;
   };
   
-  class RecombinationNode : public ARG::Node
+  class RecombinationNode : public Node
   {
     friend ARG::node_pair_t ARG::recombination(double,Node*,double);
     RecombinationNode(const Configuration &conf,
@@ -110,6 +179,37 @@ namespace {
 	_child_mutating(false,conf.no_markers()),
 	_cross_over_point(cross_over_point), _is_left(is_left)
     {}
+
+    virtual double surface_at_point(double point) const
+      throw(std::out_of_range)
+    {
+      if (! intervals().contains_point(point)) return 0.0;
+      double surface = 0.0;
+      if (_child->intervals().contains_point(point))
+	{
+	  surface += _child->surface_at_point(point);
+	  surface += time() - _child->time();
+	}
+      return surface;
+    }
+
+    virtual void mutate_marker(unsigned int idx, Mutator &m)
+      throw(std::out_of_range)
+    {
+      if (! (idx < no_states()) )
+	throw std::out_of_range("marker index out of range");
+
+      if (m.edge_has_mutation(time(),_child->time()))
+	{
+	  set_state(_child,idx,m.mutate_to(state(idx)));
+	  _child_mutating[idx] = true;
+	}
+      else
+	{
+	  set_state(_child,idx,state(idx));
+	}
+      _child->mutate_marker(idx,m);
+    }
 
     virtual void node_to_xml(std::ostream &os) const
     {
@@ -136,7 +236,7 @@ namespace {
     bool _is_left;
   };
 
-  class GeneConversionNode : public ARG::Node
+  class GeneConversionNode : public Node
   {
     friend ARG::node_pair_t ARG::gene_conversion(double,Node*,double,double);
     GeneConversionNode(const Configuration &conf,
@@ -148,6 +248,37 @@ namespace {
 	_conversion_start(conversion_start), _conversion_end(conversion_end),
 	_is_inside(is_inside)
     {}
+
+    virtual double surface_at_point(double point) const
+      throw(std::out_of_range)
+    {
+      if (! intervals().contains_point(point)) return 0.0;
+      double surface = 0.0;
+      if (_child->intervals().contains_point(point))
+	{
+	  surface += _child->surface_at_point(point);
+	  surface += time() - _child->time();
+	}
+      return surface;
+    }
+
+    virtual void mutate_marker(unsigned int idx, Mutator &m)
+      throw(std::out_of_range)
+    {
+      if (! (idx < no_states()) )
+	throw std::out_of_range("marker index out of range");
+
+      if (m.edge_has_mutation(time(),_child->time()))
+	{
+	  set_state(_child,idx,m.mutate_to(state(idx)));
+	  _child_mutating[idx] = true;
+	}
+      else
+	{
+	  set_state(_child,idx,state(idx));
+	}
+      _child->mutate_marker(idx,m);
+    }
 
     virtual void node_to_xml(std::ostream &os) const
     {
@@ -186,7 +317,7 @@ ARG::~ARG()
     delete *itr;
 }
 
-ARG::Node *ARG::leaf() throw()
+Node *ARG::leaf() throw()
 {
   LeafNode *n = new LeafNode(_conf);
 
@@ -198,7 +329,7 @@ ARG::Node *ARG::leaf() throw()
   return n;
 }
 
-ARG::Node *ARG::coalescence(double time, Node *left, Node *right)
+Node *ARG::coalescence(double time, Node *left, Node *right)
   throw(null_child)
 {
   if (left == 0 or right == 0) throw null_child();
@@ -284,25 +415,25 @@ ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
 }
 
 namespace {
-  class interval_printer : 
-    public std::unary_function<void,const ARG::RetiredInterval&>
+  class interval_printer :
+    public std::unary_function<void,const RetiredInterval&>
   {
   public:
-    typedef void (ARG::RetiredInterval::*to_xml_t)(std::ostream &os) const;
+    typedef void (RetiredInterval::*to_xml_t)(std::ostream &os) const;
     interval_printer(to_xml_t f, std::ostream &os) : _f(f), _os(os) {};
-    void operator () (const ARG::RetiredInterval &ri) { (ri.*_f)(_os); }
+    void operator () (const RetiredInterval &ri) { (ri.*_f)(_os); }
 
   private:
     to_xml_t _f;
     std::ostream &_os;
   };
 
-  class node_printer : public std::unary_function<void,const ARG::Node*>
+  class node_printer : public std::unary_function<void,const Node*>
   {
   public:
-    typedef void (ARG::Node::*to_xml_t)(std::ostream &os) const;
+    typedef void (Node::*to_xml_t)(std::ostream &os) const;
     node_printer(to_xml_t f, std::ostream &os) : _f(f), _os(os) {};
-    void operator () (const ARG::Node *n) { (n->*_f)(_os); }
+    void operator () (const Node *n) { (n->*_f)(_os); }
 
   private:
     to_xml_t _f;
