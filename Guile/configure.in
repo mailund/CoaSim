@@ -1,0 +1,11 @@
+AC_INIT(CoaSim-Guile, 3.0.0, mailund@birc.dk) dnl FIMXE: update mail address
+AM_INIT_AUTOMAKE
+AM_CONFIG_HEADER(config.hh)
+
+AC_PROG_CXX
+AC_PROG_INSTALL
+
+AC_OUTPUT([
+	Makefile
+])
+
