@@ -81,7 +81,7 @@ print_ms_marker (SCM marker_smob, SCM port, scm_print_state *pstate)
 	(core::MicroSatelliteMarker*) SCM_SMOB_DATA(marker_smob);
     scm_puts("(ms-marker ", port);
     scm_display(scm_make_real(m->position()),  port); scm_puts(" ", port);
-    scm_display(scm_make_real(m->mu()),        port); scm_puts(" ", port);
+    scm_display(scm_make_real(m->theta()),     port); scm_puts(" ", port);
     scm_display(scm_long2num(m->size()),       port);
     scm_puts(")", port);
 
@@ -154,7 +154,7 @@ snp_marker(SCM s_position, SCM s_low_freq, SCM s_high_freq)
 
 <method name="ms-marker">
   <brief>Creates a micro-satellite marker on the simulated region.</brief>
-  <prototype>(ms-marker position mu K)</prototype>
+  <prototype>(ms-marker position theta K)</prototype>
   <example>(ms-marker 0.5 0.2 10)</example>
   <description>
     <p>
@@ -169,15 +169,15 @@ snp_marker(SCM s_position, SCM s_low_freq, SCM s_high_freq)
 
 -----</GUILE COMMENT>-------------------------------------------- */
 static SCM
-ms_marker(SCM s_position, SCM s_mu, SCM s_alphabet_size)
+ms_marker(SCM s_position, SCM s_theta, SCM s_alphabet_size)
 {
     double position      = scm_num2dbl(s_position, "ms-marker");
-    double mu            = scm_num2dbl(s_mu,       "ms-marker");
+    double theta         = scm_num2dbl(s_theta,    "ms-marker");
     int    alphabet_size = scm_num2int(s_alphabet_size, SCM_ARG3, "ms-marker");
     void *mem = scm_must_malloc(sizeof(core::MicroSatelliteMarker), 
 				"ms-marker");
     core::MicroSatelliteMarker *m 
-	= new(mem)core::MicroSatelliteMarker(position, mu);
+	= new(mem)core::MicroSatelliteMarker(position, theta);
     for (int i = 0; i < alphabet_size; ++i) m->add_value(i);
     SCM_RETURN_NEWSMOB(guile::ms_marker_tag, m);
 }

@@ -7,7 +7,9 @@
 
 
 ;; load module for making random markers
-(use-modules ((coasim rand) :select (make-random-snp-markers)))
+(use-modules ((coasim io)   :select (sequences-printer
+				     marker-positions-printer))
+	     ((coasim rand) :select (make-random-snp-markers)))
 
 (define rho 400) ; rho=400 ... for pop.size ~10,000 this is a mutation
 		 ; rate of 0.01, or about a centi-Morgan
@@ -18,7 +20,8 @@
 (define markers (make-random-snp-markers 10 0.1 0.9))
 
 ;; simulate to get the arg and 100 haplotypes
-(define arg (simulate markers 100 :rho rho))
+(define seqs (simulate-sequences markers 100 :rho rho))
 
 ;; save the haplotypes
-(save-sequences arg "snp-haplotypes.txt")
+(call-with-output-file "snp-positions.txt" (marker-positions-printer markers))
+(call-with-output-file "sequences.txt"     (sequences-printer seqs))

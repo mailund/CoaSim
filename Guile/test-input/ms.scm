@@ -8,8 +8,9 @@
 
 
 ;; load module for making random markers
-(use-modules ((coasim rand) :select (make-random-snp-markers))
-	     ((coasim io)   :select (print-marker-positions)))
+(use-modules ((ice-9 format) :select (format))
+             ((coasim rand)  :select (make-random-snp-markers))
+	     ((coasim io)    :select (print-marker-positions)))
 
 
 (define rho 400) ; rho=400 ... for pop.size ~10,000 this is a mutation
@@ -41,9 +42,7 @@
 	 (arg (simulate markers no-haplotypes :rho rho)))
 
     (newline)
-    (display "//\n")
-    (display "segsites: ")
-    (display no-markers)(newline)
+    (format #t "//\nsegsites: ~d\n" no-markers)
     (display "positions: ")
     (print-marker-positions (current-output-port) markers)
     (print-haplotypes (sequences arg))))

@@ -29,7 +29,7 @@
    <method name='split-in-cases-controls'>
     <brief>Split a list of haplotypes into cases and controls.</brief>
     <prototype>(split-in-cases-controls haplotypes trait-idx)</prototype>
-    <example> (define haplotypes (let ((arg (simulate p markers 100))) (sequences arg)))
+    <example> (define haplotypes (simulate-sequences p markers 100))
  (define cases-and-controls (split-in-cases-controls haplotypes trait-idx))
  (define cases    (car  cases-and-controls))
  (define controls (cadr cases-and-controls))</example>

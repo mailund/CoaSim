@@ -10,9 +10,6 @@
 #ifndef GUILE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
-#ifndef GUILE__ARG_PARAMETERS_HH_INCLUDED
-# include "arg_parameters.hh"
-#endif
 #ifndef GUILE__OPTIONS_HH_INCLUDED
 # include "options.hh"
 #endif
@@ -476,40 +473,6 @@ simulate(SCM s_markers, SCM s_no_leaves,
     return SCM_EOL;
 }
 
-/* --<GUILE COMMENT>---------------------------------------------
-
-<method name="save-sequences">
-  <brief>Save the sequences from a simulated ARG to a file.</brief>
-  <prototype>(save-sequences arg file-name)</prototype>
-  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate markers 100 :rho 400))
-(save-sequences arg "haplotypes.txt")</example>
-  <description>
-    <p>Save the sequences from a simulated ARG to a file.
-    </p>
-  </description>
-</method>
-
------</GUILE COMMENT>-------------------------------------------- */
-static SCM 
-save_sequences(SCM arg_data_smob, SCM s_filename)
-{
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
-	       arg_data_smob, SCM_ARG1, "save-sequences");
-    SCM_ASSERT(SCM_NFALSEP(scm_string_p(s_filename)),
-	       s_filename, SCM_ARG2, "save-sequences");
-
-    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
-    const char *fname = SCM_STRING_CHARS(s_filename);
-
-    std::ofstream os(fname);
-    if (!os) scm_throw(scm_str2symbol("open-error"), s_filename);
-
-    arg_data->arg->to_text(os);
-    os.close();
-
-    return SCM_EOL;
-}
 
 /* --<GUILE COMMENT>---------------------------------------------
 
@@ -718,10 +681,31 @@ guile::install_simulate()
 		      "                     geneconversion-callback"
 		      "                     random-seed)))");
 
-    scm_c_define_gsubr("save-sequences", 2, 0, 0, 
-		       (scm_unused_struct*(*)())save_sequences);
+
     scm_c_define_gsubr("sequences", 1, 0, 0, 
 		       (scm_unused_struct*(*)())sequences);
+
+/* --<GUILE COMMENT>---------------------------------------------
+       
+<method name="simulate-sequences">
+  <brief>Simulate a list of sequences.</brief>
+  <prototype>(simulate-sequences markers no-leaves . additional-simulation-parameters)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0 1))
+(define seqs (simulate-sequences markers 10 :rho 400))</example>
+  <description>
+    <p>
+     Simulate a list of sequences.  This function is just a short-cut
+     for `simulate' followed by `sequences': 
+    </p>
+    <code><pre> (define (simulate-sequences . args)
+   (sequences (apply simulate args)))</pre></code>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    scm_c_eval_string("(define (simulate-sequences . params)"
+		      "  (sequences (apply simulate params)))");
 
     scm_c_define_gsubr("intervals", 1, 0, 0, 
 		       (scm_unused_struct*(*)())intervals);

@@ -20,6 +20,8 @@
 (define-module (coasim markers) 
   :use-module ((coasim) :select (position)))
 
+(define (cmp-markers m1 m2) (< (position m1) (position m2)))
+
 (define-public (sort-markers markers)
   "
    --<GUILE COMMENT>---------------------------------------------
@@ -35,7 +37,7 @@
    </method>
    -----</GUILE COMMENT>----------------------------------------- 
   "
-  (sort markers (lambda (m1 m2) (< (position m1) (position m2)))))
+  (sort markers cmp-markers))
 
 
 (define-public (insert-sorted-idx sorted-list marker)
@@ -88,6 +90,29 @@
   "
   (let ((list-and-index (insert-sorted-idx sorted-list marker)))
     (car list-and-index)))
+
+(define-public (merge-markers . list-of-marker-lists)
+  "
+   --<GUILE COMMENT>---------------------------------------------
+   <method name='merge-markers'>
+    <brief>Merge two or more lists of sorted markers.</brief>
+    <prototype>(merge-markers . list-of-marker-lists)</prototype>
+    <example>(merge-markers marker-list-1 marker-list-2 marker-list-3)</example>
+    <description>
+     <p>
+      Merge two or more lists of sorted markers.
+     </p>
+    </description>
+   </method>
+   -----</GUILE COMMENT>----------------------------------------- 
+  "
+  (if (null? list-of-marker-lists) '()
+      (let loop ((merged (car list-of-marker-lists))
+		 (rest   (cdr list-of-marker-lists)))
+	(if (null? rest) merged
+	    (loop (merge merged (car rest) cmp-markers) (cdr rest))))))
+
+
 
 ;; --<GUILE COMMENT>---------------------------------
 ;; </module>

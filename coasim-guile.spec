@@ -30,6 +30,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 /usr/local/bin/coasim_guile
 
+%doc /usr/local/share/coasim/doc/*.html
+%doc /usr/local/share/coasim/doc/*.css
 %doc /usr/local/share/coasim/test-input/*.scm
 
 /usr/local/share/coasim/scheme/coasim/*.scm

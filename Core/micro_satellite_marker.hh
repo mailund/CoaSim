@@ -17,8 +17,8 @@ namespace core {
     class MicroSatelliteMarker : public Marker
     {
     public:
-	MicroSatelliteMarker(double position, double mu) 
-	    : Marker(position), i_mu(mu) 
+	MicroSatelliteMarker(double position, double theta) 
+	    : Marker(position), i_theta(theta) 
 	{}
 	virtual Marker *copy() const;
 	virtual bool run_first() const;
@@ -33,12 +33,12 @@ namespace core {
 
 	virtual Mutator *create_mutator(const Configuration &conf,
 					const RetiredInterval &ri) const;
-	double mu() const { return i_mu; }
+	double theta() const { return i_theta; }
 
 	virtual const char * type() const;
 
     private:
-	double i_mu; // mutation parameter
+	double i_theta; // mutation parameter
     };
 
 }

@@ -40,11 +40,26 @@ coasim_guile_SOURCES += simulate.hh simulate.cc
 coasim_guile_SOURCES += coasim_guile.cc
 
 
+docdir = ${prefix}/share/coasim/doc
+dist_doc_DATA =
+dist_doc_DATA += doc/bindings.html doc/guile-bindings.css
+doc/index.html:
+	(cd doc; make)
+
+EXTRA_DIST += doc/extract_guile_comments.py \
+              doc/guile-bindings.xsl \
+              doc/htmltags.xsl \
+              doc/Makefile
+
 
 test_inputdir = ${prefix}/share/coasim/test-input
 dist_test_input_DATA =
 
 dist_test_input_DATA += test-input/tree.scm
+dist_test_input_DATA += test-input/more-trees.scm
+dist_test_input_DATA += test-input/mean-branch-length.scm
+dist_test_input_DATA += test-input/more-mean-branch-length.scm
+dist_test_input_DATA += test-input/fold-mean-branch-length.scm
 dist_test_input_DATA += test-input/sequences.scm
 dist_test_input_DATA += test-input/snp-haplotype.scm
 dist_test_input_DATA += test-input/snp-haplotype-split.scm
@@ -55,6 +70,7 @@ schemedir = ${prefix}/share/coasim/scheme
 dist_scheme_DATA =
 scheme_coasimdir = ${prefix}/share/coasim/scheme/coasim
 dist_scheme_coasim_DATA =
+dist_scheme_coasim_DATA += scheme/coasim/batch.scm
 dist_scheme_coasim_DATA += scheme/coasim/io.scm
 dist_scheme_coasim_DATA += scheme/coasim/rand.scm
 dist_scheme_coasim_DATA += scheme/coasim/markers.scm

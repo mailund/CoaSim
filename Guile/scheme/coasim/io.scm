@@ -31,24 +31,24 @@
     (newline port)))
 
 
-;;; Haplotype output
-(define-public (print-haplotypes port haplotypes)
+;;; Sequence output
+(define-public (print-sequences port sequences)
   "
    --<GUILE COMMENT>---------------------------------------------
-   <method name='print-haplotypes'>
-    <brief>Print a list of haplotypes.</brief>
-    <prototype>(print-haplotypes port haplotypes)</prototype>
-    <example>(print-haplotypes (current-output-port) haplotypes)</example>
+   <method name='print-sequences'>
+    <brief>Print a list of sequences.</brief>
+    <prototype>(print-sequences port sequences)</prototype>
+    <example>(print-sequences (current-output-port) sequences)</example>
     <description>
      <p>
-      This function prints the haplotypes in the list `haplotypes' to
+      This function prints the sequences in the list `sequences' to
       the output port `port'.
      </p>
     </description>
    </method>
    -----</GUILE COMMENT>----------------------------------------- 
   "
-  (for-each (bind-1st print-list port) haplotypes))
+  (for-each (bind-1st print-list port) sequences))
 
 ;;; Position output
 (define-public (print-positions port positions)
@@ -103,15 +103,15 @@
 
 ;; --<GUILE COMMENT>---------------------------------------------
 
-;; <method name='haplotypes-printer'>
-;;  <brief>Convenience function for printing haplotypes.</brief>
-;;  <prototype>(haplotypes-printer haplotypes)</prototype>
-;;  <example>(call-with-output-file "haplotypes.txt" (haplotypes-printer haplotypes))</example>
+;; <method name='sequences-printer'>
+;;  <brief>Convenience function for printing sequences.</brief>
+;;  <prototype>(sequences-printer sequences)</prototype>
+;;  <example>(call-with-output-file "sequences.txt" (sequences-printer sequences))</example>
 ;;  <description>
 ;;   <p>
-;;    A convenience function, based on `print-haplotypes', that, given a 
-;;    list of haplotypes, gives a function with one argument, a port, that
-;;    when applied writes the haplotypes to the port.
+;;    A convenience function, based on `print-sequences', that, given a 
+;;    list of sequences, gives a function with one argument, a port, that
+;;    when applied writes the sequences to the port.
 ;;   </p>
 ;;   <p>
 ;;    The function is useful for calls to `call-with-output-file'.
@@ -119,18 +119,18 @@
 ;;  </description>
 ;; </method>
 
-;; <method name='haplotypes-port'>
-;;  <brief>Convenience function for printing haplotypes.</brief>
-;;  <prototype>(haplotypes-port port)</prototype>
-;;  <example>(map (haplotype-port port) list-of-haplotypes)</example>
+;; <method name='sequences-port'>
+;;  <brief>Convenience function for printing sequences.</brief>
+;;  <prototype>(sequences-port port)</prototype>
+;;  <example>(map (sequence-port port) list-of-sequences)</example>
 ;;  <description>
 ;;   <p>
-;;    A convenience function, based on `print-haplotypes', that, given a 
-;;    list a port, gives a function with one argument, a haplotype, that
-;;    when applied writes the haplotypes to the port.
+;;    A convenience function, based on `print-sequences', that, given a 
+;;    list a port, gives a function with one argument, a sequence, that
+;;    when applied writes the sequences to the port.
 ;;   </p>
 ;;   <p>
-;;    The function is useful for mapping over lists of haplotypes.
+;;    The function is useful for mapping over lists of sequences.
 ;;   </p>
 ;;  </description>
 ;; </method>
@@ -205,7 +205,7 @@
 
 ;; -----</GUILE COMMENT>----------------------------------------- 
 
-(make-printer-and-port print-haplotypes)
+(make-printer-and-port print-sequences)
 (make-printer-and-port print-positions)
 (make-printer-and-port print-marker-positions)
 

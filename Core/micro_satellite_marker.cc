@@ -60,7 +60,7 @@ namespace
   {
     using namespace Distribution_functions;
     double time = parent_time - child_time;
-    return uniform() < expdist(_marker.mu()/2,time);
+    return uniform() < expdist(_marker.theta()/2,time);
   }
 
   int MicroSatelliteMutator::mutate_to(const Node &n, 

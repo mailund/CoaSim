@@ -13,7 +13,7 @@
 (use-modules ((coasim rand)           :select (make-random-snp-markers
 					       make-random-trait-markers))
 	     ((coasim markers)        :select (insert-sorted-idx))
-	     ((coasim io)             :select (haplotypes-printer
+	     ((coasim io)             :select (sequences-printer
 					       marker-positions-printer))
 	     ((coasim SNP haplotypes) :select (split-in-cases-controls)))
 
@@ -35,7 +35,7 @@
 (define trait-idx (cadr markers-and-index))
 
 ;; Simulate to get 100 haplotypes
-(define haplotypes (let ((arg (simulate markers 100 :rho rho))) (sequences arg)))
+(define haplotypes (simulate-sequences markers 100 :rho rho))
 
 ;; Split in cases and controls, based on trait marker
 (define cases-and-controls (split-in-cases-controls haplotypes trait-idx))
@@ -46,5 +46,5 @@
   (marker-positions-printer snp-markers))
 (call-with-output-file "trait-position.txt" 
   (marker-positions-printer (list disease-marker)))
-(call-with-output-file "cases.txt"    (haplotypes-printer cases))
-(call-with-output-file "controls.txt" (haplotypes-printer controls))
+(call-with-output-file "cases.txt"    (sequences-printer cases))
+(call-with-output-file "controls.txt" (sequences-printer controls))
