@@ -194,7 +194,7 @@ void SimFeedbackImpl::retry_mutation()
 {
   i_sim_log->setColor("gray");
   i_sim_log->setItalic(true);
-  i_sim_log->append("Mutation outside frequency bounds, rebilding arg\n");
+  i_sim_log->append("Mutation outside frequency bounds, retry...\n");
   i_sim_log->setItalic(false);
   i_sim_log->setColor("black");
 
@@ -208,7 +208,7 @@ void SimFeedbackImpl::retry_arg_building()
 {
   i_sim_log->setColor("red");
   i_sim_log->setItalic(true);
-  i_sim_log->append("Trait mutation outside bounds, rebilding arg\n");
+  i_sim_log->append("Trait mutation outside bounds, rebilding arg...\n");
   i_sim_log->setItalic(false);
   i_sim_log->setColor("black");
 

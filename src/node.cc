@@ -518,7 +518,7 @@ namespace {
   };
 }
 
-void ARG::to_xml(std::ostream &os) const
+void ARG::to_xml(std::ostream &os, bool print_all_nodes) const
 {
   std::string dtd = DTD_DIR"/coasim.dtd";
 
@@ -557,7 +557,7 @@ void ARG::to_xml(std::ostream &os) const
 
   os << "  <haplotypes>" << std::endl;
   for_each(lpb,lpe, node_printer(&Node::haplotype_to_xml,os));
-  if (i_conf.print_all_nodes())
+  if (print_all_nodes)
     for_each(npb,npe, node_printer(&Node::haplotype_to_xml,os));
   os << "  </haplotypes>" << std::endl;
 
@@ -566,17 +566,36 @@ void ARG::to_xml(std::ostream &os) const
 		interval_printer(&RetiredInterval::to_xml,os));
 
   std::for_each(lpb, lpe, node_printer(&Node::node_to_xml,os));
-  if (i_conf.print_all_nodes()) 
+  if (print_all_nodes) 
     for_each(npb,npe,node_printer(&Node::node_to_xml,os));
 
   os << "  <mutations>" << std::endl;
 
   for_each(lpb,lpe, node_printer(&Node::mutation_to_xml,os));
-  if (i_conf.print_all_nodes())
+  if (print_all_nodes)
     for_each(npb,npe, node_printer(&Node::mutation_to_xml,os));
 
   os << "  </mutations>" << std::endl
      << "</coasim>" << std::endl; 
 }
 
+namespace {
+  class state_printer : public std::unary_function<void,const Node*>
+  {
+  public:
+    state_printer(std::ostream &os) : i_os(os) {};
+    void operator () (const Node *n) {
+      for (unsigned int s = 0; s < n->no_states(); ++s)
+	i_os << n->state(s) << ' ';
+      i_os << '\n';
+    }
 
+  private:
+    std::ostream &i_os;
+  };
+}
+
+void ARG::to_text(std::ostream &os) const
+{
+  for_each(i_leaf_pool.begin(), i_leaf_pool.end(), state_printer(os));
+}

@@ -40,7 +40,6 @@ public:
   Configuration(unsigned int no_leaves,
 		InItr positions_begin, InItr positions_end,
 		double rho, double Q, double G, double growth,
-		bool print_all_nodes = false,
 		SimulationMonitor *monitor = 0)
     throw(out_of_sequence);
   ~Configuration();
@@ -69,9 +68,6 @@ public:
   double G()      const { return i_G; }
   double growth() const { return i_growth; }
 
-  // Parameters for output
-  bool print_all_nodes() const { return i_print_all_nodes; }
-
   // For monitoring progress
   SimulationMonitor *monitor() const { return i_monitor; }
 
@@ -90,8 +86,6 @@ private:
   double i_G;
   double i_growth;
 
-  bool i_print_all_nodes;
-
   SimulationMonitor *i_monitor; // 0 if we are not monitoring
 };
 
@@ -100,13 +94,11 @@ template <typename InItr>
 Configuration::Configuration(unsigned int no_leaves,
 			     InItr begin, InItr end,
 			     double rho, double Q, double G, double growth,
-			     bool print_all_nodes,
 			     SimulationMonitor *monitor)
   throw(out_of_sequence)
   : i_no_leaves(no_leaves),
     i_positions(begin,end),
     i_rho(rho), i_Q(Q), i_G(G), i_growth(growth),
-    i_print_all_nodes(print_all_nodes),
     i_monitor(monitor)
 {
   for (size_t m = 1; m < i_positions.size(); ++m)

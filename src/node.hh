@@ -74,12 +74,12 @@ public:
   virtual void mutate_marker(unsigned int idx, Mutator &m) = 0;
 
   
+  unsigned int no_states()  const { return i_states.size(); }
   int state(unsigned int s) const throw(std::out_of_range)
   { if (i_states.size() <= s) throw std::out_of_range("s out of range");
     return i_states[s]; }
 
 protected:
-  unsigned int no_states()  const { return i_states.size(); }
   void set_state(unsigned int s, int val) { i_states[s] = val; }
 
   // hack to work around C++'s crappy "don't access protected through
@@ -142,7 +142,8 @@ public:
   unsigned int no_nodes() const
   { return i_leaf_pool.size() + i_node_pool.size(); }
 
-  void to_xml(std::ostream &os) const;
+  void to_xml (std::ostream &os, bool print_all_nodes = false) const;
+  void to_text(std::ostream &os) const;
 
 
 private:
@@ -160,9 +161,6 @@ private:
   std::vector<RetiredInterval> i_retired_intervals;
 };
 
-
-inline std::ostream & operator << (std::ostream &os, ARG &arg)
-{ arg.to_xml(os); return os; }
 
 
 #endif

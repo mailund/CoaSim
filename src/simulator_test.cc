@@ -31,7 +31,7 @@ int main(int argc, const char *argv[])
 
     Configuration conf(no_leaves,
 		       (const double*)positions, &positions[no_positions],
-		       rho, Q, G, growth, true);
+		       rho, Q, G, growth);
 
     TraitMarker          trait_m(0.1,0.2); // 10%-20%
     SNPMarker            snp_m  (0.1,0.2); // 10%-20%

@@ -92,7 +92,7 @@ ARG * Builder::build() const
 
       ++no_iterations;
 
-      if ( mon && (no_iterations % 10000) == 0)
+      if ( mon && (no_iterations % 50000) == 0)
 	mon->builder_update(arg->no_nodes(),
 			    top_nodes.size(),
 			    no_iterations, time,

@@ -24,7 +24,7 @@ int main(int argc, const char *argv[])
 
     Configuration conf(10,
 		       (const double*)positions, &positions[no_positions],
-		       0.0, 0.0, 0.0, 0.0, 0.0);
+		       0.0, 0.0, 0.0, 0.0, 0);
 
     Builder b(conf);
     ARG *arg = b.build();

@@ -31,8 +31,10 @@ using namespace std;
 namespace options {
   int verbose;
   int print_full_arg;
+  int print_xml;
+
   const char *rc_file;
-  const char *xml_file;
+  const char *output_file;
 }
 
 static struct poptOption cl_options[] = {
@@ -58,10 +60,20 @@ static struct poptOption cl_options[] = {
       "output-file",
       'o',
       POPT_ARG_STRING,
-      &options::xml_file,
+      &options::output_file,
       0,
       "Output file.",
       "outfile"
+    },
+    {
+      "print-xml",
+      'x',
+      POPT_ARG_NONE,
+      &options::print_xml,
+      0,
+      "Write output as XML as opposed to plain text.  The XML output "
+      "contains a lot of details not found in the plain text output.",
+      0
     },
     {
       "print-full-arg",
@@ -69,8 +81,8 @@ static struct poptOption cl_options[] = {
       POPT_ARG_NONE,
       &options::print_full_arg,
       0,
-      "Write the full simulated ARG to the xml file, rather than just the "
-      "leaf-nodes.",
+      "Write the full simulated ARG to the output file, rather than just the "
+      "leaf-nodes.  This flag is only used for XML output.",
       0
     },
 
@@ -288,7 +300,6 @@ static Configuration *parse_rc(const char *rc_file)
 					  gene_conversion_rate,
 					  gene_conversion_length,
 					  growth,
-					  options::print_full_arg,
 					  mon);
 
   set_markers(*conf, markers, low_freq, high_freq, no_values, mutation_rates);
@@ -316,7 +327,7 @@ int main(int argc, const char *argv[])
       return 2;
     }
 
-  if (!options::xml_file)
+  if (!options::output_file)
     {
       std::cerr << "Error: no output file specified!\n";
       return 2;
@@ -327,7 +338,7 @@ int main(int argc, const char *argv[])
   std::srand(time(0));
 
   try {
-    std::ofstream out(options::xml_file);
+    std::ofstream out(options::output_file);
     Configuration *conf = parse_rc(options::rc_file);
     ARG *arg = Simulator::simulate(*conf);
     if (!arg)
@@ -335,7 +346,11 @@ int main(int argc, const char *argv[])
 	std::cout << "Simulation aborted!\n";
 	return 0;
       }
-    out << *arg;
+
+    if (options::print_xml)
+      arg->to_xml(out, options::print_full_arg);
+    else
+      arg->to_text(out);
 
   } catch (std::exception &ex) {
     std::cout << "EXCEPTION: " << ex.what() << std::endl;

@@ -17,7 +17,7 @@ int main(int argc, const char *argv[])
     const double positions[] = { 0.0, 0.2, 0.3, 0.4, 0.67, };
     const size_t no_positions = (sizeof positions)/sizeof(double);
     Configuration conf(2, (const double*)positions, &positions[no_positions],
-		       0.0, 0.0, 0.0, 0.0, true);
+		       0.0, 0.0, 0.0, 0.0);
 
     ARG arg(conf);
 

@@ -140,7 +140,6 @@ void CoasimGuiImpl::simulate()
 		     recomb_rate,
 		     geneconv_rate, geneconv_length,
 		     growth,
-		     !leaves_only,
 		     &i_monitor);
 
   for (int i = 0; i < i_marker_table->numRows(); ++i)
@@ -177,8 +176,10 @@ void CoasimGuiImpl::simulate()
       }
     else
       {
-	xml_file << *arg << std::endl;
+	arg->to_xml(xml_file, !leaves_only);
       }
+
+    delete arg;
 
   } catch (std::exception &ex) {
     QMessageBox::critical(this, "Unexpected Error",

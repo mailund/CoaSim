@@ -103,7 +103,7 @@ int main(int argc, const char *argv[])
 
     Configuration conf(2,
 		       (const double*)positions, &positions[no_positions],
-		       5.0, 250.0, 250.0, 5.0, true);
+		       5.0, 250.0, 250.0, 5.0);
 
     TraitMarker          trait_m(0.0,1.0);
     SNPMarker            snp_m(0.0,1.0);
