@@ -71,8 +71,7 @@ void AddMarkerImpl::add_trait()
 
   _marker_table->sortColumn(0,true,true);
 
-  double next_pos = update_next_position(pos);
-  _trait_pos->setValue(int(POSITION_SCALE_FACTOR*next_pos));
+  _trait_pos->setValue(update_next_position(pos));
 }
 
 void AddMarkerImpl::add_snp()
@@ -90,8 +89,7 @@ void AddMarkerImpl::add_snp()
 
   _marker_table->sortColumn(0,true,true);
 
-  double next_pos = update_next_position(pos);
-  _snp_pos->setValue(int(POSITION_SCALE_FACTOR*next_pos));
+  _snp_pos->setValue(update_next_position(pos));
 }
 
 void AddMarkerImpl::add_ms()
@@ -109,8 +107,7 @@ void AddMarkerImpl::add_ms()
 
   _marker_table->sortColumn(0,true,true);
 
-  double next_pos = update_next_position(pos);
-  _ms_pos->setValue(int(POSITION_SCALE_FACTOR*next_pos + 0.5));
+  _ms_pos->setValue(update_next_position(pos));
 }
 
 void AddMarkerImpl::next_pos_changed(int pos)
@@ -125,16 +122,19 @@ void AddMarkerImpl::next_pos_changed(int pos)
   _ms_pos   ->setValue(pos);
 }
 
-double AddMarkerImpl::update_next_position(double pos)
+int AddMarkerImpl::update_next_position(double pos)
 {
   double cur_next_pos = _next_pos->text().toDouble();
-  if (pos != cur_next_pos) return cur_next_pos;
+  if (pos != cur_next_pos) return int(cur_next_pos*POSITION_SCALE_FACTOR);
 
   double step = _next_pos_step->text().toDouble();
-  double next_pos = cur_next_pos + step;
+
+  int int_cur_next_pos = int(POSITION_SCALE_FACTOR*cur_next_pos);
+  int int_step         = int(POSITION_SCALE_FACTOR*step);
+  int int_pos = int_cur_next_pos + int_step;
 
   // move position -- this automatically updates all that depends on it.
-  _next_pos_slider->setValue(int(POSITION_SCALE_FACTOR*next_pos + 0.5));
+  _next_pos_slider->setValue(int_pos);
 
-  return next_pos;
+  return int_pos;
 }

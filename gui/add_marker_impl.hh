@@ -14,9 +14,9 @@ class AddMarkerImpl : public AddMarkerForm
   bool check_position(double pos) const;
 
   // if pos is the current "next position", increase next position,
-  // otherwise do nothing.  Return the new position pos should be set
-  // to.
-  double update_next_position(double pos);
+  // otherwise do nothing.  Return the new (integer) position pos
+  // should be set to.
+  int update_next_position(double pos);
 
 public:
   AddMarkerImpl( QTable *marker_table,
