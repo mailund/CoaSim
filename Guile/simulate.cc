@@ -196,9 +196,9 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
     core::Configuration *conf 
 	= new core::Configuration(no_leaves,
 				  markers.begin(), markers.end(),
-				  p->rho, p->Q, p->G, p->growth,
-				  options::verbose ? &mon : 0);
-    core::ARG *arg = core::Simulator::simulate(*conf);
+				  p->rho, p->Q, p->G, p->growth);
+    core::ARG *arg = core::Simulator::simulate(*conf,
+					       options::verbose ? &mon : 0);
 
     void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
     ARGData *arg_data = new(mem)ARGData(arg,conf);
