@@ -179,6 +179,7 @@ int main(int argc, const char *argv[])
   CHECK(arg.retired_intervals().at(0).is_start(0.6));
   CHECK(arg.retired_intervals().at(0).is_end  (1.0));
   CHECK(arg.retired_intervals().at(0).leaf_contacts() == 2);
+  CHECK(arg.retired_intervals().at(0).top_node() == c1);
 
 
   ARG::Node *c2 = arg.coalescence(0.0, r1, g2);
@@ -216,6 +217,7 @@ int main(int argc, const char *argv[])
   CHECK(arg.retired_intervals().at(1).is_start(0.3));
   CHECK(arg.retired_intervals().at(1).is_end  (0.5));
   CHECK(arg.retired_intervals().at(1).leaf_contacts() == 2);
+  CHECK(arg.retired_intervals().at(1).top_node() == c2);
 
 
 
@@ -231,10 +233,12 @@ int main(int argc, const char *argv[])
   CHECK(arg.retired_intervals().at(2).is_start(0.0));
   CHECK(arg.retired_intervals().at(2).is_end  (0.3));
   CHECK(arg.retired_intervals().at(2).leaf_contacts() == 2);
+  CHECK(arg.retired_intervals().at(2).top_node() == top);
 
   CHECK(arg.retired_intervals().at(3).is_start(0.5));
   CHECK(arg.retired_intervals().at(3).is_end  (0.6));
   CHECK(arg.retired_intervals().at(3).leaf_contacts() == 2);
+  CHECK(arg.retired_intervals().at(3).top_node() == top);
 
 
   try {
