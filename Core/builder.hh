@@ -16,11 +16,14 @@ namespace core {
 
     struct BuilderMonitor
     {
-	virtual void coalescence_callback(CoalescentNode *n) = 0;
+	virtual void coalescence_callback(CoalescentNode *n,
+					  int k) = 0;
 	virtual void recombination_callback(RecombinationNode *n1,
-					    RecombinationNode *n2) = 0;
+					    RecombinationNode *n2,
+					    int k) = 0;
 	virtual void gene_conversion_callback(GeneConversionNode *n1,
-					      GeneConversionNode *n2) = 0;
+					      GeneConversionNode *n2,
+					      int k) = 0;
     };
 
     class Builder

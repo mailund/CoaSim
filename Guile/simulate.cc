@@ -243,7 +243,7 @@ void ProfileMonitor::builder_termination(unsigned int no_nodes,
 (define arg (simulate p markers 100))
 
 (define coa-times '())
-(define (coa-cb n) (set! coa-times (cons (event-time n) coa-times)))
+(define (coa-cb n k) (set! coa-times (cons (event-time n) coa-times)))
 (simulate p markers 10 :coalescence-callback coa-cb)
 (display "coalescence times:\n")
 (map (lambda (t) (display t)(newline)) coa-times)
@@ -259,15 +259,21 @@ void ProfileMonitor::builder_termination(unsigned int no_nodes,
     </p>
     <ul>
       <li><b>coalescence-callback:</b>
-          called with the single node that is the result of a coalescent event.
+        called with the single node that is the result of a coalescent event,
+        and the number of lineages at the time of the coalescent (i.e.
+        the number of linages just after the event, moving forward in time).
       </li>
       <li><b>recombination-callback:</b>
           called with the two nodes that is the result of a recombination
-          event.
+          event, and the number of lineages at the time of the recombination
+	  (i.e. the number of linages just after the event, moving forward 
+	  in time).
       </li>
       <li><b>geneconversion-callback:</b>
           called with the two nodes that is the result of a gene conversion
-          event.
+          event, and the number of lineages at the time of the gene conversion
+	  (i.e. the number of linages just after the event, moving forward 
+	  in time).
       </li>
     </ul>
   </description>
@@ -307,40 +313,47 @@ public:
 	i_has_gc_cb = true;
     }
 
-    virtual void coalescence_callback(core::CoalescentNode *n);
+    virtual void coalescence_callback(core::CoalescentNode *n, int k);
     virtual void recombination_callback(core::RecombinationNode *n1,
-					core::RecombinationNode *n2);
+					core::RecombinationNode *n2,
+					int k);
     virtual void gene_conversion_callback(core::GeneConversionNode *n1,
-					  core::GeneConversionNode *n2);
+					  core::GeneConversionNode *n2,
+					  int k);
 };
 
-void Callbacks::coalescence_callback(core::CoalescentNode *n)
+void Callbacks::coalescence_callback(core::CoalescentNode *n, int k)
 {
     if (!i_has_coa_cb) return;
     // fake ARG -- real does not exist yet
     SCM node = wrap_coalescent_node(SCM_EOL, n);
-    scm_apply(i_coa_cb, scm_cons(node, SCM_EOL), SCM_EOL);
+    SCM s_k   = scm_int2num(k);
+    scm_apply(i_coa_cb, scm_cons(node, scm_cons(s_k, SCM_EOL)), SCM_EOL);
 }
 void Callbacks::recombination_callback(core::RecombinationNode *n1,
-				       core::RecombinationNode *n2)
+				       core::RecombinationNode *n2,
+				       int k)
 {
     if (!i_has_rc_cb) return;
     // fake ARG -- real does not exist yet
     SCM node1 = wrap_recombination_node(SCM_EOL, n1);
     SCM node2 = wrap_recombination_node(SCM_EOL, n2);
+    SCM s_k   = scm_int2num(k);
     scm_apply(i_rc_cb, 
-	      scm_cons(node1, scm_cons(node2, SCM_EOL)), 
+	      scm_cons(node1, scm_cons(node2, scm_cons(s_k, SCM_EOL))), 
 	      SCM_EOL);
 }
 void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
-					 core::GeneConversionNode *n2)
+					 core::GeneConversionNode *n2,
+					 int k)
 {
     if (!i_has_gc_cb) return;
     // fake ARG -- real does not exist yet
     SCM node1 = wrap_gene_conversion_node(SCM_EOL, n1);
     SCM node2 = wrap_gene_conversion_node(SCM_EOL, n2);
+    SCM s_k   = scm_int2num(k);
     scm_apply(i_gc_cb, 
-	      scm_cons(node1, scm_cons(node2, SCM_EOL)), 
+	      scm_cons(node1, scm_cons(node2, scm_cons(s_k, SCM_EOL))), 
 	      SCM_EOL);
 }
 

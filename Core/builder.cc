@@ -120,7 +120,7 @@ ARG * Builder::build(SimulationMonitor *mon,
 			    {
 				top_nodes.push(coa_node);
 				if (callbacks)
-				    callbacks->coalescence_callback(coa_node);
+				    callbacks->coalescence_callback(coa_node,k);
 			    }
 		    }
 		    break;
@@ -155,7 +155,8 @@ ARG * Builder::build(SimulationMonitor *mon,
 
 			    if (callbacks)
 				callbacks->gene_conversion_callback(pair.first,
-								    pair.second);
+								    pair.second,
+								    k);
 
 			} catch (ARG::null_event&) {
 			    top_nodes.push(child);
@@ -182,7 +183,8 @@ ARG * Builder::build(SimulationMonitor *mon,
 
 			    if (callbacks)
 				callbacks->recombination_callback(pair.first,
-								  pair.second);
+								  pair.second,
+								  k);
 
 			} catch (ARG::null_event&) {
 			    top_nodes.push(child);
