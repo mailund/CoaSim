@@ -1,6 +1,7 @@
 #!/bin/bash
 
-version=3.0.1
+core_version=3.0.1
+version=3.0.2
 release=1
 
 (cd Core; make dist)
@@ -8,11 +9,11 @@ release=1
 mkdir coasim-gui-${version}
 cd coasim-gui-${version}
 
-tar zxvf ../Core/coasim-core-${version}.tar.gz
-rm ../Core/coasim-core-${version}.tar.gz
+tar zxvf ../Core/coasim-core-${core_version}.tar.gz
+rm ../Core/coasim-core-${core_version}.tar.gz
 tar zxvf ../GUI/coasim_gui.tar.gz
 rm ../GUI/coasim_gui.tar.gz
-mv coasim-core-${version} Core
+mv coasim-core-${core_version} Core
 mv coasim_gui GUI
 
 cp ../GUI/coasim_gui .

@@ -17,7 +17,7 @@
 	     ((coasim SNP haplotypes) :select (split-in-cases-controls)))
 
 
-(define rho 200) ; rho=200 ... for pop.size ~10,000 this is a mutation
+(define rho 400) ; rho=400 ... for pop.size ~10,000 this is a mutation
 		 ; rate of 0.01, or about a centi-Morgan
 (define Q 0)     ; zero geneconversion mean  tract length
 (define G 0)     ; zero geneconversion rate

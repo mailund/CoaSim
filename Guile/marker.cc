@@ -88,6 +88,25 @@ print_ms_marker (SCM marker_smob, SCM port, scm_print_state *pstate)
     return 1;
 }
 
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="trait-marker">
+  <brief>Creates a trait marker on the simulated region.</brief>
+  <prototype>(trait-marker position low-freq high-freq)</prototype>
+  <example>(trait-marker 0.5 0.18 0.22)</example>
+  <description>
+    <p>
+      Creates a trait marker on the simulated region.  The first
+      parameter determines the position (between 0 and 1) along the
+      region, the second the lowest frequency accepted for the
+      mutation type, and the third the highest frequency accepted for the
+      mutation type.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM
 trait_marker(SCM s_position, SCM s_low_freq, SCM s_high_freq)
 {
@@ -100,6 +119,25 @@ trait_marker(SCM s_position, SCM s_low_freq, SCM s_high_freq)
     SCM_RETURN_NEWSMOB(guile::trait_marker_tag, m);
 }
 
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="snp-marker">
+  <brief>Creates a SNP marker on the simulated region.</brief>
+  <prototype>(snp-marker position low-freq high-freq)</prototype>
+  <example>(snp-marker 0.5 0.1 0.9)</example>
+  <description>
+    <p>
+      Creates a SNP marker on the simulated region.  The first
+      parameter determines the position (between 0 and 1) along the
+      region, the second the lowest frequency accepted for the
+      mutation type, and the third the highest frequency accepted for the
+      mutation type.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM
 snp_marker(SCM s_position, SCM s_low_freq, SCM s_high_freq)
 {
@@ -112,6 +150,24 @@ snp_marker(SCM s_position, SCM s_low_freq, SCM s_high_freq)
     SCM_RETURN_NEWSMOB(guile::snp_marker_tag, m);
 }
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="ms-marker">
+  <brief>Creates a micro-satellite marker on the simulated region.</brief>
+  <prototype>(ms-marker position mu K)</prototype>
+  <example>(ms-marker 0.5 0.2 10)</example>
+  <description>
+    <p>
+      Creates a micro-satellite marker on the simulated region.  The
+      first parameter determines the position (between 0 and 1) along
+      the region, the second the mutation rate of the marker, and the
+      third the size of the alphabet for the marker (in the K allele
+      model).
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM
 ms_marker(SCM s_position, SCM s_mu, SCM s_alphabet_size)
 {
@@ -126,24 +182,83 @@ ms_marker(SCM s_position, SCM s_mu, SCM s_alphabet_size)
     SCM_RETURN_NEWSMOB(guile::ms_marker_tag, m);
 }
 
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="trait-marker?">
+  <brief>A predicate that evalutes to true for trait markers only.</brief>
+  <prototype>(trait-marker? marker)</prototype>
+  <example>(trait-marker? marker)</example>
+  <description>
+    <p>
+     A predicate that evalutes to true for trait markers and false for
+     all other types.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM
 trait_marker_p(SCM marker_smob)
 {
     return SCM_BOOL(SCM_SMOB_PREDICATE(guile::trait_marker_tag, marker_smob));
 }
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="snp-marker?">
+  <brief>A predicate that evalutes to true for SNP markers only.</brief>
+  <prototype>(snp-marker? marker)</prototype>
+  <example>(snp-marker? marker)</example>
+  <description>
+    <p>
+     A predicate that evalutes to true for SNP markers and false for
+     all other types.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM
 snp_marker_p(SCM marker_smob)
 {
     return SCM_BOOL(SCM_SMOB_PREDICATE(guile::snp_marker_tag, marker_smob));
 }
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="ms-marker?">
+  <brief>A predicate that evalutes to true for micro-satellite markers only.</brief>
+  <prototype>(ms-marker? marker)</prototype>
+  <example>(ms-marker? marker)</example>
+  <description>
+    <p>
+     A predicate that evalutes to true for micro-satellite  markers and false
+     for all other types.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM
 ms_marker_p(SCM marker_smob)
 {
     return SCM_BOOL(SCM_SMOB_PREDICATE(guile::ms_marker_tag, marker_smob));
 }
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="position">
+  <brief>Returns the position of a marker.</brief>
+  <prototype>(position marker)</prototype>
+  <example>(position marker)</example>
+  <description>
+    <p>Returns the position of a marker.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM
 position(SCM marker_smob)
 {

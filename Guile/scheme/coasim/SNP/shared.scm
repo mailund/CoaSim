@@ -5,6 +5,16 @@
 
 ;;; Commentary:
 
+;; --<GUILE COMMENT>---------------------------------------------
+
+;; <module name="(coasim SNP shared)">
+;;  <brief>
+;;    This module contains functions for manipulating SNP data, both
+;;    haplotype and genotype.
+;;  </brief>
+
+;; -----</GUILE COMMENT>----------------------------------------- 
+
 ;;; This module contains functions for manipulating SNP data, both
 ;;; haplotype and genotype.
 
@@ -14,9 +24,23 @@
   :use-module ((srfi srfi-1) :select (take drop)))
 
 (define-public (split-in-cases-controls haplotypes trait-idx is-case?)
-  "Split a dataset into cases and controls, based on the value at
-trait-idx.  If the value at that index satisfy the is-case? predicate,
-the haplotype is considered a case, otherwise a control."
+  "
+   --<GUILE COMMENT>---------------------------------------------
+   <method name='split-in-cases-controls'>
+    <brief>Split a list of haplotypes into cases and controls.</brief>
+    <prototype>(split-in-cases-controls haplotypes trait-idx is-case?)</prototype>
+    <example>(let ((is-case? (lambda (h) (= 1 (list-ref h trait-idx)))))
+    (split haplotypes trait-idx is-case?)))</example>
+    <description>
+     <p>
+      Split a dataset into cases and controls, based on the value at
+      trait-idx.  If the value at that index satisfy the is-case? predicate,
+      the haplotype is considered a case, otherwise a control.
+     </p>
+    </description>
+   </method>
+   -----</GUILE COMMENT>----------------------------------------- 
+   "
   (letrec ((strip-trait (lambda (h)
 			  (let ((first (take h trait-idx))
 				(rest  (drop h (+ 1 trait-idx))))
@@ -32,3 +56,7 @@ the haplotype is considered a case, otherwise a control."
 			  cases
 			  (cons (strip-trait (car lst)) controls)))))))
     (f haplotypes '() '())))
+
+;; --<GUILE COMMENT>---------------------------------
+;; </module>
+;; --</GUILE COMMENT>--------------------------------

@@ -38,6 +38,28 @@ print_arg_parameters (SCM p_smob, SCM port, scm_print_state *pstate)
     return 1;
 }
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="arg-parameters">
+  <brief>Creates a parameter set for the ARG building.</brief>
+  <prototype>(arg-parameters rho Q G beta)</prototype>
+  <example>(define p (arg-parameters 400 0 0 0))</example>
+  <description>
+    <p>
+      Creates a parameter set for the ARG building
+    </p>
+    <p>
+     The first parameter is the recombination rate <em>rho</em> (4Nc).
+     The second parameter is the geneconversion mean tract length.
+     The third parameter is the geneconversion rate.
+     The fourth parameter is the exponentional growth parameter.
+    </p>
+  </description>
+</method>
+
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
 static SCM
 arg_parameters(SCM s_rho, SCM s_G, SCM s_Q, SCM s_growth)
 {

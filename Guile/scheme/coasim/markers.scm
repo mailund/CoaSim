@@ -5,7 +5,14 @@
 
 ;;; Commentary:
 
-;;; This module contains functions manipulating sorted lists of markers.
+;; --<GUILE COMMENT>---------------------------------------------
+
+;; <module name="(coasim markers)">
+;;  <brief>
+;;    This module contains functions manipulating sorted lists of markers.
+;;  </brief>
+
+;; -----</GUILE COMMENT>----------------------------------------- 
 
 ;;; Code:
 
@@ -13,14 +20,42 @@
   :use-module ((coasim) :select (position)))
 
 (define-public (sort-markers markers)
-  "Sorts a list of markers wrt. their position."
+  "
+   --<GUILE COMMENT>---------------------------------------------
+   <method name='sort-markers'>
+    <brief>Sort a list of markers.</brief>
+    <prototype>(sort-markers marker-list)</prototype>
+    <example>(sort-markers marker-list)</example>
+    <description>
+     <p>
+      Sort a list of markers with relation to their position.
+     </p>
+    </description>
+   </method>
+   -----</GUILE COMMENT>----------------------------------------- 
+  "
   (sort markers (lambda (m1 m2) (< (position m1) (position m2)))))
 
 
 (define-public (insert-sorted-idx sorted-list marker)
-  "This function inserts a marker into a sorted list of markers and
-return a list who's first element is the resulting list and who's
-second element is the index the marker got in the new list."
+  "
+   --<GUILE COMMENT>---------------------------------------------
+   <method name='insert-sorted-idx'>
+    <brief>Inserts a marker in a sorted list of markers..</brief>
+    <prototype>(insert-sorted-idx marker-list marker)</prototype>
+    <example> (define snp-markers (make-random-snp-markers 10 0.1 0.9))
+ (define disease-marker (car (make-random-trait-markers 1 0.18 0.22)))
+ (define markers-and-index (insert-sorted-idx snp-markers disease-marker))</example>
+    <description>
+     <p>
+      This function inserts a marker into a sorted list of markers and
+      return a list who's first element is the resulting list and who's
+      second element is the index the marker got in the new list.
+     </p>
+    </description>
+   </method>
+   -----</GUILE COMMENT>----------------------------------------- 
+  "
   (letrec ((p (position marker))
 	   (f (lambda (lst i c)
 		(cond ((null? lst) (list (c (list marker)) i))
@@ -35,7 +70,24 @@ second element is the index the marker got in the new list."
 
 
 (define-public (insert-sorted sorted-list marker)
-  "This function inserts a marker into a sorted list of markers and
-return the resulting list."
+  "
+   --<GUILE COMMENT>---------------------------------------------
+   <method name='insert-sorted'>
+    <brief>Inserts a marker in a sorted list of markers.</brief>
+    <prototype>(insert-sorted sorted-marker-list marker)</prototype>
+    <example>(insert-sorted sorted-marker-list marker)</example>
+    <description>
+     <p>
+      This function inserts a marker into a sorted list of markers and
+      return the resulting list.
+     </p>
+    </description>
+   </method>
+   -----</GUILE COMMENT>----------------------------------------- 
+  "
   (let ((list-and-index (insert-sorted-idx sorted-list marker)))
     (car list-and-index)))
+
+;; --<GUILE COMMENT>---------------------------------
+;; </module>
+;; --</GUILE COMMENT>--------------------------------

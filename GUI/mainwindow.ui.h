@@ -38,12 +38,12 @@ void MainWindow::init()
     // doing this manually since there is a bug in uic
     // <URL:http://lists.trolltech.com/qt-interest/2003-02/thread00173-0.html>
     traitMarkerTable->horizontalHeader()->setLabel(0, tr("Position"));
-    traitMarkerTable->horizontalHeader()->setLabel(1, tr("High Freq."));
-    traitMarkerTable->horizontalHeader()->setLabel(2, tr("Low Freq."));
+    traitMarkerTable->horizontalHeader()->setLabel(1, tr("Low Freq."));
+    traitMarkerTable->horizontalHeader()->setLabel(2, tr("High Freq."));
 
     SNPMarkerTable->horizontalHeader()->setLabel(0, tr("Position"));
-    SNPMarkerTable->horizontalHeader()->setLabel(1, tr("High Freq."));
-    SNPMarkerTable->horizontalHeader()->setLabel(2, tr("Low Freq."));
+    SNPMarkerTable->horizontalHeader()->setLabel(1, tr("Low Freq."));
+    SNPMarkerTable->horizontalHeader()->setLabel(2, tr("High Freq."));
 
     MSMarkerTable->horizontalHeader()->setLabel(0, tr("Position"));
     MSMarkerTable->horizontalHeader()->setLabel(1, tr("Alphabet Size"));

@@ -51,6 +51,7 @@ dist_test_input_DATA =
 
 dist_test_input_DATA += test-input/snp-haplotype.scm
 dist_test_input_DATA += test-input/snp-haplotype-split.scm
+dist_test_input_DATA += test-input/ms.scm
 
 
 schemedir = ${prefix}/share/coasim/scheme

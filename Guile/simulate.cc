@@ -161,6 +161,23 @@ void CLISimMonitor::simulation_terminated()
 }
 
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="simulate">
+  <brief>Simulate an ARG and corresponding sequences.</brief>
+  <prototype>(simulate arg-parameters marker-list no-leaves)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate p markers 100))</example>
+  <description>
+    <p>
+      Simulate an ARG and corresponding sequences, based ARG parameters, 
+      a list of markers, and the number of markers to simulate.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM
 simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
 {
@@ -217,6 +234,22 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
     return SCM_EOL;
 }
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="save-sequences">
+  <brief>Save the sequences from a simulated ARG to a file.</brief>
+  <prototype>(save-sequences arg file-name)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate p markers 100))
+(save-sequences arg "haplotypes.txt")</example>
+  <description>
+    <p>Save the sequences from a simulated ARG to a file.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM 
 save_sequences(SCM arg_data_smob, SCM s_filename)
 {
@@ -237,11 +270,26 @@ save_sequences(SCM arg_data_smob, SCM s_filename)
     return SCM_EOL;
 }
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="sequences">
+  <brief>Returns the simulated sequences of an ARG as a list of lists.</brief>
+  <prototype>(sequences arg)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define haplotypes (let ((arg (simulate p markers 100))) (sequences arg)))</example>
+  <description>
+    <p>Returns the simulated sequences of an ARG as a list of lists.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
 static SCM 
 sequences(SCM arg_data_smob)
 {
     SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
-	       arg_data_smob, SCM_ARG1, "save-sequences");
+	       arg_data_smob, SCM_ARG1, "sequences");
 
     ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
 

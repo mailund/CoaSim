@@ -5,7 +5,14 @@
 
 ;;; Commentary:
 
-;;; This module contains functions making random marker configurations.
+;; --<GUILE COMMENT>---------------------------------------------
+
+;; <module name="(coasim rand)">
+;;  <brief>
+;;    This module contains functions making random marker configurations.
+;;  </brief>
+
+;; -----</GUILE COMMENT>----------------------------------------- 
 
 ;;; Code:
 
@@ -39,6 +46,56 @@
 	  (f (lambda (pos) (constructor pos first-arg second-arg))))
       (map f positions))))
 
+
+
+;; --<GUILE COMMENT>---------------------------------------------
+
+;; <method name='make-random-trait-markers'>
+;;  <brief>Make a list of random trait markers.</brief>
+;;  <prototype>(make-random-trait-markers no-markers low-freq high-freq)</prototype>
+;;  <example>(define disease-marker (car (make-random-trait-markers 1 0.18 0.22)))</example>
+;;  <description>
+;;   <p>
+;;    Make a list of random positioned trait markers.  The low and 
+;;    high frequency constraints are similar to the `trait-marker'
+;;    function.
+;;   </p>
+;;  </description>
+;; </method>
+
+;; <method name='make-random-snp-markers'>
+;;  <brief>Make a list of random SNP markers.</brief>
+;;  <prototype>(make-random-snp-markers no-markers low-freq high-freq)</prototype>
+;;  <example>(define snp-markers (make-random-snp-markers 10 0.1 0.9))</example>
+;;  <description>
+;;   <p>
+;;    Make a list of random positioned SNP markers.  The low and 
+;;    high frequency constraints are similar to the `snp-marker'
+;;    function.
+;;   </p>
+;;  </description>
+;; </method>
+
+;; <method name='make-random-ms-markers'>
+;;  <brief>Make a list of random micro-satellite markers.</brief>
+;;  <prototype>(make-random-ms-markers no-markers mu K)</prototype>
+;;  <example>(define snp-markers (make-random-ms-markers 10 0.1 15))</example>
+;;  <description>
+;;   <p>
+;;    Make a list of random positioned micro-satellite markers.  The mu and K
+;;    parameters are similar to the `ms-marker' function.
+;;   </p>
+;;  </description>
+;; </method>
+
+;; --</GUILE COMMENT>--------------------------------
+
+
 (define-public make-random-trait-markers (make-marker trait-marker))
 (define-public make-random-snp-markers   (make-marker snp-marker))
 (define-public make-random-ms-markers    (make-marker ms-marker))
+
+
+;; --<GUILE COMMENT>---------------------------------
+;; </module>
+;; --</GUILE COMMENT>--------------------------------
