@@ -1,5 +1,4 @@
 
-(define p (arg-parameters 50 0 0 0))
 (define markers
   (list (snp-marker   0.1 0.1 0.9)
 	(snp-marker   0.2 0.1 0.9)
@@ -7,7 +6,7 @@
 	(ms-marker    0.4 0.5 4)
 	(snp-marker   0.6 0.1 0.9)))
 
-(define arg (simulate p markers 10 :random-seed 100))
+(define arg (simulate markers 10 :rho 50 :random-seed 100))
 
 (save-sequences arg "seq.out")
 (define seqs (sequences arg))
@@ -36,29 +35,25 @@
 (newline)
 
 (catch 'wrong-number-of-args
-       (lambda () (simulate p))
+       (lambda () (simulate))
        (lambda (key . args) (display key)(newline)))
 
 (catch 'wrong-number-of-args
-       (lambda () (simulate p markers))
-       (lambda (key . args) (display key)(newline)))
-
-(catch 'wrong-type-arg
-       (lambda () (simulate 0 markers 10))
+       (lambda () (simulate markers))
        (lambda (key . args) (display key)(newline)))
 
 (catch #t
-       (lambda () (simulate p 0 10))
+       (lambda () (simulate 0 10))
        (lambda (key . args) (display key)(newline)))
 
 (define overlapping-markers
   (list (snp-marker 0 0.1 0.9) (snp-marker 0 0.1 0.9)))
 (catch 'out-of-sequence
-       (lambda () (simulate p overlapping-markers 10))
+       (lambda () (simulate overlapping-markers 10))
        (lambda (key . args) (display key)(display " ")(display args)(newline)))
 
 (define out-of-sequence-markers
   (list (snp-marker 0.1 0.1 0.9) (snp-marker 0.0 0.1 0.9)))
 (catch 'out-of-sequence
-       (lambda () (simulate p out-of-sequence-markers 10))
+       (lambda () (simulate out-of-sequence-markers 10))
        (lambda (key . args) (display key)(display " ")(display args)(newline)))

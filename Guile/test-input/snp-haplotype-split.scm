@@ -1,7 +1,8 @@
 
 ;;; CoaSim -- A coalescence process simulator
 ;;;
-;;; Copyright (C) 2004 by Bioinformatics ApS <URL:http://bioinformatics.dk>
+;;; Copyright (C) 2004, 2005 by Bioinformatics ApS
+;;;                             <URL:http://bioinformatics.dk>
 
 ;;; Example of a SNP haplotype simulation, where the resulting
 ;;; haplotypes are separated into a set of affected (disease cases)
@@ -19,11 +20,6 @@
 
 (define rho 400) ; rho=400 ... for pop.size ~10,000 this is a mutation
 		 ; rate of 0.01, or about a centi-Morgan
-(define Q 0)     ; zero geneconversion mean  tract length
-(define G 0)     ; zero geneconversion rate
-(define beta 0)  ; no exponential growth
-
-(define p (arg-parameters rho Q G beta))
 
 ;; Make SNP markers the random positions, accepting the SNP mutations
 ;; if between 10% and 90% of the final chromosomes have the mutant.
@@ -39,7 +35,7 @@
 (define trait-idx (cadr markers-and-index))
 
 ;; Simulate to get 100 haplotypes
-(define haplotypes (let ((arg (simulate p markers 100))) (sequences arg)))
+(define haplotypes (let ((arg (simulate markers 100 :rho rho))) (sequences arg)))
 
 ;; Split in cases and controls, based on trait marker
 (define cases-and-controls (split-in-cases-controls haplotypes trait-idx))

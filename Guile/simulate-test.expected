@@ -12,6 +12,5 @@
 wrong-number-of-args
 wrong-number-of-args
 wrong-type-arg
-wrong-type-arg
 out-of-sequence ((snp-marker 0.0 0.1 0.9) (snp-marker 0.0 0.1 0.9))
 out-of-sequence ((snp-marker 0.1 0.1 0.9) (snp-marker 0.0 0.1 0.9))

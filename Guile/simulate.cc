@@ -367,18 +367,19 @@ void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
 }
 
 static SCM
-simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves,
+simulate(SCM s_markers, SCM s_no_leaves,
+	 SCM s_rho, SCM s_G, SCM s_Q, SCM s_beta,
 	 SCM coa_cb, SCM rc_cb, SCM gc_cb, SCM s_random_seed)
 {
     using namespace std;
 
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_parameters_tag, 
-				  arg_parameters_smob),
-	       arg_parameters_smob, SCM_ARG1, "simulate");
     SCM_ASSERT(SCM_NFALSEP(scm_list_p(s_markers)),
-	       s_markers, SCM_ARG2, "simulate");
+	       s_markers, SCM_ARG1, "simulate");
 
-    ARGParameters *p = (ARGParameters*) SCM_SMOB_DATA(arg_parameters_smob);
+    double rho  = scm_num2dbl(s_rho,  "simulate");
+    double Q    = scm_num2dbl(s_Q,    "simulate");
+    double G    = scm_num2dbl(s_G,    "simulate");
+    double beta = scm_num2dbl(s_beta, "simulate");
 
     SCM itr_markers = s_markers;
     vector<core::Marker*> markers;
@@ -398,39 +399,40 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves,
 	    itr_markers = SCM_CDR(itr_markers);
 	}
 
-    int no_leaves = scm_num2int(s_no_leaves, SCM_ARG3, "simulate");
+    int no_leaves = scm_num2int(s_no_leaves, SCM_ARG2, "simulate");
 
     bool has_cb = false;
     Callbacks cb;
     if (coa_cb != SCM_EOL)
 	{
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(coa_cb)),
-		       coa_cb, SCM_ARG4, "c-simulate");
+		       coa_cb, SCM_ARG7, "c-simulate");
 	    cb.set_coa_cb(coa_cb);
 	    has_cb = true;
 	}
     if (rc_cb != SCM_EOL)
 	{
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(rc_cb)),
-		       rc_cb, SCM_ARG5, "c-simulate");
+		       rc_cb, 8, "c-simulate");
 	    cb.set_rc_cb(rc_cb);
 	    has_cb = true;
 	}
     if (gc_cb != SCM_EOL)
 	{
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(gc_cb)),
-		       gc_cb, SCM_ARG6, "c-simulate");
+		       gc_cb, 9, "c-simulate");
 	    cb.set_gc_cb(gc_cb);
 	    has_cb = true;
 	}
 
-    unsigned int seed = scm_num2int(s_random_seed, SCM_ARG7, "simulate");
+    unsigned int seed = scm_num2int(s_random_seed, 10, "simulate");
 
     try {
 	auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
 	auto_ptr<core::Configuration> conf(new core::Configuration(no_leaves,
 								   markers.begin(), markers.end(),
-								   p->rho, p->Q, p->G, p->growth));
+								   rho, Q, G, 
+								   beta));
 	auto_ptr<core::ARG> arg(core::Simulator::simulate(*conf, 
 							  monitor.get(),
 							  has_cb ? &cb : 0,
@@ -680,16 +682,20 @@ guile::install_simulate()
     guile::arg_tag = scm_make_smob_type("arg", sizeof(ARGData));
     scm_set_smob_free(guile::arg_tag, free_arg);
 
-    scm_c_define_gsubr("c-simulate", 7, 0, 0, 
+    scm_c_define_gsubr("c-simulate", 10, 0, 0, 
 		       (scm_unused_struct*(*)())simulate);
-    scm_c_eval_string("(read-set! keywords 'prefix)"
-		      "(use-modules (ice-9 optargs))"
-		      "(define (simulate p ms n . args)"
-		      "  (let-keywords args #f ((coalescence-callback '())"
+    scm_c_eval_string("(use-modules (ice-9 optargs))"
+		      "(define (simulate ms n . args)"
+		      "  (let-keywords args #f ((rho  0)"
+		      "                         (G    0)"
+		      "                         (Q    0)"
+		      "                         (beta 0)"
+		      "                         (coalescence-callback '())"
 		      "                         (recombination-callback '())"
 		      "                         (geneconversion-callback '())"
 		      "                         (random-seed 0))"
-		      "		(c-simulate p ms n"
+		      "		(c-simulate ms n"
+		      "                     rho G Q beta"
 		      "                     coalescence-callback"
 		      "                     recombination-callback"
 		      "                     geneconversion-callback"

@@ -14,11 +14,6 @@
 
 (define rho 400) ; rho=400 ... for pop.size ~10,000 this is a mutation
 		 ; rate of 0.01, or about a centi-Morgan
-(define Q 0)     ; zero geneconversion mean  tract length
-(define G 0)     ; zero geneconversion rate
-(define beta 0)  ; no exponential growth
-
-(define p (arg-parameters rho Q G beta))
 
 ;; Simulate 3 datasets with 10 haplotypes with 5 markers
 (define no-haplotypes 10)
@@ -43,7 +38,7 @@
 	 (markers (make-random-snp-markers no-markers 0.1 0.9))
 
 	 ;; simulate to get the arg and haplotypes
-	 (arg (simulate p markers no-haplotypes)))
+	 (arg (simulate markers no-haplotypes :rho rho)))
 
     (newline)
     (display "//\n")

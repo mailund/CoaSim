@@ -10,9 +10,6 @@
 #ifndef GUILE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
-#ifndef GUILE__ARG_PARAMETERS_HH_INCLUDED
-# include "arg_parameters.hh"
-#endif
 #ifndef GUILE__OPTIONS_HH_INCLUDED
 # include "options.hh"
 #endif
@@ -140,7 +137,6 @@ static void
 init_scheme_bindings(void *dummy)
 {
     guile::install_marker();
-    guile::install_arg_parameters();
     guile::install_nodes();
     guile::install_intervals();
     guile::install_simulate();
@@ -180,6 +176,9 @@ main(int argc, const char *argv[])
 	    }
 
 	scm_init_guile();
+
+	// let use use :keyword instead of #:keyword
+	scm_c_eval_string("(read-set! keywords 'prefix)");
 
 	// setup path to our scheme extensions -- FIXME: should this
 	// path be this hard-wired?
