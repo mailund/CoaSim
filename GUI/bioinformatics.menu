@@ -1,0 +1,18 @@
+<Menu>
+        <Name>Applications</Name>
+
+        <DefaultAppDirs/>
+        <DefaultDirectoryDirs/>
+
+        <Menu>
+
+                <Name>Bioinformatics</Name>
+                <Directory>Bioinformatics.directory</Directory>
+                <Include>
+                        <Category>Bioinformatics</Category>
+                        <Category>BioinformaticsAps-Bioinformatics</Category>
+                </Include>
+
+        </Menu>
+
+</Menu>
