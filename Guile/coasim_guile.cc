@@ -16,6 +16,12 @@
 #ifndef GUILE__OPTIONS_HH_INCLUDED
 # include "options.hh"
 #endif
+#ifndef GUILE__NODES_HH_INCLUDED
+# include "nodes.hh"
+#endif
+#ifndef GUILE__INTERVALS_HH_INCLUDED
+# include "intervals.hh"
+#endif
 #ifndef GUILE__SIMULATE_HH_INCLUDED
 # include "simulate.hh"
 #endif
@@ -135,6 +141,8 @@ init_scheme_bindings(void *dummy)
 {
     guile::install_marker();
     guile::install_arg_parameters();
+    guile::install_nodes();
+    guile::install_intervals();
     guile::install_simulate();
 }
 

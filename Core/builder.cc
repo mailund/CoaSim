@@ -64,7 +64,8 @@ namespace
 }
 
 
-ARG * Builder::build(SimulationMonitor *mon) const
+ARG * Builder::build(SimulationMonitor *mon,
+		     BuilderMonitor    *callbacks) const
 {
     using namespace Distribution_functions;
 
@@ -113,10 +114,14 @@ ARG * Builder::build(SimulationMonitor *mon) const
 
 			Node *child1 = top_nodes.pop();
 			Node *child2 = top_nodes.pop();
-			Node *coa_node = arg->coalescence(time, child1, child2);
+			CoalescentNode *coa_node = arg->coalescence(time, child1, child2);
 
 			if (coa_node->intervals().size() > 0)
-			    top_nodes.push(coa_node);
+			    {
+				top_nodes.push(coa_node);
+				if (callbacks)
+				    callbacks->coalescence_callback(coa_node);
+			    }
 		    }
 		    break;
 	  
@@ -139,16 +144,23 @@ ARG * Builder::build(SimulationMonitor *mon) const
 			if (stop-start <= 0.0) break;
 
 			Node *child = top_nodes.pop();
-			ARG::node_pair_t pair = arg->gene_conversion(time,child,
-								     start,stop);
-			if (pair.second == 0) 
-			    top_nodes.push(child);
-			else {
+			try {
+			    ARG::gene_conv_node_pair_t pair
+				= arg->gene_conversion(time,child,
+						       start,stop);
 			    if (pair.first->intervals().size() > 0)
 				top_nodes.push(pair.first); 
 			    if (pair.second->intervals().size() > 0)
 				top_nodes.push(pair.second); 
+
+			    if (callbacks)
+				callbacks->gene_conversion_callback(pair.first,
+								    pair.second);
+
+			} catch (ARG::null_event&) {
+			    top_nodes.push(child);
 			}
+
 		    }
 		    break;
 
@@ -158,15 +170,22 @@ ARG * Builder::build(SimulationMonitor *mon) const
 
 			double cross_over_point = uniform();
 			Node *child = top_nodes.pop();
-			ARG::node_pair_t pair = arg->recombination(time,child,
-								   cross_over_point);
-			if (pair.second == 0) 
-			    top_nodes.push(child);
-			else { 
+
+			try {
+			    ARG::recomb_node_pair_t pair
+				= arg->recombination(time,child,
+						     cross_over_point);
 			    if (pair.first->intervals().size() > 0)
 				top_nodes.push(pair.first); 
 			    if (pair.second->intervals().size() > 0)
 				top_nodes.push(pair.second); 
+
+			    if (callbacks)
+				callbacks->recombination_callback(pair.first,
+								  pair.second);
+
+			} catch (ARG::null_event&) {
+			    top_nodes.push(child);
 			}
 		    }
 		    break;

@@ -83,22 +83,20 @@ int main(int argc, const char *argv[])
 	    CHECK(l2->surface_at_point(conf.position(i)) == 0.0);
 
 
-	ARG::node_pair_t p;
+	ARG::recomb_node_pair_t rp = arg.recombination(0.0,l1,0.0);
+	CHECK(rp.first == l1);
+	CHECK(rp.second == 0);
 
-	p = arg.recombination(0.0,l1,0.0);
-	CHECK(p.first == l1);
-	CHECK(p.second == 0);
+	rp = arg.recombination(0.0,l1,1.0);
+	CHECK(rp.first == l1);
+	CHECK(rp.second == 0);
 
-	p = arg.recombination(0.0,l1,1.0);
-	CHECK(p.first == l1);
-	CHECK(p.second == 0);
+	rp = arg.recombination(1.0,l1,0.5);
+	CHECK(rp.first != 0);
+	CHECK(rp.second != 0);
 
-	p = arg.recombination(1.0,l1,0.5);
-	CHECK(p.first != 0);
-	CHECK(p.second != 0);
-
-	Node *r1 = p.first;
-	Node *r2 = p.second;
+	Node *r1 = rp.first;
+	Node *r2 = rp.second;
 
 	// current ARG:
 	//
@@ -161,36 +159,45 @@ int main(int argc, const char *argv[])
 	CHECK(l2->leaves_at_point(0.6) == 1);
 
 
-	p = arg.recombination(0.0, r2, 0.25);
-	CHECK(p.first == r2);
-	CHECK(p.second == 0);
+	try {
+	    rp = arg.recombination(0.0, r2, 0.25);
+	    ERROR("null event");
+	} catch(ARG::null_event&) {}
 
-	p = arg.recombination(0.0, r2, 0.5);
-	CHECK(p.first == r2);
-	CHECK(p.second == 0);
+	try {
+	    rp = arg.recombination(0.0, r2, 0.5);
+	    ERROR("null event");
+	} catch(ARG::null_event&) {}
 
-	p = arg.recombination(0.0, r1, 0.5);
-	CHECK(p.first == r1);
-	CHECK(p.second == 0);
+	try {
+	    rp = arg.recombination(0.0, r1, 0.5);
+	    ERROR("null event");
+	} catch(ARG::null_event&) {}
 
-	p = arg.recombination(0.0, r1, 0.75);
-	CHECK(p.first == r1);
-	CHECK(p.second == 0);
+	try {
+	    rp = arg.recombination(0.0, r1, 0.75);
+	    ERROR("null event");
+	} catch(ARG::null_event&) {}
 
-	p = arg.gene_conversion(0.0, r2, 0.25, 0.45);
-	CHECK(p.first == r2);
-	CHECK(p.second == 0);
 
-	p = arg.gene_conversion(0.0, r2, 0.25, 0.50);
-	CHECK(p.first == r2);
-	CHECK(p.second == 0);
+	ARG::gene_conv_node_pair_t gp;
+	
+	try {
+	    gp = arg.gene_conversion(0.0, r2, 0.25, 0.45);
+	    ERROR("null event");
+	} catch (ARG::null_event&) {}
 
-	p = arg.gene_conversion(2.0, l2, 0.30, 0.60);
-	CHECK(p.first != 0);
-	CHECK(p.second != 0);
+	try {
+	    gp = arg.gene_conversion(0.0, r2, 0.25, 0.50);
+	    ERROR("null event");
+	} catch (ARG::null_event&) {}
 
-	Node *g1 = p.first;
-	Node *g2 = p.second;
+	gp = arg.gene_conversion(2.0, l2, 0.30, 0.60);
+	CHECK(gp.first != 0);
+	CHECK(gp.second != 0);
+
+	Node *g1 = gp.first;
+	Node *g2 = gp.second;
 
 	// current ARG:
 	//                             (g1: [0-0.3)[0.6-1.0) )     (g2: [0.3--0.6) )

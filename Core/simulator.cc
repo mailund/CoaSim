@@ -27,7 +27,8 @@
 using namespace core;
 
 ARG *
-core::Simulator::simulate(const Configuration &conf, SimulationMonitor *mon)
+core::Simulator::simulate(const Configuration &conf, SimulationMonitor *mon,
+			  BuilderMonitor *build_callbacks)
 {
     Builder builder(conf);
     Descender descender(conf);
@@ -44,7 +45,7 @@ core::Simulator::simulate(const Configuration &conf, SimulationMonitor *mon)
     retry:
 	try {
 	    if (mon) mon->start_arg_building(conf.no_leaves());
-	    arg = builder.build(mon);
+	    arg = builder.build(mon, build_callbacks);
 	    if (mon) mon->start_mutating();
 	    descender.evolve(*arg, mon);
 	} catch (Mutator::retry_arg&) {

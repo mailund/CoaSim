@@ -41,11 +41,11 @@ static ARG *build_arg(Configuration &conf)
     //
     //   (l1: [0---1) )    (l2: [0---1) )
 
-    ARG::node_pair_t p;
+    ARG::recomb_node_pair_t rp;
 
-    p = arg->recombination(0.0,l1,0.5);
-    Node *r1 = p.first;
-    Node *r2 = p.second;
+    rp = arg->recombination(0.0,l1,0.5);
+    Node *r1 = rp.first;
+    Node *r2 = rp.second;
 
     // current ARG:
     //
@@ -55,9 +55,9 @@ static ARG *build_arg(Configuration &conf)
     //          (l1: [0---1) )                  (l2: [0---1) )
 
 
-    p = arg->gene_conversion(0.0, l2, 0.30, 0.60);
-    Node *g1 = p.first;
-    Node *g2 = p.second;
+    ARG::gene_conv_node_pair_t gp = arg->gene_conversion(0.0, l2, 0.30, 0.60);
+    Node *g1 = gp.first;
+    Node *g2 = gp.second;
 
     // current ARG:
     //

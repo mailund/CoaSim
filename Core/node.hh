@@ -117,6 +117,10 @@ namespace core {
 	std::valarray<int> i_states;
     };
 
+    class LeafNode;
+    class CoalescentNode;
+    class RecombinationNode;
+    class GeneConversionNode;
 
     class ARG
     {
@@ -126,6 +130,11 @@ namespace core {
 	struct null_child : public std::logic_error {
 	    null_child() : std::logic_error("null child.") {}
 	};
+
+	// Exception thrown if a recombination or gene conversion
+	// falls outside an interval, and the even should just be ignored
+	struct null_event : public std::exception {};
+
 
 
 	// -- Initialization and book-keeping -----------------------------------
@@ -137,21 +146,26 @@ namespace core {
 
 
 	// -- Factory methods for building the ARG ------------------------------
-	Node *leaf()                                            throw();
-	Node *coalescence(double time, Node *left, Node *right) throw(null_child);
+	LeafNode *leaf() throw();
+	CoalescentNode *coalescence(double time, Node *left, Node *right) 
+	    throw(null_child);
 
-	// these methods return a pair of new nodes, if two nodes were
-	// actually created, or the child node (as the first element in
-	// pair, the second being 0), if one of the nodes created would
-	// otherwise be immediately retired
-	typedef std::pair<Node*,Node*> node_pair_t;
-	node_pair_t recombination(double time, Node *child,
-				  double cross_over_point)
-	    throw(null_child,Interval::interval_out_of_range,Interval::empty_interval);
-	node_pair_t gene_conversion(double time, Node *child,
-				    double conversion_start,
-				    double conversion_end)
-	    throw(null_child,Interval::interval_out_of_range,Interval::empty_interval);
+	// these methods return a pair of new nodes, or throws a null_event
+	// exception if the event should be ignored.
+
+	typedef std::pair<RecombinationNode*,RecombinationNode*> 
+	recomb_node_pair_t;
+	recomb_node_pair_t recombination(double time, Node *child,
+					 double cross_over_point)
+	    throw(null_event, null_child,
+		  Interval::interval_out_of_range,Interval::empty_interval);
+	typedef std::pair<GeneConversionNode*,GeneConversionNode*> 
+	gene_conv_node_pair_t;
+	gene_conv_node_pair_t gene_conversion(double time, Node *child,
+					      double conversion_start,
+					      double conversion_end)
+	    throw(null_event, null_child,
+		  Interval::interval_out_of_range,Interval::empty_interval);
 
 
 
@@ -181,6 +195,112 @@ namespace core {
 	std::vector<Node*> i_node_pool;
 
 	std::vector<RetiredInterval> i_retired_intervals;
+    };
+
+
+
+
+    class LeafNode : public Node
+    {
+	friend LeafNode *ARG::leaf();
+	LeafNode(const Configuration &conf) : Node(conf,0.0) {}
+
+	virtual double surface_at_point(double point) const
+	    throw(std::out_of_range);
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length) const
+	    throw(std::out_of_range);
+	virtual void mutate_marker(unsigned int idx, Mutator &m);
+	virtual void node_to_xml(std::ostream &os) const;
+	virtual void mutation_to_xml(std::ostream &os) const;
+    };
+
+
+    // WARNING: None of the following classes checks whether they are
+    // initialized with a null-child, but will crash if that is the
+    // case.  They should only be created with the corresponding factory
+    // method anyway, and it checks for it, so *DON'T* create these
+    // objects in any other way!
+
+    class CoalescentNode : public Node
+    {
+	friend CoalescentNode *ARG::coalescence(double,Node*,Node*);
+	CoalescentNode(const Configuration &conf, double time, 
+		       Node *left, Node *right, const Intervals &is)
+	    : Node(conf,time,is), i_left(left), i_right(right),
+	      i_left_mutating(false,conf.no_markers()),
+	      i_right_mutating(false,conf.no_markers()),
+	      i_conf(conf)
+	{}
+
+	virtual double surface_at_point(double point) const
+	    throw(std::out_of_range);
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length) const
+	    throw(std::out_of_range);
+	virtual void mutate_marker(unsigned int idx, Mutator &m);
+	virtual void node_to_xml(std::ostream &os) const;
+	virtual void mutation_to_xml(std::ostream &os) const;
+
+	Node *const i_left;
+	Node *const i_right;
+	std::valarray<bool> i_left_mutating;
+	std::valarray<bool> i_right_mutating;
+	const Configuration &i_conf;
+    };
+  
+    class RecombinationNode : public Node
+    {
+	friend ARG::recomb_node_pair_t ARG::recombination(double,Node*,double);
+	RecombinationNode(const Configuration &conf,
+			  double time, Node *child, const Intervals &is,
+			  double cross_over_point, bool is_left)
+	    : Node(conf,time,is), i_child(child),
+	      i_child_mutating(false,conf.no_markers()),
+	      i_cross_over_point(cross_over_point), i_is_left(is_left)
+	{}
+
+	virtual double surface_at_point(double point) const
+	    throw(std::out_of_range);
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length) const
+	    throw(std::out_of_range);
+	virtual void mutate_marker(unsigned int idx, Mutator &m);
+	virtual void node_to_xml(std::ostream &os) const;
+	virtual void mutation_to_xml(std::ostream &os) const;
+
+	Node *const i_child;
+	std::valarray<bool> i_child_mutating;
+	double i_cross_over_point;
+	bool i_is_left;
+    };
+
+    class GeneConversionNode : public Node
+    {
+	friend ARG::gene_conv_node_pair_t ARG::gene_conversion(double,Node*,double,double);
+	GeneConversionNode(const Configuration &conf,
+			   double time, Node *child, const Intervals &is,
+			   double conversion_start, double conversion_end,
+			   bool is_inside)
+	    : Node(conf,time,is), i_child(child),
+	      i_child_mutating(false,conf.no_markers()),
+	      i_conversion_start(conversion_start), i_conversion_end(conversion_end),
+	      i_is_inside(is_inside)
+	{}
+
+	virtual double surface_at_point(double point) const
+	    throw(std::out_of_range);
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length) const
+	    throw(std::out_of_range);
+	virtual void mutate_marker(unsigned int idx, Mutator &m);
+	virtual void node_to_xml(std::ostream &os) const;
+	virtual void mutation_to_xml(std::ostream &os) const;
+
+	Node *const i_child;
+	std::valarray<bool> i_child_mutating;
+	double i_conversion_start, i_conversion_end;
+	bool i_is_inside;
     };
 
 }

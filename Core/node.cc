@@ -66,335 +66,288 @@ core::Node::initialize_marker(unsigned int idx, const Marker &m)
 }
 
 
-namespace {
-
-    class LeafNode : public Node
-    {
-	friend Node *ARG::leaf();
-	LeafNode(const Configuration &conf) : Node(conf,0.0) {}
-
-	virtual double surface_at_point(double point) const
-	    throw(std::out_of_range)
-	{
-	    if (point < 0 or 1.0 <= point) 
-		throw std::out_of_range("Point out of range [0,1).");
-	    return 0.0;
-	}
-
-	virtual void print_tree_at_point(std::ostream &os, double point,
-					 double edge_length) const
-	    throw(std::out_of_range)
-	{
-	    if (point < 0 or 1.0 <= point) 
-		throw std::out_of_range("Point out of range [0,1).");
-	    os << "\"\" : " << edge_length;
-	}
-
-	virtual void mutate_marker(unsigned int idx, Mutator &m)
-	{
-	    // no mutations out of leaf
-	}
-
-	virtual void node_to_xml(std::ostream &os) const
-	{
-	    os << "  <leaf time=\"" << time() << "\" id=\"i_" << this << '"'
-	       << " haplotype=\"h_" << this << "\"/>" << std::endl;
-	}
-
-	virtual void mutation_to_xml(std::ostream &os) const
-	{
-	    // nope -- you cannot mutate out of a leaf
-	}
-    };
-
-
-    // WARNING: None of the following classes checks whether they are
-    // initialized with a null-child, but will crash if that is the
-    // case.  They should only be created with the corresponding factory
-    // method anyway, and it checks for it, so *DON'T* create these
-    // objects in any other way!
-
-    class CoalescentNode : public Node
-    {
-	friend Node *ARG::coalescence(double,Node*,Node*);
-	CoalescentNode(const Configuration &conf, double time, 
-		       Node *left, Node *right, const Intervals &is)
-	    : Node(conf,time,is), i_left(left), i_right(right),
-	      i_left_mutating(false,conf.no_markers()),
-	      i_right_mutating(false,conf.no_markers()),
-	      i_conf(conf)
-	{}
-
-	virtual double surface_at_point(double point) const
-	    throw(std::out_of_range)
-	{
-	    // NB! don't check if this node contains it -- it could be
-	    // retired, if that is the case it's children will contain it.
-	    // if this node does not contain it, neither of it's children
-	    // will, so it still works out (althoug we call recursively at
-	    // little more than strictly necessary)
-	    double surface = 0.0;
-	    if (i_left->intervals().contains_point(point))
-		{
-		    surface += i_left->surface_at_point(point);
-		    surface += time() - i_left->time();
-		}
-	    if (i_right->intervals().contains_point(point))
-		{
-		    surface += i_right->surface_at_point(point);
-		    surface += time() - i_right->time();
-		}
-	    return surface;
-	}
-
-	virtual void print_tree_at_point(std::ostream &os, double point,
-					 double edge_length) const
-	    throw(std::out_of_range)
-	{
-	    double left_dist  = time() - i_left->time();
-	    double right_dist = time() - i_right->time();
-
-	    if (i_left->intervals().contains_point(point)
-		and i_right->intervals().contains_point(point))
-		{
-		    os << '(';
-		    i_left->print_tree_at_point(os, point, left_dist);
-		    os << ',';
-		    i_right->print_tree_at_point(os, point, right_dist);
-		    os << ") : " << edge_length;
-		}
-	    else
-		{
-		    if (i_left->intervals().contains_point(point))
-			i_left->print_tree_at_point(os, point, 
-						    edge_length+left_dist);
-		    if (i_right->intervals().contains_point(point))
-			i_right->print_tree_at_point(os, point,
-						     edge_length+right_dist);
-		}
-	}
-
-
-	virtual void mutate_marker(unsigned int idx, Mutator &m)
-	{
-	    if (! (idx < no_states()) )
-		throw std::out_of_range("marker index out of range");
-
-	    double point = i_conf.position(idx);
-
-	    if (i_left->intervals().contains_point(point))
-		{
-		    // propagate value
-		    set_state(i_left,idx,state(idx));
-		    if (m.edge_has_mutation(time(),i_left->time()))
-			{
-			    set_state(i_left, idx, m.mutate_to(*i_left,idx));
-			    i_left_mutating[idx] = true;
-			}
-		    i_left->mutate_marker(idx,m);
-		}
-
-
-	    if (i_right->intervals().contains_point(point))
-		{
-		    set_state(i_right,idx,state(idx));
-		    if (m.edge_has_mutation(time(),i_right->time()))
-			{
-			    set_state(i_right, idx, m.mutate_to(*i_right,idx));
-			    i_right_mutating[idx] = true;
-			}
-		    i_right->mutate_marker(idx,m);
-		}
-	}
-
-	virtual void node_to_xml(std::ostream &os) const
-	{
-	    os << "  <coalescent time=\"" << time() << "\" id=\"i_" << this << '"'
-	       << " haplotype=\"h_" << this << "\">" << std::endl;
-	    os << "    <child ref=\"i_" << i_left << "\"/>" << std::endl;
-	    os << "    <child ref=\"i_" << i_right << "\"/>" << std::endl;
-	    os << "  </coalescent>" << std::endl; 
-	}
-
-	virtual void mutation_to_xml(std::ostream &os) const
-	{
-	    for (size_t i = 0; i < no_states(); ++i){
-		if (i_left_mutating[i])
-		    os << "    <mutation marker_ref=\"marker_" << i << '"'
-		       << " parent_ref=\"i_" << this << '"'
-		       << " child_ref=\"i_" << i_left << "\"/> "
-		       << std::endl;
-		else if (i_right_mutating[i])
-		    os << "    <mutation marker_ref=\"marker_" << i << '"'
-		       << " parent_ref=\"i_" << this << '"'
-		       << " child_ref=\"i_" << i_right << "\"/> "
-		       << std::endl;
-	    }
-	}
-
-	Node *const i_left;
-	Node *const i_right;
-	std::valarray<bool> i_left_mutating;
-	std::valarray<bool> i_right_mutating;
-	const Configuration &i_conf;
-    };
-  
-    class RecombinationNode : public Node
-    {
-	friend ARG::node_pair_t ARG::recombination(double,Node*,double);
-	RecombinationNode(const Configuration &conf,
-			  double time, Node *child, const Intervals &is,
-			  double cross_over_point, bool is_left)
-	    : Node(conf,time,is), i_child(child),
-	      i_child_mutating(false,conf.no_markers()),
-	      i_cross_over_point(cross_over_point), i_is_left(is_left)
-	{}
-
-	virtual double surface_at_point(double point) const
-	    throw(std::out_of_range)
-	{
-	    // no need to check here, it is the parents responsibility to
-	    //check that
-	    //if (! intervals().contains_point(point)) return 0.0;
-
-	    double surface = 0.0;
-	    if (i_child->intervals().contains_point(point))
-		{
-		    surface += i_child->surface_at_point(point);
-		    surface += time() - i_child->time();
-		}
-	    return surface;
-	}
-
-	virtual void print_tree_at_point(std::ostream &os, double point,
-					 double edge_length) const
-	    throw(std::out_of_range)
-	{
-	    double d = time() - i_child->time();
-	    i_child->print_tree_at_point(os, point, edge_length+d);
-	}
-
-
-	virtual void mutate_marker(unsigned int idx, Mutator &m)
-	{
-	    if (! (idx < no_states()) )
-		throw std::out_of_range("marker index out of range");
-
-	    // propagate value
-	    set_state(i_child,idx,state(idx));
-	    if (m.edge_has_mutation(time(),i_child->time()))
-		{
-		    set_state(i_child,idx,m.mutate_to(*i_child,idx));
-		    i_child_mutating[idx] = true;
-		}
-	    i_child->mutate_marker(idx,m);
-	}
-
-	virtual void node_to_xml(std::ostream &os) const
-	{
-	    os << "  <recombination time=\"" << time() << '"'
-	       << " crossover=\"" << i_cross_over_point << '"'
-	       << " id=\"i_" << this << "\" haplotype=\"h_" << this << '"'
-	       << " is_left=\"" << i_is_left << "\">" << std::endl
-	       << "    <child ref=\"i_" << i_child << "\"/>" << std::endl
-	       << "  </recombination>" << std::endl; 
-	}
-
-	virtual void mutation_to_xml(std::ostream &os) const
-	{
-	    for (size_t i = 0; i < no_states(); ++i)
-		if (i_child_mutating[i])
-		    os << "    <mutation marker_ref=\"marker_" << i << '"'
-		       << " parent_ref=\"i_" << this << '"'
-		       << " child_ref=\"i_" << i_child << "\"/> " << std::endl; 
-	}
-
-	Node *const i_child;
-	std::valarray<bool> i_child_mutating;
-	double i_cross_over_point;
-	bool i_is_left;
-    };
-
-    class GeneConversionNode : public Node
-    {
-	friend ARG::node_pair_t ARG::gene_conversion(double,Node*,double,double);
-	GeneConversionNode(const Configuration &conf,
-			   double time, Node *child, const Intervals &is,
-			   double conversion_start, double conversion_end,
-			   bool is_inside)
-	    : Node(conf,time,is), i_child(child),
-	      i_child_mutating(false,conf.no_markers()),
-	      i_conversion_start(conversion_start), i_conversion_end(conversion_end),
-	      i_is_inside(is_inside)
-	{}
-
-	virtual double surface_at_point(double point) const
-	    throw(std::out_of_range)
-	{
-	    // no need to check here, it is the parents responsibility to
-	    //check that
-	    //if (! intervals().contains_point(point)) return 0.0;
-
-	    double surface = 0.0;
-	    if (i_child->intervals().contains_point(point))
-		{
-		    surface += i_child->surface_at_point(point);
-		    surface += time() - i_child->time();
-		}
-	    return surface;
-	}
-
-	virtual void print_tree_at_point(std::ostream &os, double point,
-					 double edge_length) const
-	    throw(std::out_of_range)
-	{
-	    double d = time() - i_child->time();
-	    i_child->print_tree_at_point(os, point, edge_length+d);
-	}
-
-
-	virtual void mutate_marker(unsigned int idx, Mutator &m)
-	{
-	    if (! (idx < no_states()) )
-		throw std::out_of_range("marker index out of range");
-
-	    // propagate value
-	    set_state(i_child,idx,state(idx));
-
-	    if (m.edge_has_mutation(time(),i_child->time()))
-		{
-		    set_state(i_child,idx,m.mutate_to(*i_child,idx));
-		    i_child_mutating[idx] = true;
-		}
-	    i_child->mutate_marker(idx,m);
-	}
-
-	virtual void node_to_xml(std::ostream &os) const
-	{
-	    os << "  <genconversion time=\"" << time() << '"'
-	       << " conversion_start=\"" << i_conversion_start << '"'
-	       << " conversion_end=\"" << i_conversion_end << '"'
-	       << " id=\"i_" << this << "\" haplotype=\"h_" << this << '"'
-	       << "  is_inside=\"" << i_is_inside <<"\">" << std::endl
-	       << "    <child ref=\"i_" << i_child << "\"/>" << std::endl
-	       << "  </genconversion>" << std::endl; 
-	}
-
-	virtual void mutation_to_xml(std::ostream &os) const
-	{
-	    for (size_t i = 0; i < no_states(); ++i)
-		if (i_child_mutating[i])
-		    os << "    <mutation marker_ref=\"marker_" << i << '"'
-		       << " parent_ref=\"i_" << this << '"'
-		       << " child_ref=\"i_" << i_child << "\"/> " << std::endl; 
-	}
-
-	Node *const i_child;
-	std::valarray<bool> i_child_mutating;
-	double i_conversion_start, i_conversion_end;
-	bool i_is_inside;
-    };
+double
+core::LeafNode::surface_at_point(double point) const
+    throw(std::out_of_range)
+{
+    if (point < 0 or 1.0 <= point) 
+	throw std::out_of_range("Point out of range [0,1).");
+    return 0.0;
 }
+
+void
+core::LeafNode::print_tree_at_point(std::ostream &os, double point,
+				    double edge_length) const
+    throw(std::out_of_range)
+{
+    if (point < 0 or 1.0 <= point) 
+	throw std::out_of_range("Point out of range [0,1).");
+    os << "\"\" : " << edge_length;
+}
+
+void
+core::LeafNode::mutate_marker(unsigned int idx, Mutator &m)
+{
+    // no mutations out of leaf
+}
+
+void
+core::LeafNode::node_to_xml(std::ostream &os) const
+{
+    os << "  <leaf time=\"" << time() << "\" id=\"i_" << this << '"'
+       << " haplotype=\"h_" << this << "\"/>" << std::endl;
+}
+
+void
+core::LeafNode::mutation_to_xml(std::ostream &os) const
+{
+    // nope -- you cannot mutate out of a leaf
+}
+
+double
+core::CoalescentNode::surface_at_point(double point) const
+    throw(std::out_of_range)
+{
+    // NB! don't check if this node contains it -- it could be
+    // retired, if that is the case it's children will contain it.
+    // if this node does not contain it, neither of it's children
+    // will, so it still works out (althoug we call recursively at
+    // little more than strictly necessary)
+    double surface = 0.0;
+    if (i_left->intervals().contains_point(point))
+	{
+	    surface += i_left->surface_at_point(point);
+	    surface += time() - i_left->time();
+	}
+    if (i_right->intervals().contains_point(point))
+	{
+	    surface += i_right->surface_at_point(point);
+	    surface += time() - i_right->time();
+	}
+    return surface;
+}
+
+void
+core::CoalescentNode::print_tree_at_point(std::ostream &os, double point,
+					  double edge_length) const
+    throw(std::out_of_range)
+{
+    double left_dist  = time() - i_left->time();
+    double right_dist = time() - i_right->time();
+    
+    if (i_left->intervals().contains_point(point)
+	and i_right->intervals().contains_point(point))
+	{
+	    os << '(';
+	    i_left->print_tree_at_point(os, point, left_dist);
+	    os << ',';
+	    i_right->print_tree_at_point(os, point, right_dist);
+	    os << ") : " << edge_length;
+	}
+    else
+	{
+	    if (i_left->intervals().contains_point(point))
+		i_left->print_tree_at_point(os, point, 
+					    edge_length+left_dist);
+	    if (i_right->intervals().contains_point(point))
+		i_right->print_tree_at_point(os, point,
+					     edge_length+right_dist);
+	}
+}
+
+
+void
+core::CoalescentNode::mutate_marker(unsigned int idx, Mutator &m)
+{
+    if (! (idx < no_states()) )
+	throw std::out_of_range("marker index out of range");
+    
+    double point = i_conf.position(idx);
+    
+    if (i_left->intervals().contains_point(point))
+	{
+	    // propagate value
+	    set_state(i_left,idx,state(idx));
+	    if (m.edge_has_mutation(time(),i_left->time()))
+		{
+		    set_state(i_left, idx, m.mutate_to(*i_left,idx));
+		    i_left_mutating[idx] = true;
+		}
+	    i_left->mutate_marker(idx,m);
+	}
+    
+    
+    if (i_right->intervals().contains_point(point))
+	{
+	    set_state(i_right,idx,state(idx));
+	    if (m.edge_has_mutation(time(),i_right->time()))
+		{
+		    set_state(i_right, idx, m.mutate_to(*i_right,idx));
+		    i_right_mutating[idx] = true;
+		}
+	    i_right->mutate_marker(idx,m);
+	}
+}
+
+void
+core::CoalescentNode::node_to_xml(std::ostream &os) const
+{
+    os << "  <coalescent time=\"" << time() << "\" id=\"i_" << this << '"'
+       << " haplotype=\"h_" << this << "\">" << std::endl;
+    os << "    <child ref=\"i_" << i_left << "\"/>" << std::endl;
+    os << "    <child ref=\"i_" << i_right << "\"/>" << std::endl;
+    os << "  </coalescent>" << std::endl; 
+}
+
+void
+core::CoalescentNode::mutation_to_xml(std::ostream &os) const
+{
+    for (size_t i = 0; i < no_states(); ++i){
+	if (i_left_mutating[i])
+	    os << "    <mutation marker_ref=\"marker_" << i << '"'
+	       << " parent_ref=\"i_" << this << '"'
+	       << " child_ref=\"i_" << i_left << "\"/> "
+	       << std::endl;
+	else if (i_right_mutating[i])
+	    os << "    <mutation marker_ref=\"marker_" << i << '"'
+	       << " parent_ref=\"i_" << this << '"'
+	       << " child_ref=\"i_" << i_right << "\"/> "
+	       << std::endl;
+    }
+}
+
+
+double
+core::RecombinationNode::surface_at_point(double point) const
+    throw(std::out_of_range)
+{
+    // no need to check here, it is the parents responsibility to
+    //check that
+    //if (! intervals().contains_point(point)) return 0.0;
+    
+    double surface = 0.0;
+    if (i_child->intervals().contains_point(point))
+	{
+	    surface += i_child->surface_at_point(point);
+	    surface += time() - i_child->time();
+	}
+    return surface;
+}
+
+void
+core::RecombinationNode::print_tree_at_point(std::ostream &os, double point,
+					     double edge_length) const
+    throw(std::out_of_range)
+{
+    double d = time() - i_child->time();
+    i_child->print_tree_at_point(os, point, edge_length+d);
+}
+
+
+void
+core::RecombinationNode::mutate_marker(unsigned int idx, Mutator &m)
+{
+    if (! (idx < no_states()) )
+	throw std::out_of_range("marker index out of range");
+    
+    // propagate value
+    set_state(i_child,idx,state(idx));
+    if (m.edge_has_mutation(time(),i_child->time()))
+	{
+	    set_state(i_child,idx,m.mutate_to(*i_child,idx));
+	    i_child_mutating[idx] = true;
+	}
+    i_child->mutate_marker(idx,m);
+}
+
+void
+core::RecombinationNode::node_to_xml(std::ostream &os) const
+{
+    os << "  <recombination time=\"" << time() << '"'
+       << " crossover=\"" << i_cross_over_point << '"'
+       << " id=\"i_" << this << "\" haplotype=\"h_" << this << '"'
+       << " is_left=\"" << i_is_left << "\">" << std::endl
+       << "    <child ref=\"i_" << i_child << "\"/>" << std::endl
+       << "  </recombination>" << std::endl; 
+}
+
+void
+core::RecombinationNode::mutation_to_xml(std::ostream &os) const
+{
+    for (size_t i = 0; i < no_states(); ++i)
+	if (i_child_mutating[i])
+	    os << "    <mutation marker_ref=\"marker_" << i << '"'
+	       << " parent_ref=\"i_" << this << '"'
+	       << " child_ref=\"i_" << i_child << "\"/> " << std::endl; 
+}
+
+
+double
+core::GeneConversionNode::surface_at_point(double point) const
+    throw(std::out_of_range)
+{
+    // no need to check here, it is the parents responsibility to
+    //check that
+    //if (! intervals().contains_point(point)) return 0.0;
+    
+    double surface = 0.0;
+    if (i_child->intervals().contains_point(point))
+	{
+	    surface += i_child->surface_at_point(point);
+	    surface += time() - i_child->time();
+	}
+    return surface;
+}
+
+void
+core::GeneConversionNode::print_tree_at_point(std::ostream &os, double point,
+					      double edge_length) const
+    throw(std::out_of_range)
+{
+    double d = time() - i_child->time();
+    i_child->print_tree_at_point(os, point, edge_length+d);
+	}
+
+
+void
+core::GeneConversionNode::mutate_marker(unsigned int idx, Mutator &m)
+{
+    if (! (idx < no_states()) )
+	throw std::out_of_range("marker index out of range");
+    
+    // propagate value
+    set_state(i_child,idx,state(idx));
+    
+    if (m.edge_has_mutation(time(),i_child->time()))
+	{
+	    set_state(i_child,idx,m.mutate_to(*i_child,idx));
+	    i_child_mutating[idx] = true;
+	}
+    i_child->mutate_marker(idx,m);
+}
+
+void
+core::GeneConversionNode::node_to_xml(std::ostream &os) const
+{
+    os << "  <genconversion time=\"" << time() << '"'
+       << " conversion_start=\"" << i_conversion_start << '"'
+       << " conversion_end=\"" << i_conversion_end << '"'
+       << " id=\"i_" << this << "\" haplotype=\"h_" << this << '"'
+       << "  is_inside=\"" << i_is_inside <<"\">" << std::endl
+       << "    <child ref=\"i_" << i_child << "\"/>" << std::endl
+       << "  </genconversion>" << std::endl; 
+}
+
+void
+core::GeneConversionNode::mutation_to_xml(std::ostream &os) const
+{
+    for (size_t i = 0; i < no_states(); ++i)
+	if (i_child_mutating[i])
+	    os << "    <mutation marker_ref=\"marker_" << i << '"'
+	       << " parent_ref=\"i_" << this << '"'
+	       << " child_ref=\"i_" << i_child << "\"/> " << std::endl; 
+}
+
 
 
 ARG::~ARG()
@@ -406,7 +359,7 @@ ARG::~ARG()
 	delete *itr;
 }
 
-Node *ARG::leaf() throw()
+LeafNode *ARG::leaf() throw()
 {
     LeafNode *n = new LeafNode(i_conf);
 
@@ -429,7 +382,7 @@ Node *ARG::leaf() throw()
     return n;
 }
 
-Node *ARG::coalescence(double time, Node *left, Node *right)
+CoalescentNode *ARG::coalescence(double time, Node *left, Node *right)
     throw(null_child)
 {
     if (left == 0 or right == 0) throw null_child();
@@ -500,24 +453,25 @@ static Intervals filter_contains_marker(const Intervals &intervals,
 }
 
 
-ARG::node_pair_t ARG::recombination(double time, Node *child,
-				    double cross_over_point)
-    throw(null_child,Interval::interval_out_of_range,Interval::empty_interval)
+ARG::recomb_node_pair_t ARG::recombination(double time, Node *child,
+					   double cross_over_point)
+    throw(null_event, null_child,
+	  Interval::interval_out_of_range,Interval::empty_interval)
 {
     if (child == 0) throw null_child();
 
-    if (cross_over_point <= child->intervals().first_point())
-	return std::make_pair<Node*,Node*>(child,0);
+    if (cross_over_point <= child->intervals().first_point()) 
+	throw null_event();
     if (child->intervals().last_point() <= cross_over_point)
-	return std::make_pair<Node*,Node*>(child,0);
+	throw null_event();
 
     Intervals left  = child->intervals().copy(0.0,cross_over_point);
     left  = filter_contains_marker(left, i_conf);
-    if (left.size() == 0) return std::make_pair<Node*,Node*>(child,0);
+    if (left.size() == 0) throw null_event();
 
     Intervals right = child->intervals().copy(cross_over_point,1.0);
     right = filter_contains_marker(right, i_conf);
-    if (right.size() == 0) return std::make_pair<Node*,Node*>(child,0);
+    if (right.size() == 0) throw null_event();
 
 #if 0
     std::cout << "recombination -- child: " << child->intervals() << std::endl;
@@ -534,31 +488,33 @@ ARG::node_pair_t ARG::recombination(double time, Node *child,
     return std::make_pair(n1,n2);
 }
 
-ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
-				      double conversion_start,
-				      double conversion_end)
-    throw(null_child,Interval::interval_out_of_range,Interval::empty_interval)
+ARG::gene_conv_node_pair_t ARG::gene_conversion(double time, Node *child,
+						double conversion_start,
+						double conversion_end)
+    throw(null_event, null_child,
+	  Interval::interval_out_of_range,Interval::empty_interval)
 {
     if (child == 0) throw null_child();
 
     if (conversion_start == conversion_end)
-	return std::make_pair<Node*,Node*>(child,0); // empty interval...
+	throw null_event();
 
     if (conversion_end <= child->intervals().first_point())
-	return std::make_pair<Node*,Node*>(child,0);
+	throw null_event();
     if (child->intervals().last_point() <= conversion_start)
-	return std::make_pair<Node*,Node*>(child,0);
+	throw null_event();
 
 
     Intervals left  = child->intervals().copy(0.0, conversion_start)
 	+ child->intervals().copy(conversion_end, 1.0);
     left  = filter_contains_marker(left, i_conf);
-    if (left.size() == 0) return std::make_pair<Node*,Node*>(child,0);
+    if (left.size() == 0) throw null_event();
+
 
     Intervals right =
 	child->intervals().copy(conversion_start, conversion_end);
     right = filter_contains_marker(right, i_conf);
-    if (right.size() == 0) return std::make_pair<Node*,Node*>(child,0);
+    if (right.size() == 0) throw null_event();
 
 #if 0
     std::cout << "gene-conversion -- left: " << left << std::endl;
@@ -576,7 +532,7 @@ ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
 						    true);
     i_node_pool.push_back(n1); i_node_pool.push_back(n2);
 
-    return std::make_pair<Node*,Node*>(n1,n2);
+    return std::make_pair(n1,n2);
 
 }
 

@@ -14,6 +14,15 @@
 
 namespace core {
 
+    struct BuilderMonitor
+    {
+	virtual void coalescence_callback(CoalescentNode *n) = 0;
+	virtual void recombination_callback(RecombinationNode *n1,
+					    RecombinationNode *n2) = 0;
+	virtual void gene_conversion_callback(GeneConversionNode *n1,
+					      GeneConversionNode *n2) = 0;
+    };
+
     class Builder
     {
     public:
@@ -22,7 +31,8 @@ namespace core {
 
 	// Builds an ARG.  The ARG is dynamically allocated and must be
 	// deleted after use.
-	ARG *build(SimulationMonitor *mon) const;
+	ARG *build(SimulationMonitor *mon,
+		   BuilderMonitor    *callbacks = 0) const;
 
     private:
 	const Configuration &i_conf;

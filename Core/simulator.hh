@@ -13,10 +13,12 @@ namespace core {
     class ARG;
     class Configuration;
     class SimulationMonitor;
+    class BuilderMonitor;
 
     namespace Simulator {
 	// Returns the resulting ARG, or 0 if the simulation was aborted
-	ARG *simulate(const Configuration &conf, SimulationMonitor *mon = 0);
+	ARG *simulate(const Configuration &conf, SimulationMonitor *mon = 0,
+		      BuilderMonitor *build_callbacks = 0);
     }
 
 }

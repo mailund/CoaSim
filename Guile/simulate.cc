@@ -16,6 +16,12 @@
 #ifndef GUILE__OPTIONS_HH_INCLUDED
 # include "options.hh"
 #endif
+#ifndef GUILE__NODES_HH_INCLUDED
+# include "nodes.hh"
+#endif
+#ifndef GUILE__INTERVALS_HH_INCLUDED
+# include "intervals.hh"
+#endif
 
 using namespace guile;
 
@@ -29,11 +35,11 @@ using namespace guile;
 #ifndef CORE__SIMULATOR_HH_INCLUDED
 # include <Core/simulator.hh>
 #endif
+#ifndef CORE__BUILDER_HH_INCLUDED
+# include <Core/builder.hh>
+#endif
 #ifndef CORE__MONITOR_HH_INCLUDED
 # include <Core/monitor.hh>
-#endif
-#ifndef CORE__NODE_HH_INCLUDED
-# include <Core/node.hh>
 #endif
 
 
@@ -48,7 +54,6 @@ using namespace guile;
 
 
 scm_t_bits guile::arg_tag;
-scm_t_bits guile::interval_tag;
 
 namespace {
     class CLISimMonitor : public core::SimulationMonitor {
@@ -58,8 +63,10 @@ namespace {
 			    unsigned int no_coal_events,
 			    unsigned int no_gene_conv_events,
 			    unsigned int no_recomb_events);
-	void builder_termination(unsigned int no_nodes, unsigned int no_top_nodes,
-				 unsigned long int no_iterations, double cur_time,
+	void builder_termination(unsigned int no_nodes,
+				 unsigned int no_top_nodes,
+				 unsigned long int no_iterations,
+				 double cur_time,
 				 unsigned int no_coal_events,
 				 unsigned int no_gene_conv_events,
 				 unsigned int no_recomb_events);
@@ -131,45 +138,16 @@ namespace {
 	}
     };
 
-    struct IntervalData {
-	SCM arg;
-	const core::RetiredInterval *rinterval;
-	IntervalData(SCM arg, const core::RetiredInterval *rinterval)
-	    : arg(arg), rinterval(rinterval)
-	{
-	}
-	~IntervalData()
-	{
-	}
-    };
-}
-
-static size_t
-free_arg(SCM s_arg_data)
-{
-    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(s_arg_data);
-    arg_data->~ARGData();
-    scm_must_free(arg_data);
-    return sizeof(ARGData);
+    size_t free_arg(SCM s_arg_data)
+    {
+	ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(s_arg_data);
+	arg_data->~ARGData();
+	scm_must_free(arg_data);
+	return sizeof(ARGData);
+    }
 }
 
 
-static SCM
-mark_interval (SCM s_interval)
-{
-    IntervalData *interval = (IntervalData*) SCM_SMOB_DATA(s_interval);
-    scm_gc_mark(interval->arg);
-    return SCM_BOOL_F;
-}
-
-static size_t
-free_interval(SCM s_interval)
-{
-    IntervalData *interval = (IntervalData*) SCM_SMOB_DATA(s_interval);
-    interval->~IntervalData();
-    scm_must_free(interval);
-    return sizeof(IntervalData);
-}
 
 
 void CLISimMonitor::start_arg_building(unsigned int no_leaves)
@@ -259,21 +237,116 @@ void ProfileMonitor::builder_termination(unsigned int no_nodes,
 
 <method name="simulate">
   <brief>Simulate an ARG and corresponding sequences.</brief>
-  <prototype>(simulate arg-parameters marker-list no-leaves)</prototype>
+  <prototype>(simulate arg-parameters marker-list no-leaves . callbacks)</prototype>
   <example>(define p (arg-parameters rho Q G beta))
 (define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate p markers 100))</example>
+(define arg (simulate p markers 100))
+
+(define coa-times '())
+(define (coa-cb n) (set! coa-times (cons (event-time n) coa-times)))
+(simulate p markers 10 :coalescence-callback coa-cb)
+(display "coalescence times:\n")
+(map (lambda (t) (display t)(newline)) coa-times)
+(newline)</example>
   <description>
     <p>
       Simulate an ARG and corresponding sequences, based ARG parameters, 
       a list of markers, and the number of markers to simulate.
     </p>
+    <p>
+      For fine-monitoring of the simulation, callback functions can be given
+      as key-word arguments.  The supported callbacks are:
+    </p>
+    <ul>
+      <li><b>coalescence-callback:</b>
+          called with the single node that is the result of a coalescent event.
+      </li>
+      <li><b>recombination-callback:</b>
+          called with the two nodes that is the result of a recombination
+          event.
+      </li>
+      <li><b>geneconversion-callback:</b>
+          called with the two nodes that is the result of a gene conversion
+          event.
+      </li>
+    </ul>
   </description>
 </method>
 
 -----</GUILE COMMENT>-------------------------------------------- */
+
+class Callbacks : public core::BuilderMonitor
+{
+    SCM i_coa_cb;
+    SCM i_rc_cb;
+    SCM i_gc_cb;
+
+    bool i_has_coa_cb;
+    bool i_has_rc_cb;
+    bool i_has_gc_cb;
+
+public:
+    Callbacks() : i_has_coa_cb(false),
+		  i_has_rc_cb(false), 
+		  i_has_gc_cb(false)
+    {};
+
+    void set_coa_cb(SCM cb)
+    {
+	i_coa_cb = cb;
+	i_has_coa_cb = true;
+    }
+    void set_rc_cb(SCM cb)
+    {
+	i_rc_cb = cb;
+	i_has_rc_cb = true;
+    }
+    void set_gc_cb(SCM cb)
+    {
+	i_gc_cb = cb;
+	i_has_gc_cb = true;
+    }
+
+    virtual void coalescence_callback(core::CoalescentNode *n);
+    virtual void recombination_callback(core::RecombinationNode *n1,
+					core::RecombinationNode *n2);
+    virtual void gene_conversion_callback(core::GeneConversionNode *n1,
+					  core::GeneConversionNode *n2);
+};
+
+void Callbacks::coalescence_callback(core::CoalescentNode *n)
+{
+    if (!i_has_coa_cb) return;
+    // fake ARG -- real does not exist yet
+    SCM node = wrap_coalescent_node(SCM_EOL, n);
+    scm_apply(i_coa_cb, scm_cons(node, SCM_EOL), SCM_EOL);
+}
+void Callbacks::recombination_callback(core::RecombinationNode *n1,
+				       core::RecombinationNode *n2)
+{
+    if (!i_has_rc_cb) return;
+    // fake ARG -- real does not exist yet
+    SCM node1 = wrap_recombination_node(SCM_EOL, n1);
+    SCM node2 = wrap_recombination_node(SCM_EOL, n2);
+    scm_apply(i_rc_cb, 
+	      scm_cons(node1, scm_cons(node2, SCM_EOL)), 
+	      SCM_EOL);
+}
+void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
+					 core::GeneConversionNode *n2)
+{
+    if (!i_has_gc_cb) return;
+    // fake ARG -- real does not exist yet
+    SCM node1 = wrap_gene_conversion_node(SCM_EOL, n1);
+    SCM node2 = wrap_gene_conversion_node(SCM_EOL, n2);
+    scm_apply(i_gc_cb, 
+	      scm_cons(node1, scm_cons(node2, SCM_EOL)), 
+	      SCM_EOL);
+}
+
 static SCM
-simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
+simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves,
+	 SCM coa_cb, SCM rc_cb, SCM gc_cb)
 {
     SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_parameters_tag, 
 				  arg_parameters_smob),
@@ -303,13 +376,39 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
 
     int no_leaves = scm_num2int(s_no_leaves, SCM_ARG3, "simulate");
 
+    bool has_cb = false;
+    Callbacks cb;
+    if (coa_cb != SCM_EOL)
+	{
+	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(coa_cb)),
+		       coa_cb, SCM_ARG4, "c-simulate");
+	    cb.set_coa_cb(coa_cb);
+	    has_cb = true;
+	}
+    if (rc_cb != SCM_EOL)
+	{
+	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(rc_cb)),
+		       rc_cb, SCM_ARG5, "c-simulate");
+	    cb.set_rc_cb(rc_cb);
+	    has_cb = true;
+	}
+    if (gc_cb != SCM_EOL)
+	{
+	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(gc_cb)),
+		       gc_cb, SCM_ARG6, "c-simulate");
+	    cb.set_gc_cb(gc_cb);
+	    has_cb = true;
+	}
+
 
     try {
 	std::auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
 	std::auto_ptr<core::Configuration> conf(new core::Configuration(no_leaves,
 									markers.begin(), markers.end(),
 									p->rho, p->Q, p->G, p->growth));
-	std::auto_ptr<core::ARG> arg(core::Simulator::simulate(*conf, monitor.get()));
+	std::auto_ptr<core::ARG> arg(core::Simulator::simulate(*conf, 
+							       monitor.get(),
+							       has_cb ? &cb : 0));
 
 	void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
 	ARGData *arg_data = new(mem)ARGData(arg.release(),conf.release(),monitor.release());
@@ -418,14 +517,23 @@ sequences(SCM arg_data_smob)
   </description>
 </method>
 
+<method name="local-trees">
+  <brief>Returns the local trees, i.e. the trees for intervals sharing genealogy in the ARG as a list.</brief>
+  <prototype>(local-trees arg)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define trees (let ((arg (simulate p markers 100))) (local-trees arg)))</example>
+  <description>
+    <p>
+     Returns the local trees, i.e. the trees for 
+     intervals sharing genealogy in the ARG as a list.
+     Only trees containing markers are returned.
+    </p>
+  </description>
+</method>
+
+
 -----</GUILE COMMENT>-------------------------------------------- */
-static SCM
-wrap_interval(SCM arg, const core::RetiredInterval *rinterval)
-{
-    void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
-    IntervalData *interval = new(mem)IntervalData(arg,rinterval);
-    SCM_RETURN_NEWSMOB(guile::interval_tag, interval);
-}
 static SCM 
 intervals(SCM arg_data_smob)
 {
@@ -449,83 +557,6 @@ intervals(SCM arg_data_smob)
 }
 
 
-/* --<GUILE COMMENT>---------------------------------------------
-
-<method name="interval-start">
-  <brief>Returns the start position of an interval.</brief>
-  <prototype>(interval-start interval)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
-(map interval-start intervals)</example>
-  <description>
-    <p>
-     Returns the start position of an interval.
-    </p>
-  </description>
-</method>
-
------</GUILE COMMENT>-------------------------------------------- */
-static SCM
-interval_start(SCM interval_smob)
-{
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::interval_tag, interval_smob),
-	       interval_smob, SCM_ARG1, "interval-start");
-    IntervalData *interval_data = (IntervalData*) SCM_SMOB_DATA(interval_smob);
-    return scm_make_real(interval_data->rinterval->start());
-}
-
-/* --<GUILE COMMENT>---------------------------------------------
-
-<method name="interval-end">
-  <brief>Returns the end position of an interval.</brief>
-  <prototype>(interval-end interval)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
-(map interval-end intervals)</example>
-  <description>
-    <p>
-     Returns the end position of an interval.
-    </p>
-  </description>
-</method>
-
------</GUILE COMMENT>-------------------------------------------- */
-static SCM
-interval_end(SCM interval_smob)
-{
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::interval_tag, interval_smob),
-	       interval_smob, SCM_ARG1, "interval-end");
-    IntervalData *interval_data = (IntervalData*) SCM_SMOB_DATA(interval_smob);
-    return scm_make_real(interval_data->rinterval->end());
-}
-
-/* --<GUILE COMMENT>---------------------------------------------
-
-<method name="total-branch-length">
-  <brief>Returns the total tree branch length of the local tree of an interval.</brief>
-  <prototype>(total-branch-length interval)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
-(map total-branch-length intervals)</example>
-  <description>
-    <p>
-     Returns the total tree branch length of the local tree of an interval.
-    </p>
-  </description>
-</method>
-
------</GUILE COMMENT>-------------------------------------------- */
-static SCM
-total_branch_length(SCM interval_smob)
-{
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::interval_tag, interval_smob),
-	       interval_smob, SCM_ARG1, "interval-end");
-    IntervalData *interval_data = (IntervalData*) SCM_SMOB_DATA(interval_smob);
-    return scm_make_real(interval_data->rinterval->surface());
-}
 
 
 /* --<GUILE COMMENT>---------------------------------------------
@@ -615,48 +646,6 @@ no_gene_conv_events(SCM arg_data_smob)
 
 
 
-/* --<GUILE COMMENT>---------------------------------------------
-
-<method name="print-local-tree">
-  <brief>Print the tree local to an interval.</brief>
-  <prototype>(print-local-tree itnerval)</prototype>
-  <example>(define p (arg-parameters rho Q G beta))
-(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
-(map print-local-tree intervals) </example>
-  <description>
-    <p>Print the tree local to an interval.
-    </p>
-  </description>
-</method>
-
------</GUILE COMMENT>-------------------------------------------- */
-static SCM 
-print_local_tree(SCM interval_smob)
-{
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::interval_tag, interval_smob),
-	       interval_smob, SCM_ARG1, "print-local-tree");
-
-    IntervalData *interval_data = (IntervalData*) SCM_SMOB_DATA(interval_smob);
-    double start = interval_data->rinterval->start();
-    core::Node *node = interval_data->rinterval->top_node();
-
-    node->print_tree_at_point(std::cout, start);
-    std::cout << std::endl;
-
-#if 0
-    const char *fname = SCM_STRING_CHARS(s_filename);
-
-    std::ofstream os(fname);
-    if (!os) scm_throw(scm_str2symbol("open-error"), s_filename);
-
-    arg_data->arg->to_text(os);
-    os.close();
-#endif
-
-
-    return SCM_EOL;
-}
 
 
 void
@@ -665,13 +654,19 @@ guile::install_simulate()
     guile::arg_tag = scm_make_smob_type("arg", sizeof(ARGData));
     scm_set_smob_free(guile::arg_tag, free_arg);
 
-    // FIXME: add printing of intervals
-    guile::interval_tag = scm_make_smob_type("interval", sizeof(IntervalData));
-    scm_set_smob_mark(guile::interval_tag, mark_interval);
-    scm_set_smob_free(guile::interval_tag, free_interval);
-
-    scm_c_define_gsubr("simulate", 3, 0, 0, 
+    scm_c_define_gsubr("c-simulate", 6, 0, 0, 
 		       (scm_unused_struct*(*)())simulate);
+    scm_c_eval_string("(read-set! keywords 'prefix)"
+		      "(use-modules (ice-9 optargs))"
+		      "(define (simulate p ms n . args)"
+		      "  (let-keywords args #f ((coalescence-callback '())"
+		      "                         (recombination-callback '())"
+		      "                         (geneconversion-callback '()))"
+		      "		(c-simulate p ms n"
+		      "                     coalescence-callback"
+		      "                     recombination-callback"
+		      "                     geneconversion-callback)))");
+
     scm_c_define_gsubr("save-sequences", 2, 0, 0, 
 		       (scm_unused_struct*(*)())save_sequences);
     scm_c_define_gsubr("sequences", 1, 0, 0, 
@@ -679,12 +674,8 @@ guile::install_simulate()
 
     scm_c_define_gsubr("intervals", 1, 0, 0, 
 		       (scm_unused_struct*(*)())intervals);
-    scm_c_define_gsubr("interval-start", 1, 0, 0, 
-		       (scm_unused_struct*(*)())interval_start);
-    scm_c_define_gsubr("interval-end", 1, 0, 0, 
-		       (scm_unused_struct*(*)())interval_end);
-    scm_c_define_gsubr("total-branch-length", 1, 0, 0, 
-		       (scm_unused_struct*(*)())total_branch_length);
+    scm_c_eval_string("(define (local-trees arg)"
+		      "  (map interval->tree (intervals arg)))");
 
     scm_c_define_gsubr("no-recombinations", 1, 0, 0, 
 		       (scm_unused_struct*(*)())no_recomb_events);
@@ -692,9 +683,5 @@ guile::install_simulate()
 		       (scm_unused_struct*(*)())no_coal_events);
     scm_c_define_gsubr("no-gene-conversions", 1, 0, 0, 
 		       (scm_unused_struct*(*)())no_gene_conv_events);
-
-    scm_c_define_gsubr("print-local-tree", 1, 0, 0, 
-		       (scm_unused_struct*(*)())print_local_tree);
 }
-
 

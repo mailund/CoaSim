@@ -17,7 +17,7 @@
 namespace guile {
     void install_simulate();
     extern scm_t_bits arg_tag;
-    extern scm_t_bits interval_tag;
+
 }
 
 #endif

@@ -11,6 +11,12 @@
 #ifndef GUILE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
+#ifndef GUILE__NODES_HH_INCLUDED
+# include "nodes.hh"
+#endif
+#ifndef GUILE__INTERVALS_HH_INCLUDED
+# include "intervals.hh"
+#endif
 #ifndef GUILE__ARG_PARAMETERS_HH_INCLUDED
 # include "arg_parameters.hh"
 #endif
@@ -20,6 +26,8 @@ real_main(void *dummy_closure, int argc, char *argv[])
 {
     guile::install_marker();
     guile::install_arg_parameters();
+    guile::install_nodes();
+    guile::install_intervals();
     guile::install_simulate();
     scm_c_primitive_load("simulate-test.scm");
 }

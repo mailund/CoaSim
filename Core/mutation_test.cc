@@ -57,13 +57,13 @@ int main(int argc, const char *argv[])
 
 	Node *l1 = arg.leaf();
 	Node *l2 = arg.leaf();
-	ARG::node_pair_t p;
-	p = arg.recombination(1.0,l1,0.5);
-	Node *r1 = p.first;
-	Node *r2 = p.second;
-	p = arg.gene_conversion(2.0, l2, 0.30, 0.60);
-	Node *g1  = p.first;
-	Node *g2  = p.second;
+	ARG::recomb_node_pair_t rp;
+	rp = arg.recombination(1.0,l1,0.5);
+	Node *r1 = rp.first;
+	Node *r2 = rp.second;
+	ARG::gene_conv_node_pair_t gp = arg.gene_conversion(2.0, l2, 0.30, 0.60);
+	Node *g1  = gp.first;
+	Node *g2  = gp.second;
 	Node *c1  = arg.coalescence(3.0, r2, g1);
 	Node *c2  = arg.coalescence(4.0, r1, g2);
 	Node *top = arg.coalescence(5.0, c1, c2);
