@@ -23,6 +23,8 @@ marker_test_SOURCES =
 marker_test_SOURCES += marker.hh marker.cc 
 marker_test_SOURCES += exceptions.hh exceptions.cc
 marker_test_SOURCES += nodes.hh nodes.cc
+marker_test_SOURCES += intervals.hh intervals.cc
+marker_test_SOURCES += simulate.hh simulate.cc
 marker_test_SOURCES += marker_test.cc
 
 simulate_test_SOURCES =

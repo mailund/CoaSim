@@ -188,7 +188,8 @@ namespace core {
 
 	void to_text(std::ostream &os) const;
 
-	const std::vector<Node*> &leaves() const { return i_leaf_pool; }
+	const std::vector<Node*> &inner_nodes() const { return i_node_pool; }
+	const std::vector<Node*> &leaves()      const { return i_leaf_pool; }
 
     private:
 	// disable these

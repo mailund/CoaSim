@@ -7,16 +7,21 @@
 
 #include "nodes.hh"
 
+#ifndef GUILE__SIMULATE_HH_INCLUDED
+# include "simulate.hh"
+#endif
+
 #ifndef CORE__NODE_HH_INCLUDED
 # include <Core/node.hh>
 #endif
 
-using namespace guile;
 
 scm_t_bits guile::leaf_node_tag;
 scm_t_bits guile::coalescent_node_tag;
 scm_t_bits guile::recombination_node_tag;
 scm_t_bits guile::gene_conversion_node_tag;
+
+using namespace guile;
 
 namespace {
     struct LeafNode {
@@ -537,6 +542,49 @@ namespace {
 	return scm_make_real(node->node->conversion_end());
     }
 
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="fold-nodes">
+  <brief>Calculate a value from all ARG nodes.</brief>
+  <prototype>(fold-nodes arg f init)</prototype>
+  <example>(define no-nodes
+  (fold-nodes arg (lambda (n count) (+ count 1)) 0))
+(define no-leaves
+  (fold-nodes arg (lambda (n count) (if (leaf-node? n) (+ count 1) count)) 0))</example>
+  <description>
+    <p>
+      Calculates a value from all ARG nodes.  Call function `f' on each node
+      in the ARG, accumulating a value that is the result of the fold.  For
+      each node, `f' is called with the node as its first argument and the
+      value calculated so far as its second argument; the second argument is
+      initially `init'.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+    SCM fold_nodes(SCM s_arg, SCM f, SCM init)
+    {
+	SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, s_arg),
+		   s_arg, SCM_ARG1, "fold-nodes");
+	SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(f)), f, SCM_ARG2, "fold-nodes");
+
+	ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(s_arg);
+	const core::ARG *arg = arg_data->arg;
+	const std::vector<core::Node*> &leaves = arg->leaves();
+	const std::vector<core::Node*> &inner = arg->inner_nodes();
+
+	SCM val = init;
+	std::vector<core::Node*>::const_iterator i;
+	for (i = leaves.begin(); i != leaves.end(); ++i)
+	    val = scm_apply_2(f, wrap_node(s_arg, *i), val, SCM_EOL);
+	for (i = inner.begin(); i != inner.end(); ++i)
+	    val = scm_apply_2(f, wrap_node(s_arg, *i), val, SCM_EOL);
+
+	return val;
+    }
 }
 
 void
@@ -591,5 +639,8 @@ guile::install_nodes()
 		       (scm_unused_struct*(*)())gene_conversion_start);
     scm_c_define_gsubr("gene-conversion-end", 1, 0, 0, 
 		       (scm_unused_struct*(*)())gene_conversion_end);
+
+    scm_c_define_gsubr("fold-nodes", 3, 0, 0, 
+		       (scm_unused_struct*(*)())fold_nodes);
 
 }
