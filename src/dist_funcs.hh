@@ -6,11 +6,8 @@
 #include <iostream>
 
 
-class Distribution_functions
+namespace Distribution_functions
 {
-public:
-  Distribution_functions(){};
-  ~Distribution_functions(){};
   static double expdev(const double param)
   {
     return -log(double(std::rand())/double(RAND_MAX))/param;
@@ -60,7 +57,6 @@ public:
     if (n1==n2) n2 = n-1;
   }
 
-private:
 };
 
 #endif
