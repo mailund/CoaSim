@@ -16,7 +16,7 @@ int main(int argc, const char *argv[])
 
     const double positions[] = { 0.0, 0.2, 0.3, 0.4, 0.67, };
     const size_t no_positions = (sizeof positions)/sizeof(double);
-    Configuration conf((const double*)positions, &positions[no_positions],
+    Configuration conf(2, (const double*)positions, &positions[no_positions],
 		       0.0, 0.0, 0.0, 0.0, 0.0, true);
 
     ARG arg(conf);
@@ -34,10 +34,9 @@ int main(int argc, const char *argv[])
     Node *c2  = arg.coalescence(4.0, r1, g2);
     Node *top = arg.coalescence(5.0, c1, c2);
 
-    SNPMarker            snp_m;
-    TraitMarker          trait_m;
+    SNPMarker            snp_m(0.0,1.0);
+    TraitMarker          trait_m(0.0,1.0);
     MicroSatelliteMarker ms_m(0.0);
-
     ms_m.add_value(42); ms_m.add_value(86);
 
     // ARG retired intervals:
@@ -58,19 +57,31 @@ int main(int argc, const char *argv[])
     //  1.0 |       |
     //      l1      l2
 
-    // SNP mutation, put mutation on c1->r1 edge
-    Distribution_functions::uniform_result = 0.0;
-    Mutator *mutator = snp_m.create_mutator(arg.retired_intervals().at(0));
 
-    c1->initialize_marker(4,snp_m);
-    c1->mutate_marker(4,*mutator);
-    delete mutator;
+    // SNP mutation, put mutation on c1->r1 edge
+    conf.set_marker(4,&snp_m);
+    Distribution_functions::uniform_result = 0.0;
+    arg.retired_intervals().at(0).mutate(conf,4);
 
     CHECK(c1->state(4) == 0);
     CHECK(r2->state(4) == 1);
     CHECK(l1->state(4) == 1);
     CHECK(g1->state(4) == 0);
     CHECK(l2->state(4) == 0);
+
+    // try with frequency restrictions leading to a retry...
+    SNPMarker snp_m2(0.0,0.4);
+    conf.set_marker(4,&snp_m2);
+    try {
+      arg.retired_intervals().at(0).mutate(conf,4);
+      ERROR("This should have lead to a retry...");
+    } catch (Mutator::retry_mutation&) {}
+
+    // this should be accepted
+    SNPMarker snp_m3(0.0,0.5);
+    conf.set_marker(4,&snp_m3);
+    arg.retired_intervals().at(0).mutate(conf,4);
+    
 
     // Tree for interval 1:
     // 
@@ -86,12 +97,9 @@ int main(int argc, const char *argv[])
     //       l1     l2
 
     // Trait mutation, put mutation on c2->g2 edge
+    conf.set_marker(2,&trait_m);
     Distribution_functions::uniform_result = 0.5;
-    mutator = trait_m.create_mutator(arg.retired_intervals().at(1));
-
-    c2->initialize_marker(2,trait_m);
-    c2->mutate_marker(2,*mutator);
-    delete mutator;
+    arg.retired_intervals().at(1).mutate(conf,2);
 
     CHECK(c2->state(2) == 0);
     CHECK(r1->state(2) == 0);
@@ -99,15 +107,26 @@ int main(int argc, const char *argv[])
     CHECK(g2->state(2) == 1);
     CHECK(l2->state(2) == 1);
 
+    // try with frequency restrictions leading to a retry...
+    TraitMarker trait_m2(0.0,0.4);
+    conf.set_marker(2,&trait_m2);
+    try {
+      arg.retired_intervals().at(1).mutate(conf,2);
+      ERROR("This should have lead to a retry...");
+    } catch (Mutator::retry_arg&) {}
+
+    // this should be accepted
+    TraitMarker trait_m3(0.0,0.5);
+    conf.set_marker(2,&trait_m3);
+    arg.retired_intervals().at(1).mutate(conf,2);
+
+
 
     // micro-satellite mutation, put mutation on all edges 
+    conf.set_marker(3,&ms_m);
     Distribution_functions::uniform_result = 0.5;
     Distribution_functions::expdist_result = 0.6;
-    mutator = ms_m.create_mutator(arg.retired_intervals().at(3));
-
-    c2->initialize_marker(3,ms_m);
-    c2->mutate_marker(3,*mutator);
-    delete mutator;
+    arg.retired_intervals().at(1).mutate(conf,3);
 
     CHECK(c2->state(3) == 42);
     CHECK(r1->state(3) == 86);

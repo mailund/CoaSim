@@ -9,15 +9,15 @@
 class Builder
 {
 public:
-  Builder(Configuration &conf) : _conf(conf) {};
+  Builder(const Configuration &conf) : _conf(conf) {};
   ~Builder() {};
 
-  // Builds an ARG with the given number of leaf nodes.  The ARG is
-  // dynamically allocated and must be deleted after use.
-  ARG *build(size_t no_leaf_nodes) const;
+  // Builds an ARG.  The ARG is dynamically allocated and must be
+  // deleted after use.
+  ARG *build() const;
 
 private:
-  Configuration &_conf;
+  const Configuration &_conf;
 };
 
 

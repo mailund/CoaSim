@@ -36,12 +36,15 @@ public:
   // flag specifying if the full output of the simulation is desired,
   // or just information about the leaf nodes.
   template <typename InItr>
-  Configuration(InItr positions_begin, InItr positions_end,
+  Configuration(unsigned int no_leaves,
+		InItr positions_begin, InItr positions_end,
 		double rho, double Q, double G, double growth,
 		double mu,
 		bool print_all_nodes = false)
     throw(out_of_sequence);
   ~Configuration();
+
+  unsigned int no_leaves() const { return _no_leaves; }
 
   // Number of markers for the configuration
   size_t no_markers() const { return _positions.size(); }
@@ -75,6 +78,8 @@ private:
   Configuration(const Configuration&);
   Configuration& operator = (const Configuration&);
 
+  unsigned int _no_leaves;
+
   std::vector<double>  _positions;
   const Marker** _markers;
 
@@ -90,12 +95,14 @@ private:
 
 
 template <typename InItr>
-Configuration::Configuration(InItr begin, InItr end,
+Configuration::Configuration(unsigned int no_leaves,
+			     InItr begin, InItr end,
 			     double rho, double Q, double G, double growth,
 			     double mu,
 			     bool print_all_nodes)
   throw(out_of_sequence)
-  : _positions(begin,end),
+  : _no_leaves(no_leaves),
+    _positions(begin,end),
     _rho(rho), _Q(Q), _G(G), _growth(growth),
     _mu(mu),
     _print_all_nodes(print_all_nodes)

@@ -3,6 +3,7 @@
 #include "descender.hh"
 #include "configuration.hh"
 #include "node.hh"
+#include "all_markers.hh"
 
 #include "testing.hh"
 
@@ -98,8 +99,22 @@ int main(int argc, const char *argv[])
 
     const double positions[] = { 0.0, 0.2, 0.3, 0.4, 0.67, };
     const size_t no_positions = (sizeof positions)/sizeof(double);
-    Configuration conf((const double*)positions, &positions[no_positions],
-		       0.0, 0.0, 0.0, 0.0, 0.0, true);
+
+
+    Configuration conf(2,
+		       (const double*)positions, &positions[no_positions],
+		       5.0, 250.0, 250.0, 5.0, 5.0, true);
+
+    TraitMarker          trait_m(0.0,1.0);
+    SNPMarker            snp_m(0.0,1.0);
+    MicroSatelliteMarker ms_m(conf.mu()); ms_m.add_value(4); ms_m.add_value(8);
+
+    conf.set_marker(0,&snp_m);
+    conf.set_marker(1,&trait_m);
+    conf.set_marker(2,&snp_m);
+    conf.set_marker(3,&ms_m);
+    conf.set_marker(4,&snp_m);
+
     Descender desc(conf);
 
     ARG *arg = build_arg(conf);

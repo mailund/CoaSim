@@ -22,12 +22,14 @@ int main(int argc, const char *argv[])
     const double positions[] = { 0.0, 0.2, 0.3, 0.4, 0.67, };
     const size_t no_positions = (sizeof positions)/sizeof(double);
 
-    Configuration conf((const double*)positions, &positions[no_positions],
+    Configuration conf(10,
+		       (const double*)positions, &positions[no_positions],
 		       0.0, 0.0, 0.0, 0.0, 0.0);
 
     Builder b(conf);
-    b.build(10);
+    ARG *arg = b.build();
 
+    CHECK(arg != 0);
 
   } catch (std::exception &ex) {
     std::cout << "EXCEPTION: " << ex.what() << std::endl;

@@ -11,14 +11,27 @@
 # define VECTOR_INCLUDED
 #endif
 
+class Configuration;
 class RetiredInterval;
+class Node;
 
 // Abstract class for mutating the ARG
 class Mutator
 {
 public:
+  // Exception thrown if a mutation should be re-tried (for example,
+  // because the mutation frequency is outside the desired range
+  struct retry_mutation { retry_mutation() {} };
+
+  // Exception thrown if the entire ARG should be rebuilt for another
+  // try (for example, because the trait mutation frequency is outside
+  // the desired range
+  struct retry_arg { retry_arg() {} };
+  
+
   virtual bool edge_has_mutation(double parent_time, double child_time) = 0;
-  virtual int  mutate_to(int current_value) = 0;
+  virtual int  mutate_to(const Node &n, unsigned int marker_index)
+    throw (retry_mutation, retry_arg) = 0;
 };
 
 // Abstract class for the different possible marker types
@@ -32,6 +45,7 @@ public:
     illegal_value() : std::logic_error("illegal marker value.") {}
   };
 
+
   virtual ~Marker() {};
 
   size_t size()     const { return _values.size(); }
@@ -41,7 +55,8 @@ public:
   virtual void add_value(int value) throw(illegal_value) = 0;
 
   // creates a new mutator -- the mutator must be deleted after use.
-  virtual Mutator *create_mutator(const RetiredInterval &ri) const = 0;
+  virtual Mutator *create_mutator(const Configuration &conf,
+				  const RetiredInterval &ri) const = 0;
 
 protected:
   Marker() {};

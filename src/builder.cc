@@ -54,7 +54,7 @@ namespace
 }
 
 
-ARG * Builder::build(size_t no_leaf_nodes) const
+ARG * Builder::build() const
 {
   using namespace Distribution_functions;
 
@@ -62,8 +62,15 @@ ARG * Builder::build(size_t no_leaf_nodes) const
   TopNodeSet top_nodes;
 
   // initialize
-  for (size_t i = 0; i < no_leaf_nodes; ++i)
+  for (size_t i = 0; i < _conf.no_leaves(); ++i)
     top_nodes.push(arg->leaf());
+
+
+  unsigned int no_iterations = 0;
+  unsigned int coal_events = 0;
+  unsigned int gene_conv_events = 0;
+  unsigned int recomb_events = 0;
+
 
   // build tree
   double time = 0.0;
@@ -72,19 +79,32 @@ ARG * Builder::build(size_t no_leaf_nodes) const
       unsigned int k = top_nodes.size();
       time += get_time_interval(_conf,time,k);
 
-      switch (uniform((k-1)/2.,_conf.G(), _conf.rho()))
+      int event = uniform((k-1)/2.,_conf.G(), _conf.rho());
+
+      ++no_iterations;
+      if ( (no_iterations % 1000) == 0)
+	std::cout << "After " << no_iterations << ' '
+		  << k << " nodes remains to be processed.\n";
+
+      switch (event)
 	{
 	case 0: // coalescent
 	  {
+	    ++coal_events;
+
 	    Node *child1 = top_nodes.pop();
 	    Node *child2 = top_nodes.pop();
 	    Node *coa_node = arg->coalescence(time, child1, child2);
-	    top_nodes.push(coa_node);
+
+	    if (coa_node->intervals().size() > 0)
+	      top_nodes.push(coa_node);
 	  }
 	  break;
 	  
 	case 1: // gene conversion
 	  {
+	    ++gene_conv_events;
+
 	    double point = uniform();
 	    double length = random_sign()*expdev(_conf.Q());
 
@@ -102,24 +122,53 @@ ARG * Builder::build(size_t no_leaf_nodes) const
 	    Node *child = top_nodes.pop();
 	    ARG::node_pair_t pair = arg->gene_conversion(time,child,
 							 start,stop);
-	    if (pair.second == 0) top_nodes.push(child);
-	    else { top_nodes.push(pair.first); top_nodes.push(pair.second); }
+	    if (pair.second == 0) 
+	      top_nodes.push(child);
+	    else {
+	      if (pair.first->intervals().size() > 0)
+		top_nodes.push(pair.first); 
+	      if (pair.second->intervals().size() > 0)
+		top_nodes.push(pair.second); 
+	    }
 	  }
 	  break;
 
 	case 2: // recombination
 	  {
+	    ++recomb_events;
+
 	    double cross_over_point = uniform();
 	    Node *child = top_nodes.pop();
 	    ARG::node_pair_t pair = arg->recombination(time,child,
 						       cross_over_point);
-	    if (pair.second == 0) top_nodes.push(child);
-	    else { top_nodes.push(pair.first); top_nodes.push(pair.second); }
+	    if (pair.second == 0) 
+	      top_nodes.push(child);
+	    else { 
+	      if (pair.first->intervals().size() > 0)
+		top_nodes.push(pair.first); 
+	      if (pair.second->intervals().size() > 0)
+		top_nodes.push(pair.second); 
+	    }
 	  }
 	  break;
 	}
-
     }
+
+  std::cout << "Terminated after " << no_iterations << " iterations\n";
+  std::cout << coal_events << " coalecense events,\n"
+	    << gene_conv_events << " gene-conversion events,\nand "
+	    << recomb_events << " recombination events\n";
+  std::cout << "There are " << arg->retired_intervals().size()
+	    << " retired intervals and "
+	    << arg->no_nodes() << " nodes.\n";
+
+#if 0
+  std::vector<RetiredInterval>::const_iterator itr;
+  for (itr = arg->retired_intervals().begin(); 
+       itr != arg->retired_intervals().end();
+       ++itr)
+    std::cout << *itr << std::endl;
+#endif
 
   return arg.release();
 }

@@ -53,12 +53,11 @@ public:
   // returns whether i overlaps this interval
   bool overlaps(const Interval &i) const;
 
+  void print(std::ostream &os) const
+  { os << '[' << _start << ':' << _end << ")<" << _leaf_contacts << '>'; }
 
   bool operator == (const Interval &i) const;
   bool operator != (const Interval &i) const;
-
-  // i1 < i2 if i1.start() < i2.start(), independent of other values.
-  bool operator < (const Interval &i)  const;
 
 private:
   void check_empty() const throw(empty_interval);
@@ -84,10 +83,9 @@ inline bool Interval::operator == (const Interval &i) const
 
 inline bool Interval::operator != (const Interval &i) const
 { return !(*this == i); }
-inline bool Interval::operator < (const Interval &i) const
-{ return _start < i._start; }
 
-
+inline std::ostream & operator << (std::ostream &os, const Interval &i)
+{ i.print(os); return os; }
 
 /* A set of non-overlapping intervals. */
 class Intervals
@@ -121,14 +119,20 @@ public:
 
   // checking the predicates on the relevant intervals.  Throws an
   // exception if point is outside [0,1).
-  bool is_start(double point)     const throw(std::out_of_range);
-  bool is_end(double point)       const throw(std::out_of_range);
-  bool contains_point(double pos) const throw(std::out_of_range);
+  bool is_start(double point)      const throw(std::out_of_range);
+  bool is_end(double point)        const throw(std::out_of_range);
+  bool contains_point(double pos)  const throw(std::out_of_range);
+  bool overlaps(const Interval &i) const throw(std::out_of_range);
 
   // the first point in the first interval (the left most point)
   double first_point() const throw(std::out_of_range);
   // the last point in the last interval (the right most point)
   double last_point()  const throw(std::out_of_range);
+
+  // number of leaves reached at point -- just a propagation to the
+  // corresponding interval (or 0 if intervals does not contain
+  // point).
+  unsigned int leaf_contacts(double point) const;
 
   void reset() { _intervals.clear(); }
 
@@ -146,6 +150,8 @@ public:
   // other.
   Intervals add_intervals(const Intervals &i) const throw(out_of_sequence);
   Intervals operator + (const Intervals &i)   const throw(out_of_sequence);
+
+  void print(std::ostream &os) const;
 
 private:
 
@@ -196,5 +202,7 @@ inline Intervals Intervals::operator + (const Intervals &in) const
   throw(out_of_sequence)
 { return add_intervals(in); }
 
+inline std::ostream & operator << (std::ostream &os, const Intervals &is)
+{ is.print(os); return os; }
 
 #endif

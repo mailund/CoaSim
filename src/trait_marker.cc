@@ -7,23 +7,40 @@
 #ifndef RETIRED_INTERVAL_HH_INCLUDED
 # include "retired_interval.hh"
 #endif
+#ifndef NODE_HH_INCLUDED
+# include "node.hh"
+#endif
 
 namespace
 {
   class TraitMutator : public Mutator {
+    const Configuration &_conf;
+
+    // allowed frequencies, translated into leaf node counts
+    unsigned int _low_leaf_count;
+    unsigned int _high_leaf_count;
+
     double _mutation_point;	// the point on the "surface" where
 				// the mutation sits
     double _surface_so_far;	// the surface seen so far
   public:
-    TraitMutator(const RetiredInterval &ri);
+    TraitMutator(const Configuration &conf,
+		 unsigned int low_leaf_count,
+		 unsigned int high_leaf_count,
+		 double mutation_point);
     bool edge_has_mutation(double parent_time, double child_time);
-    int  mutate_to(int current_value);
+    int  mutate_to(const Node &n, unsigned int marker_index)
+      throw (retry_mutation, retry_arg);
   };
 
-  TraitMutator::TraitMutator(const RetiredInterval &ri)
-    : _surface_so_far(0.0)
+  TraitMutator::TraitMutator(const Configuration &conf,
+			     unsigned int low_leaf_count, 
+			     unsigned int high_leaf_count,
+			     double mutation_point)
+    : _conf(conf),
+      _low_leaf_count(low_leaf_count), _high_leaf_count(high_leaf_count),
+      _mutation_point(mutation_point), _surface_so_far(0.0)
   {
-    _mutation_point = ri.surface() * Distribution_functions::uniform();
   }
 
   bool TraitMutator::edge_has_mutation(double parent_time, double child_time) 
@@ -36,13 +53,33 @@ namespace
     return mutate;
   }
 
-  int TraitMutator::mutate_to(int current_value)
+  int TraitMutator::mutate_to(const Node &n, unsigned int marker_index)
+    throw (retry_mutation, retry_arg) 
   {
-    return !current_value;
+    // check frequency
+    unsigned int leaf_count = n.leaves_at_point(_conf.position(marker_index));
+    if ((leaf_count < _low_leaf_count) or (_high_leaf_count < leaf_count))
+	throw Mutator::retry_arg();
+
+    return !n.state(marker_index);
   }
 }
 
-Mutator *TraitMarker::create_mutator(const RetiredInterval &ri) const
+static inline void swap(unsigned int &i, unsigned int &j)
+{ unsigned int tmp = i; i = j; j = tmp; }
+
+Mutator *TraitMarker::create_mutator(const Configuration   &conf,
+				     const RetiredInterval &ri) const
 {
-  return new TraitMutator(ri);
+  unsigned int low_leaf_count
+    = static_cast<unsigned int>(ceil(_low_freq*conf.no_leaves()));
+  unsigned int high_leaf_count
+    = static_cast<unsigned int>(floor(_high_freq*conf.no_leaves()));
+
+  // possible due to ceil/floor
+  if (high_leaf_count < low_leaf_count) swap(low_leaf_count,high_leaf_count);
+
+  double mutation_point = ri.surface() * Distribution_functions::uniform();
+
+  return new TraitMutator(conf,low_leaf_count,high_leaf_count,mutation_point);
 }

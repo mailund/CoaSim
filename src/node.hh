@@ -63,12 +63,15 @@ public:
   virtual double surface_at_point(double point) const
     throw(std::out_of_range) = 0;
 
+  // Calculate the number of leaves hit by the binary tree in point
+  // with root in this node.
+  unsigned int leaves_at_point(double point) const throw(std::out_of_range)
+  { return intervals().leaf_contacts(point); }
+
 
   // FIXME: I am not sure this is the access-protection for these...
-  void initialize_marker(unsigned int idx, const Marker &m)
-    throw(std::out_of_range);
-  virtual void mutate_marker(unsigned int idx, Mutator &m)
-    throw(std::out_of_range) = 0;
+  void initialize_marker(unsigned int idx, const Marker &m);
+  virtual void mutate_marker(unsigned int idx, Mutator &m) = 0;
 
   
   int state(unsigned int s) const throw(std::out_of_range)
@@ -136,6 +139,8 @@ public:
 
   const std::vector<RetiredInterval> &retired_intervals() const
   { return _retired_intervals; }
+  unsigned int no_nodes() const
+  { return _leaf_pool.size() + _node_pool.size(); }
 
   void to_xml(std::ostream &os) const;
 

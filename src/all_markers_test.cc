@@ -10,7 +10,7 @@ int main(int argc, const char *argv[])
 
   try {
 
-    SNPMarker snp_marker;
+    SNPMarker snp_marker(0.0,1.0);
 
     try {
       snp_marker.add_value(-1);
@@ -42,7 +42,7 @@ int main(int argc, const char *argv[])
     } catch(std::out_of_range&) {}
 
 
-    TraitMarker trait_marker;
+    TraitMarker trait_marker(0.0,1.0);
 
     try {
       trait_marker.add_value(-1);

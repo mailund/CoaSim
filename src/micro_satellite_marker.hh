@@ -22,7 +22,8 @@ public:
     _values.push_back(value);
   }
 
-  virtual Mutator *create_mutator(const RetiredInterval &ri) const;
+  virtual Mutator *create_mutator(const Configuration &conf,
+				  const RetiredInterval &ri) const;
   double mu() const { return _mu; }
 
 private:

@@ -1,6 +1,10 @@
 
 #include "node.hh"
 
+#ifndef COMPILE_OPTIONS_HH
+# include "compile_options.hh"
+#endif
+
 #ifndef DIST_FUNCTIONS_HH_INCLUDED
 # include "dist_funcs.hh"
 #endif
@@ -17,6 +21,10 @@
 # define STRING_INCLUDED
 #endif
 
+#if EXPENSIVE_ASSERTS
+#include <fstream>
+#endif
+
 void Node::haplotype_to_xml(std::ostream &os) const
 {
   os << "    <haplotype id=\"h_" << this << "\"> " << std::endl;
@@ -29,7 +37,6 @@ void Node::haplotype_to_xml(std::ostream &os) const
 }
 
 void Node::initialize_marker(unsigned int idx, const Marker &m)
-  throw(std::out_of_range)
 {
   if (_states.size() <= idx) 
     throw std::out_of_range("marker index out of range");
@@ -53,7 +60,6 @@ namespace {
     }
 
     virtual void mutate_marker(unsigned int idx, Mutator &m)
-      throw(std::out_of_range)
     {
       // no mutations out of leaf
     }
@@ -110,30 +116,25 @@ namespace {
     }
 
     virtual void mutate_marker(unsigned int idx, Mutator &m)
-      throw(std::out_of_range)
     {
       if (! (idx < no_states()) )
 	throw std::out_of_range("marker index out of range");
 
+      // propagate value
+      set_state(_left,idx,state(idx));
+      set_state(_right,idx,state(idx));
+
       if (m.edge_has_mutation(time(),_left->time()))
 	{
-	  set_state(_left,idx,m.mutate_to(state(idx)));
+	  set_state(_left, idx, m.mutate_to(*_left,idx));
 	  _left_mutating[idx] = true;
-	}
-      else
-	{
-	  set_state(_left,idx,state(idx));
 	}
       _left->mutate_marker(idx,m);
 
       if (m.edge_has_mutation(time(),_right->time()))
 	{
-	  set_state(_right,idx,m.mutate_to(state(idx)));
+	  set_state(_right, idx, m.mutate_to(*_right,idx));
 	  _right_mutating[idx] = true;
-	}
-      else
-	{
-	  set_state(_right,idx,state(idx));
 	}
       _right->mutate_marker(idx,m);
     }
@@ -194,19 +195,17 @@ namespace {
     }
 
     virtual void mutate_marker(unsigned int idx, Mutator &m)
-      throw(std::out_of_range)
     {
       if (! (idx < no_states()) )
 	throw std::out_of_range("marker index out of range");
 
+      // propagate value
+      set_state(_child,idx,state(idx));
+
       if (m.edge_has_mutation(time(),_child->time()))
 	{
-	  set_state(_child,idx,m.mutate_to(state(idx)));
+	  set_state(_child,idx,m.mutate_to(*_child,idx));
 	  _child_mutating[idx] = true;
-	}
-      else
-	{
-	  set_state(_child,idx,state(idx));
 	}
       _child->mutate_marker(idx,m);
     }
@@ -263,19 +262,17 @@ namespace {
     }
 
     virtual void mutate_marker(unsigned int idx, Mutator &m)
-      throw(std::out_of_range)
     {
       if (! (idx < no_states()) )
 	throw std::out_of_range("marker index out of range");
 
+      // propagate value
+      set_state(_child,idx,state(idx));
+
       if (m.edge_has_mutation(time(),_child->time()))
 	{
-	  set_state(_child,idx,m.mutate_to(state(idx)));
+	  set_state(_child,idx,m.mutate_to(*_child,idx));
 	  _child_mutating[idx] = true;
-	}
-      else
-	{
-	  set_state(_child,idx,state(idx));
 	}
       _child->mutate_marker(idx,m);
     }
@@ -321,10 +318,22 @@ Node *ARG::leaf() throw()
 {
   LeafNode *n = new LeafNode(_conf);
 
+#if 0 //OPTIMIZATION_1
+  for (unsigned int i = 0; i < _conf.no_markers(); ++i)
+    {
+      double marker_pos = _conf.position(i);
+      double start = std::max(0.0, marker_pos - 1e-5);
+      double stop  = std::min(1.0, marker_pos + 1e-5);
+      n->_intervals.add(start,stop,1);
+    }
+#else
   // the leaves covers the entire interval [0,1)
   n->_intervals.add(0.0,1.0,1);
+#endif
+
   _leaf_pool.push_back(n);
   ++_no_leaves;
+
 
   return n;
 }
@@ -338,20 +347,43 @@ Node *ARG::coalescence(double time, Node *left, Node *right)
   std::vector<Interval> retired;
   Intervals non_retired;
   Intervals merged = left->intervals() | right->intervals();
+
+#if 0
+  std::cout << "coalescence -- left: " << left->intervals() << std::endl;
+  std::cout << "coalescence -- right: " << right->intervals() << std::endl;
+  std::cout << "coalescence -- merged: " << merged << std::endl;
+#endif
+
   for (int i = 0; i < merged.size(); ++i)
     {
-      if (merged.interval(i).leaf_contacts() == _no_leaves)
+      if (merged.interval(i).leaf_contacts() < _no_leaves)
+	non_retired.add(merged.interval(i));
+      else if (merged.interval(i).leaf_contacts() == _no_leaves)
 	retired.push_back(merged.interval(i));
       else
-	non_retired.add(merged.interval(i));
+	assert(false);
     }
 
   CoalescentNode *n = new CoalescentNode(_conf,time,left,right,non_retired);
+
   _node_pool.push_back(n);
 
   std::vector<Interval>::const_iterator itr;
   for (itr = retired.begin(); itr != retired.end(); ++itr)
-    _retired_intervals.push_back(RetiredInterval(*itr,n));
+    {
+#if EXPENSIVE_ASSERTS
+      std::vector<RetiredInterval>::const_iterator jtr;
+      for (jtr = _retired_intervals.begin(); 
+	   jtr != _retired_intervals.end(); ++jtr)
+	//assert(!jtr->overlaps(*itr));
+	if (jtr->overlaps(*itr))
+	  {
+	    std::cout << "ERROR: " << *itr << " overlaps " << *jtr << std::endl;
+	    assert(!jtr->overlaps(*itr));
+	  }
+#endif
+      _retired_intervals.push_back(RetiredInterval(*itr,n));
+    }
 
   return n;
 }
@@ -369,6 +401,13 @@ ARG::node_pair_t ARG::recombination(double time, Node *child,
 
   Intervals left  = child->intervals().copy(0.0,cross_over_point);
   Intervals right = child->intervals().copy(cross_over_point,1.0);
+
+#if 0
+  std::cout << "recombination -- child: " << child->intervals() << std::endl;
+  std::cout << "recombination -- left: " << left << std::endl;
+  std::cout << "recombination -- right: " << right << std::endl;
+#endif
+
 
   // FIXME: we could optimize here by not creating intervals without markers
 
@@ -388,18 +427,34 @@ ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
 {
   if (child == 0) throw null_child();
 
+  if (conversion_start == conversion_end)
+    return std::make_pair<Node*,Node*>(child,0); // empty interval...
+
+#if 0
   if (conversion_end <= child->intervals().first_point())
-    return std::make_pair<Node*,Node*>(child,0);
+      return std::make_pair<Node*,Node*>(child,0);
   if (child->intervals().last_point() <= conversion_start)
+      return std::make_pair<Node*,Node*>(child,0);
+#else
+  Interval conv(conversion_start,conversion_end,0);
+  if (!child->intervals().overlaps(conv))
     return std::make_pair<Node*,Node*>(child,0);
+#endif
+
 
   // FIXME: we could optimize here by not creating intervals without markers
 
-  Intervals left  =
-    child->intervals().copy(0.0, conversion_start) 
+  Intervals left  = child->intervals().copy(0.0, conversion_start)
     + child->intervals().copy(conversion_end, 1.0);
   Intervals right =
     child->intervals().copy(conversion_start, conversion_end);
+
+#if 0
+  std::cout << "gene-conversion -- child: " << child->intervals() << std::endl;
+  std::cout << "gene-conversion -- left: " << left << std::endl;
+  std::cout << "gene-conversion -- right: " << right << std::endl;
+#endif
+
 
   GeneConversionNode *n1 = new GeneConversionNode(_conf,time,child,left,
 						  conversion_start,

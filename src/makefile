@@ -21,9 +21,21 @@ builder_test_objects = builder_test.o node.o interval.o retired_interval.o \
 			test_dist_funcs.o configuration.o builder.o
 
 descender_test_objects = descender_test.o node.o interval.o retired_interval.o\
-			test_dist_funcs.o  configuration.o descender.o
+			configuration.o descender.o \
+			snp_marker.o micro_satellite_marker.o trait_marker.o
 
-test_programs = interval_test all_markers_test configuration_test node_test builder_test descender_test mutation_test
+simulator_test_objects = simulator_test.o simulator.o node.o interval.o retired_interval.o\
+			configuration.o builder.o descender.o \
+			snp_marker.o micro_satellite_marker.o trait_marker.o
+
+profiler_objects = profiler.o simulator.o node.o interval.o retired_interval.o\
+			configuration.o builder.o descender.o \
+			snp_marker.o micro_satellite_marker.o trait_marker.o
+
+
+test_programs = interval_test all_markers_test configuration_test node_test builder_test descender_test mutation_test simulator_test
+
+all: test profiler
 
 #coasim : $(objects)
 #	$(CXX) $(CXXFLAGS) -o coasim $(objects)
@@ -40,7 +52,10 @@ test: $(test_programs)
 	if ! ./mutation_test; then echo "FAILURE: mutation_test failed!"; fi
 	if ! ./builder_test; then echo "FAILURE: builder_test failed!"; fi
 	if ! ./descender_test; then echo "FAILURE: descender_test failed!"; fi
+	if ! ./simulator_test; then echo "FAILURE: simulator_test failed!"; fi
 
+profiler: $(profiler_objects)
+	$(CXX) $(CXXFLAGS) -o profiler $(profiler_objects)
 
 interval_test: $(interval_test_objects)
 	$(CXX) $(CXXFLAGS) -o interval_test $(interval_test_objects)
@@ -63,6 +78,9 @@ mutation_test: $(mutation_test_objects)
 descender_test: $(descender_test_objects)
 	$(CXX) $(CXXFLAGS) -o descender_test $(descender_test_objects)
 
+simulator_test: $(simulator_test_objects)
+	$(CXX) $(CXXFLAGS) -o simulator_test $(simulator_test_objects)
+
 
 
 coasim.o: coasim.cc node.o builder.o descender.hh reporter.hh dist_funcs.hh
@@ -74,13 +92,13 @@ retired_interval.o: retired_interval.hh retired_interval.cc
 
 all_markers_test.o: marker.hh all_markers.hh snp_marker.hh trait_marker.hh micro_satellite_marker.hh all_markers_test.cc
 
-mutator_test.o: marker.hh all_markers.hh snp_marker.hh trait_marker.hh micro_satellite_marker.hh all_markers_test.cc node.hh node.cc
+mutation_test.o: marker.hh all_markers.hh snp_marker.hh trait_marker.hh micro_satellite_marker.hh all_markers_test.cc node.hh node.cc
 
 configuration.o: configuration.hh configuration.cc
 configuration_test.o: configuration_test.cc configuration.hh configuration.cc
 
 
-node.o: node.hh node.cc dist_funcs.hh interval.hh
+node.o: node.hh node.cc dist_funcs.hh interval.hh marker.hh retired_interval.hh
 node_test.o: node_test.cc node.hh node.cc testing.hh interval.hh configuration.hh
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o node_test.o node_test.cc
 
@@ -103,6 +121,9 @@ trait_marker_t.o: trait_marker.hh trait_marker.cc marker.hh
 micro_satellite_marker_t.o: micro_satellite_marker.hh micro_satellite_marker.cc marker.hh
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o micro_satellite_marker_t.o micro_satellite_marker.cc
 
+simulator.o: simulator.hh simulator.cc builder.hh marker.hh descender.hh
+simulator_test.o: simulator.hh simulator.cc simulator_test.cc
+	$(CXX) $(CXXFLAGS) -DTESTING -c -o simulator_test.o simulator_test.cc
 
 clean : 
 	rm -f coasim *_test *.o

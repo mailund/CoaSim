@@ -13,6 +13,24 @@
 
 using std::min; using std::max;
 
+namespace {
+  using std::binary_function;
+  
+  struct interval_start_less : 
+    public binary_function<const Interval&,const Interval&,bool> {
+    bool operator () (const Interval &i1, const Interval &i2) const
+    { return i1.start() < i2.start(); }
+  };
+  struct interval_less : 
+    public binary_function<const Interval&,const Interval&,bool> {
+    bool operator () (const Interval &i1, const Interval &i2) const
+    { return (i1.start() < i2.start()) 
+	or ((i1.start() == i2.start()) and (i1.end() < i2.end()));
+    }
+  };
+}
+
+
 
 void Interval::check_empty() const throw(empty_interval)
 {
@@ -58,7 +76,8 @@ Intervals::interval_starting_before(double point) const
 {
   Interval dummy_interval(point,1.0);
   std::vector<Interval>::const_iterator itr;
-  itr = lower_bound(_intervals.begin(),_intervals.end(), dummy_interval);
+  itr = lower_bound(_intervals.begin(),_intervals.end(), dummy_interval,
+		    interval_start_less());
 
   // itr now points to the first interval that starts at or after point
   if (itr != _intervals.begin()) return --itr;
@@ -74,7 +93,8 @@ Intervals::interval_starting_after(double point) const
 
   Interval dummy_interval(point,1.0);
   std::vector<Interval>::const_iterator itr;
-  itr = upper_bound(_intervals.begin(),_intervals.end(), dummy_interval);
+  itr = upper_bound(_intervals.begin(),_intervals.end(), dummy_interval,
+		    interval_start_less());
 
   // itr now points to the first interval that starts at or after point
   if (itr != _intervals.end() and itr->start() == point) return ++itr;
@@ -98,6 +118,26 @@ bool Intervals::check_predicate(double point,
   stop = interval_starting_after(point);
   res = find_if(start,stop, bind2nd(mem_fun_ref(predicate),point));
   return res != stop;
+}
+
+bool Intervals::overlaps(const Interval &i) const throw(std::out_of_range)
+{
+  using std::bind2nd;   using std::mem_fun_ref;
+
+  std::vector<Interval>::const_iterator start, stop, res;
+  start = interval_starting_before(i.start());
+  stop = interval_starting_after(i.end());
+
+  for (res = start; res != stop; ++res)
+    {
+      if (res->overlaps(i)) return true;
+    }
+  return false;
+
+#if 0
+  res = find_if(start,stop, bind2nd(mem_fun_ref(&Interval::overlaps),i));
+  return res != stop;
+#endif
 }
 
 
@@ -144,7 +184,27 @@ Intervals Intervals::add_intervals(const Intervals &i) const
   return result;
 }
 
+unsigned int Intervals::leaf_contacts(double point) const
+{
+  if (point == 1.0) // special case for endpoint in 1.0
+    {
+      const Interval &i = _intervals.back();
+      if (i.contains_point(point)) return i.leaf_contacts();
+      else return 0;
+    }
 
+  using std::bind2nd;   using std::mem_fun_ref;
+  std::vector<Interval>::const_iterator start, stop, res;
+  start = interval_starting_before(point);
+  stop = interval_starting_after(point);
+  res = find_if(start,stop,
+		bind2nd(mem_fun_ref(&Interval::contains_point),point));
+
+  if (res != stop)
+    return res->leaf_contacts();
+  else
+    return 0;
+}
 
 // Copy the intervals between start and stop, trunkating the
 // end-intervals to start and stop.
@@ -154,17 +214,22 @@ Intervals Intervals::copy(double start, double stop) const
   std::vector<Interval>::const_iterator first, last, itr;
   Intervals result;
 
-  if (stop <= start) throw illegal_interval();
+  if (stop < start)  throw illegal_interval();
   if (start < 0.0)   throw illegal_interval();
   if (1.0 < stop)    throw illegal_interval();
+
+  // empty copies...
+  if (start == stop or start == 1.0 or stop == 0.0) return result;
 
   first = interval_starting_before(start);
   last = interval_starting_after(stop);
 
-  // first points to the right-most interval that starts *before* start
-  // last points to the left-most interval that starts *after* stop
+  // first points to the right-most interval that starts *before*
+  // start, or the very first interval if no interval starts before
+  // start.  last points to the left-most interval that starts *after*
+  // stop or _intervals.end()
 
-  /* -- handle first -------------------------------------*/
+  /* -- handle first ------------------------------------- */
   // if first contains start, we cut [start,first->end) -- or
   // [start,stop) if stop < first->end -- otherwise we just skip the
   // first interval; the next must be completely included as it must
@@ -173,23 +238,24 @@ Intervals Intervals::copy(double start, double stop) const
   // of the right-most interval that starts before start
 
   if (start < first->end())
-    if (stop < first->end())
-      result.add(start, stop, first->leaf_contacts());
-    else
-      result.add(start, first->end(), first->leaf_contacts());
+    result.add(max(first->start(),start), min(first->end(),  stop),
+	       first->leaf_contacts());
+
+  if (first == last) return result; // no more...
 			      
-  /* -- handle the rest ----------------------------------*/
+  /* -- handle the rest ---------------------------------- */
   // the only special case is the last interval, where we must make
   // sure to cut at point stop
+
   for (itr = first + 1; itr != last; ++itr)
     {
       if (itr->end() <= stop)
-	result.add(*itr);
+	  result.add(*itr);
       else
 	{
 	  // cut [itr->start(),stop) and add it, then terminate
 	  if (stop < itr->end() and itr->start() < stop)
-	    result.add(itr->start(),stop,itr->leaf_contacts());
+	      result.add(itr->start(),stop,itr->leaf_contacts());
 	  break;
 	}
     }
@@ -209,7 +275,8 @@ Intervals Intervals::merge(const Intervals& i) const
 
   std::merge(_intervals.begin(), _intervals.end(),
 	     i._intervals.begin(), i._intervals.end(),
-	     std::back_inserter(tmp_merge));
+	     std::back_inserter(tmp_merge),
+	     interval_less());
 
   if (tmp_merge.size() == 0) return Intervals(); // the empty merge
 
@@ -223,37 +290,45 @@ Intervals Intervals::merge(const Intervals& i) const
 	res_intervals.push_back(*itr); // just move on to the next
       else
 	{
-	  // the last interval shouldn't really habe be added -- it
+	  // the last interval shouldn't really have been added -- it
 	  // overlaps the next -- so handle that
 	  Interval interval = res_intervals.back(); res_intervals.pop_back();
 
-	  double start1, end1;
-	  double start2, end2;
-	  double start3, end3;
+	  double point0 = interval.start();
+	  double point1 = interval.end();
+	  double point2 = itr->start();
+	  double point3 = itr->end();
 
-	  start1 = interval.start();
-	  start2 = end1 = itr->start();
-	  start3 = end2 = interval.end();
-	  end3 = itr->end();
+	  // INVARIANT:
+	  assert(point0 < point1);  assert(point2 < point3);
+	  assert(point0 <= point2); assert(point2 < point1);
+	  // UNKNOWN:   point1 <= point3 or point3 < point1 ?
 
-	  // We know that interval 2 cannot be empty, as the two
-	  // original intervals overlap, but both interval 1 and
-	  // interval 3 can potentially be
-
-	  try {
-	    // The first interval covers the same leaves as `interval'
-	    res_intervals.push_back(Interval(start1,end1,
-					     interval.leaf_contacts()));
-	  } catch (Interval::empty_interval&) {};
-	  // The second interval joins the two intervals' trees
-	  res_intervals.push_back(Interval(start2,end2,
-					   interval.leaf_contacts()
-					   +itr->leaf_contacts()));
-	  try {
-	    // The third interval covers the same leaves as `*itr'
-	    res_intervals.push_back(Interval(start3,end3,
-					     itr->leaf_contacts()));
-	  } catch (Interval::empty_interval&) {};
+	  if (point3 < point1)
+	    {
+	      // INVARIANT: point0 <= point2 < point3 < point1
+	      if (point0 < point2)
+		res_intervals.push_back(
+                  Interval(point0,point2,interval.leaf_contacts()));
+	      res_intervals.push_back(
+                  Interval(point2,point3,interval.leaf_contacts()
+                                         +itr->leaf_contacts()));
+	      res_intervals.push_back(
+                  Interval(point3,point1,interval.leaf_contacts()));
+	    }
+	  else
+	    {
+	      // INVARIANT: point0 <= point2 < point1 <= point3
+	      if (point0 < point2)
+		res_intervals.push_back(
+                    Interval(point0,point2,interval.leaf_contacts()));
+	      res_intervals.push_back(
+		  Interval(point2,point1,interval.leaf_contacts()
+                                         +itr->leaf_contacts()));
+	      if (point1 < point3)
+		res_intervals.push_back(
+		    Interval(point1,point3,itr->leaf_contacts()));
+	    }
 	}
     }
 
@@ -268,5 +343,11 @@ Intervals Intervals::merge(const Intervals& i) const
   return res;
 }
 
+void Intervals::print(std::ostream &os) const
+{
+  std::vector<Interval>::const_iterator i;
+  for (i = _intervals.begin(); i != _intervals.end(); ++i)
+    os << *i << ' ';
+}
   
 

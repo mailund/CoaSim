@@ -7,20 +7,15 @@
 #endif
 
 class Node;
+class Configuration;
 
 // -- Intervals that are retired because they connect to all leaves -----
-class RetiredInterval : private Interval
+class RetiredInterval : public Interval
 {
 public:
   struct null_top_node : public std::logic_error {
     null_top_node() : std::logic_error("null top node") {}
   };
-  
-  // exposing some interval-properties
-  using Interval::is_start;
-  using Interval::is_end;
-  using Interval::contains_point;
-  using Interval::leaf_contacts;
   
   RetiredInterval(const Interval &interval, Node *const top_node)
     throw(null_top_node)
@@ -29,12 +24,17 @@ public:
   
   Node *top_node() const { return _top_node; }
   double surface() const;
-  
+
+  void mutate(const Configuration &conf, unsigned int marker_index) const;
   
   void to_xml(std::ostream &os) const;
   
 private:
   Node *_top_node;
 };
+
+inline std::ostream & operator << (std::ostream &os, const RetiredInterval &i)
+{ i.print(os); return os; }
+
 
 #endif // RETIRED_INTERVAL_HH_INCLUDED

@@ -12,7 +12,8 @@ int main(int argc, const char *argv[])
   const double positions[] = { 0.0, 0.2, 0.3, 0.4, 0.67, };
   const size_t no_positions = (sizeof positions)/sizeof(double);
 
-  Configuration conf((const double*)positions, &positions[no_positions],
+  Configuration conf(0,
+		     (const double*)positions, &positions[no_positions],
 		     0.0, 0.0, 0.0, 0.0, 0.0, true);
 
   ARG arg(conf);
@@ -28,6 +29,9 @@ int main(int argc, const char *argv[])
 
   CHECK(l1->intervals().interval(0).leaf_contacts() == 1);
   CHECK(l2->intervals().interval(0).leaf_contacts() == 1);
+
+  CHECK(l1->leaves_at_point(0.5) == 1);
+  CHECK(l2->leaves_at_point(0.5) == 1);
 
   CHECK(l1->intervals().is_start(0.0));
   CHECK(l1->intervals().is_end(1.0));
@@ -113,6 +117,13 @@ int main(int argc, const char *argv[])
     else                    CHECK(r2->surface_at_point(positions[i]) == 1.0)
 
 
+  CHECK(r1->leaves_at_point(0.2) == 1);
+  CHECK(r1->leaves_at_point(0.5) == 0);
+  CHECK(r2->leaves_at_point(0.2) == 0);
+  CHECK(l2->leaves_at_point(0.5) == 1);
+  CHECK(l2->leaves_at_point(0.6) == 1);
+
+
   p = arg.recombination(0.0, r2, 0.25);
   CHECK(p.first == r2);
   CHECK(p.second == 0);
@@ -145,7 +156,7 @@ int main(int argc, const char *argv[])
   Node *g2 = p.second;
 
   // current ARG:
-  //                             (g1: [0-0.3)[0.6-1.0) )     (r2: [0.3--0.6) )
+  //                             (g1: [0-0.3)[0.6-1.0) )     (g2: [0.3--0.6) )
   //                                         \                      /
   //                                          \                    /
   //  (r1: [0--0.5) ) (r2: [0.5--1) )       2.0\                  /2.0
@@ -202,7 +213,12 @@ int main(int argc, const char *argv[])
 	CHECK(g2->surface_at_point(positions[i]) == 2.0);
       }
 
-
+  CHECK(g1->leaves_at_point(0.2) == 1);
+  CHECK(g1->leaves_at_point(0.5) == 0);
+  CHECK(g1->leaves_at_point(0.6) == 1);
+  CHECK(g2->leaves_at_point(0.2) == 0);
+  CHECK(g2->leaves_at_point(0.5) == 1);
+  CHECK(g2->leaves_at_point(0.6) == 0);
 
 
   Node *c1 = arg.coalescence(3.0, r2, g1);
