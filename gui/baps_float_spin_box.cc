@@ -1,6 +1,10 @@
 
 #include "baps_float_spin_box.hh"
 
+#ifndef CMATH_INCLUDED
+# include <cmath>
+# define CMATH_INCLUDED
+#endif
 
 BapsFloatSpinBox::BapsFloatSpinBox(QWidget *parent, const char *name)
     : QSpinBox(parent,name),

@@ -50,6 +50,10 @@
 # include <vector>
 # define VECTOR_INCLUDED
 #endif
+#ifndef CMATH_INCLUDED
+# include <cmath>
+# define CMATH_INCLUDED
+#endif
 
 // global var defined in coasim.cc -- needed to process events while
 // simulating
