@@ -50,5 +50,6 @@ namespace
 Mutator *MicroSatelliteMarker::create_mutator(const Configuration   &conf,
 					      const RetiredInterval &ri) const
 {
+
   return new MicroSatelliteMutator(*this);
 }

@@ -24,13 +24,17 @@ void Descender::evolve(ARG &arg) const
 	{
 	  if (ri_itr->contains_point(_conf.position(m)))
 	    {
+#if 0
 	      std::cout << "mutating marker " << m << '\n'
 			<< "position " << _conf.position(m) << ' '
 			<< "in interval " << *ri_itr << std::endl;
+#endif
 	    retry: // handle retries when wrong freqs
 	      try { ri_itr->mutate(_conf,m); } 
 	      catch (Mutator::retry_mutation&) {
+#if 0
 		std::cout << "\t!!! retrying mutation " << m << std::endl;
+#endif
 		goto retry; 
 	      }
 	    }

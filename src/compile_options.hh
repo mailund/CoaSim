@@ -2,6 +2,6 @@
 #ifndef COMPILE_OPTIONS_HH
 #define COMPILE_OPTIONS_HH
 
-#define EXPENSIVE_ASSERTS 1
+#define EXPENSIVE_ASSERTS 0
 
 #endif

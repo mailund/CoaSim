@@ -22,7 +22,7 @@
 #endif
 
 #if EXPENSIVE_ASSERTS
-#include <fstream>
+# include <fstream>
 #endif
 
 void Node::haplotype_to_xml(std::ostream &os) const
@@ -90,7 +90,8 @@ namespace {
 		   Node *left, Node *right, const Intervals &is)
       : Node(conf,time,is), _left(left), _right(right),
 	_left_mutating(false,conf.no_markers()),
-	_right_mutating(false,conf.no_markers())
+	_right_mutating(false,conf.no_markers()),
+	_conf(conf)
     {}
 
     virtual double surface_at_point(double point) const
@@ -120,23 +121,31 @@ namespace {
       if (! (idx < no_states()) )
 	throw std::out_of_range("marker index out of range");
 
-      // propagate value
-      set_state(_left,idx,state(idx));
-      set_state(_right,idx,state(idx));
+      double point = _conf.position(idx);
 
-      if (m.edge_has_mutation(time(),_left->time()))
+      if (_left->intervals().contains_point(point))
 	{
-	  set_state(_left, idx, m.mutate_to(*_left,idx));
-	  _left_mutating[idx] = true;
+	  // propagate value
+	  set_state(_left,idx,state(idx));
+	  if (m.edge_has_mutation(time(),_left->time()))
+	    {
+	      set_state(_left, idx, m.mutate_to(*_left,idx));
+	      _left_mutating[idx] = true;
+	    }
+	  _left->mutate_marker(idx,m);
 	}
-      _left->mutate_marker(idx,m);
 
-      if (m.edge_has_mutation(time(),_right->time()))
+
+      if (_right->intervals().contains_point(point))
 	{
-	  set_state(_right, idx, m.mutate_to(*_right,idx));
-	  _right_mutating[idx] = true;
+	  set_state(_right,idx,state(idx));
+	  if (m.edge_has_mutation(time(),_right->time()))
+	    {
+	      set_state(_right, idx, m.mutate_to(*_right,idx));
+	      _right_mutating[idx] = true;
+	    }
+	  _right->mutate_marker(idx,m);
 	}
-      _right->mutate_marker(idx,m);
     }
 
     virtual void node_to_xml(std::ostream &os) const
@@ -168,6 +177,7 @@ namespace {
     Node *const _right;
     std::valarray<bool> _left_mutating;
     std::valarray<bool> _right_mutating;
+    const Configuration &_conf;
   };
   
   class RecombinationNode : public Node
@@ -444,13 +454,18 @@ ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
 
   // FIXME: we could optimize here by not creating intervals without markers
 
+#if 0
+  std::cout << "gene-conversion -- interval: "
+	    << '[' << conversion_start << ',' << conversion_end << ")\n";
+  std::cout << "gene-conversion -- child: " << child->intervals() << std::endl;
+#endif  
+
   Intervals left  = child->intervals().copy(0.0, conversion_start)
     + child->intervals().copy(conversion_end, 1.0);
   Intervals right =
     child->intervals().copy(conversion_start, conversion_end);
 
 #if 0
-  std::cout << "gene-conversion -- child: " << child->intervals() << std::endl;
   std::cout << "gene-conversion -- left: " << left << std::endl;
   std::cout << "gene-conversion -- right: " << right << std::endl;
 #endif
@@ -467,6 +482,7 @@ ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
   _node_pool.push_back(n1); _node_pool.push_back(n2);
 
   return std::make_pair<Node*,Node*>(n1,n2);
+
 }
 
 namespace {

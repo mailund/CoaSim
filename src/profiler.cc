@@ -163,8 +163,8 @@ int main(int argc, const char *argv[])
 
     // dummy test call
     time_t runtime = run_simulation(2, 1, 10, 10,
-				    5.0, 250.0, 20.0, 5.0, 5.0);
-				    //5.0, 250.0, 250.0, 5.0, 5.0);
+				    //5.0, 250.0, 20.0, 5.0, 5.0);
+				    5.0, 250.0, 250.0, 5.0, 5.0);
 
     std::cout << "test took " << runtime << " seconds\n";
 

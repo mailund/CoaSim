@@ -238,8 +238,11 @@ Intervals Intervals::copy(double start, double stop) const
   // of the right-most interval that starts before start
 
   if (start < first->end())
-    result.add(max(first->start(),start), min(first->end(),  stop),
-	       first->leaf_contacts());
+    {
+      double s = max(first->start(),start);
+      double e = min(first->end(),  stop);
+      if (s < e) result.add(s, e, first->leaf_contacts());
+    }
 
   if (first == last) return result; // no more...
 			      
