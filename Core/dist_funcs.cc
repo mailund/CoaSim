@@ -20,8 +20,15 @@
 # define ALGORITHM_INCLUDED
 #endif
 
+#include <iostream>
+
 namespace Distribution_functions
 {
+    double uniform()
+    {
+	return double(std::rand())/double(RAND_MAX);
+    }
+
     double expdev(const double param)
     {
 	return -log(double(std::rand())/double(RAND_MAX))/param;
@@ -29,7 +36,8 @@ namespace Distribution_functions
 
     double expdev(const int fac, const double param)
     {
-	return -log(double(std::rand())/double(RAND_MAX))/param/fac;
+	double u = uniform();
+	return -log(u)/param/fac;
     }
 
   
@@ -38,11 +46,6 @@ namespace Distribution_functions
 	return 1.0-exp(-param*x);
     }
 
-    double uniform()
-    {
-	return double(std::rand())/double(RAND_MAX);
-    }
-  
     int random_sign()
     {
 	int r = -1;

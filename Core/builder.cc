@@ -52,14 +52,14 @@ namespace
 
 	if (fabs(conf.growth()) > 0.001) // enough growth?
 	    {
-		double time1 = log(1.0+conf.growth()
-				   *expdev(nodes_left,(nodes_left-1)/2)
-				   *exp(-conf.growth()*current_time))/conf.growth();
+		double xx = expdev(nodes_left,double(nodes_left-1)/2);
+		double yy = exp(-conf.growth()*current_time);
+		double time1 = log(1.0+conf.growth()*xx*yy)/conf.growth();
 		double time2 = expdev(nodes_left,conf.G()/2+conf.rho()/2);
 		return std::min(time1,time2);
 	    }
 	else
-	    return expdev(nodes_left,(nodes_left-1)/2+conf.G()/2+conf.rho()/2);
+	    return expdev(nodes_left,double(nodes_left-1)/2+conf.G()/2+conf.rho()/2);
     }
 }
 

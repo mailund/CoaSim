@@ -1,6 +1,7 @@
 
 INCLUDES = -I..
 LIBS = -L../Core -lcoasim -lguile -lpopt
+LDFLAGS = -Wl,-rpath,/usr/local/lib
 
 noinst_PROGRAMS =
 noinst_PROGRAMS += marker_test
