@@ -2,7 +2,7 @@
 #define DIST_FUNCTIONS_HH
 #include <cmath>
 #include <cstdlib>
-
+#include <algorithm>
 
 namespace Distribution_functions
 {
