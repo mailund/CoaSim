@@ -41,9 +41,7 @@ The parameters that specify the simulation are:
  * mutation frequency: low/high frequency of mutation allele, for SNP
    and trait markers
  * alphabet size: Alphabet size for micro-satellite markers.
-
- * print all nodes: Print the full ARG, as opposed to just printing
-   the leaves.
+ * mutation rates: Mutation rates for micro-satellite markers.
 
 
 The command line interface reads the parameters from a run-command
@@ -63,13 +61,13 @@ growth:			0.0     # growth
 mutation_rate:		0.001   # mutation rate
 
 
-positions: 0.1 0.2 0.3   0.4 0.6 0.9   # marker positions
-markers:   snp snp trait ms  snp snp   # types of markers
-low_freq:  0.1 0.1 0.1   0.0 0.2 0.2   # low freq for traits and snps
-high_freq: 0.2 0.2 0.2   0.0 0.4 0.4   # high freq for traits and snps
-no_values: 0   0   0     4   0   0     # no possible values for ms
+positions:      0.1 0.2 0.3   0.4 0.6 0.9   # marker positions
+markers:        snp snp trait ms  snp snp   # types of markers
+low_freq:       0.1 0.1 0.1   0.0 0.2 0.2   # low freq for traits and snps
+high_freq:      0.2 0.2 0.2   0.0 0.4 0.4   # high freq for traits and snps
+no_values:      0   0   0     4   0   0     # no possible values for ms
+mutation_rates: 0   0   0     25  0   0     # rate of ms mutation
 
-print_all_nodes: true
 
 -- /sample.rc ------------------------------------------------
 

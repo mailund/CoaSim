@@ -30,6 +30,7 @@ using namespace std;
 
 namespace options {
   int verbose;
+  int print_full_arg;
   const char *rc_file;
   const char *xml_file;
 }
@@ -61,6 +62,16 @@ static struct poptOption cl_options[] = {
       0,
       "Output file.",
       "outfile"
+    },
+    {
+      "print-full-arg",
+      '\0',
+      POPT_ARG_NONE,
+      &options::print_full_arg,
+      0,
+      "Write the full simulated ARG to the xml file, rather than just the "
+      "leaf-nodes.",
+      0
     },
 
     POPT_AUTOHELP
@@ -209,8 +220,6 @@ static Configuration *parse_rc(const char *rc_file)
   double recombination_rate;
   double growth;
 
-  bool print_all_nodes;
-
   vector<double> positions;
   vector<string> markers;
   vector<double> low_freq;
@@ -224,8 +233,6 @@ static Configuration *parse_rc(const char *rc_file)
   gene_conversion_length = rcp.get_double("gene_conversion_length");
   recombination_rate = rcp.get_double("recombination_rate");
   growth = rcp.get_double("growth");
-
-  print_all_nodes = rcp.get_bool("print_all_nodes");
 
   positions = rcp.get_double_vector("positions");
   markers = rcp.get_string_vector("markers");
@@ -281,7 +288,7 @@ static Configuration *parse_rc(const char *rc_file)
 					  gene_conversion_rate,
 					  gene_conversion_length,
 					  growth,
-					  print_all_nodes,
+					  options::print_full_arg,
 					  mon);
 
   set_markers(*conf, markers, low_freq, high_freq, no_values, mutation_rates);

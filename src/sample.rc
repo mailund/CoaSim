@@ -15,5 +15,3 @@ high_freq:      0.2 0.2 0.2   0.0 0.4 0.4   # high freq for traits and snps
 no_values:      0   0   0     4   0   0     # no possible values for ms
 mutation_rates: 0   0   0     25  0   0     # rate of ms mutation
 
-print_all_nodes: true
-
