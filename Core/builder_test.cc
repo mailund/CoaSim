@@ -40,7 +40,7 @@ int main(int argc, const char *argv[])
 
 	Configuration conf(10,
 			   markers.begin(), markers.end(),
-			   0.0, 0.0, 0.0, 0.0);
+			   400.0, 0.0, 0.0, 0.0);
 
 	std::vector<Marker*>::iterator i;
 	for (i = markers.begin(); i != markers.end(); ++i)
@@ -52,6 +52,21 @@ int main(int argc, const char *argv[])
 	ARG *arg = b.build(0);
 
 	CHECK(arg != 0);
+
+	// Check that the retired intervals are sorted.
+	std::vector<RetiredInterval>::const_iterator ri_itr, ri_begin, ri_end;
+	ri_begin = arg->retired_intervals().begin();
+	ri_end   = arg->retired_intervals().end();
+
+	CHECK(ri_begin != ri_end);
+
+	const RetiredInterval *prev = &(*ri_begin);
+	for (ri_itr = ri_begin + 1; ri_itr != ri_end; ++ri_itr)
+	    {
+		CHECK(prev->start() < ri_itr->start());
+		prev = &(*ri_itr);
+	    }
+
 
     } catch (std::exception &ex) {
 	std::cout << "EXCEPTION: " << ex.what() << std::endl;

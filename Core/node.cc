@@ -81,6 +81,15 @@ namespace {
 	    return 0.0;
 	}
 
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length) const
+	    throw(std::out_of_range)
+	{
+	    if (point < 0 or 1.0 <= point) 
+		throw std::out_of_range("Point out of range [0,1).");
+	    os << "\"\" : " << edge_length;
+	}
+
 	virtual void mutate_marker(unsigned int idx, Mutator &m)
 	{
 	    // no mutations out of leaf
@@ -137,6 +146,34 @@ namespace {
 		}
 	    return surface;
 	}
+
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length) const
+	    throw(std::out_of_range)
+	{
+	    double left_dist  = time() - i_left->time();
+	    double right_dist = time() - i_right->time();
+
+	    if (i_left->intervals().contains_point(point)
+		and i_right->intervals().contains_point(point))
+		{
+		    os << '(';
+		    i_left->print_tree_at_point(os, point, left_dist);
+		    os << ',';
+		    i_right->print_tree_at_point(os, point, right_dist);
+		    os << ") : " << edge_length;
+		}
+	    else
+		{
+		    if (i_left->intervals().contains_point(point))
+			i_left->print_tree_at_point(os, point, 
+						    edge_length+left_dist);
+		    if (i_right->intervals().contains_point(point))
+			i_right->print_tree_at_point(os, point,
+						     edge_length+right_dist);
+		}
+	}
+
 
 	virtual void mutate_marker(unsigned int idx, Mutator &m)
 	{
@@ -229,6 +266,15 @@ namespace {
 	    return surface;
 	}
 
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length) const
+	    throw(std::out_of_range)
+	{
+	    double d = time() - i_child->time();
+	    i_child->print_tree_at_point(os, point, edge_length+d);
+	}
+
+
 	virtual void mutate_marker(unsigned int idx, Mutator &m)
 	{
 	    if (! (idx < no_states()) )
@@ -297,6 +343,15 @@ namespace {
 		}
 	    return surface;
 	}
+
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length) const
+	    throw(std::out_of_range)
+	{
+	    double d = time() - i_child->time();
+	    i_child->print_tree_at_point(os, point, edge_length+d);
+	}
+
 
 	virtual void mutate_marker(unsigned int idx, Mutator &m)
 	{

@@ -51,16 +51,83 @@ scm_t_bits guile::arg_tag;
 scm_t_bits guile::interval_tag;
 
 namespace {
+    class CLISimMonitor : public core::SimulationMonitor {
+	void start_arg_building(unsigned int no_leaves);
+	void builder_update(unsigned int no_nodes, unsigned int no_top_nodes,
+			    unsigned long int no_iterations, double cur_time,
+			    unsigned int no_coal_events,
+			    unsigned int no_gene_conv_events,
+			    unsigned int no_recomb_events);
+	void builder_termination(unsigned int no_nodes, unsigned int no_top_nodes,
+				 unsigned long int no_iterations, double cur_time,
+				 unsigned int no_coal_events,
+				 unsigned int no_gene_conv_events,
+				 unsigned int no_recomb_events);
+
+	void start_mutating();
+	void mutator_update(unsigned int marker_no);
+	void retry_mutation();
+	void retry_arg_building();
+
+	void simulation_terminated();
+    };
+
+
+    struct ProfileMonitor : public core::SimulationMonitor {
+
+	unsigned int no_leaves;
+	unsigned int no_nodes;
+	unsigned int no_top_nodes;
+	unsigned int no_iterations;
+	double termination_time;
+	unsigned int no_coal_events;
+	unsigned int no_gene_conv_events;
+	unsigned int no_recomb_events;
+	
+	ProfileMonitor()
+	    : no_leaves(0), no_nodes(0), no_top_nodes(0),
+	      no_iterations(0), termination_time(0),
+	      no_coal_events(0), no_gene_conv_events(0), no_recomb_events(0)
+	{}
+
+	void start_arg_building(unsigned int no_leaves) 
+	{
+	    this->no_leaves = no_leaves;
+	}
+	void builder_update(unsigned int no_nodes, unsigned int no_top_nodes,
+			    unsigned long int no_iterations, double cur_time,
+			    unsigned int no_coal_events,
+			    unsigned int no_gene_conv_events,
+			    unsigned int no_recomb_events) {}
+	void builder_termination(unsigned int no_nodes, unsigned int no_top_nodes,
+				 unsigned long int no_iterations, double cur_time,
+				 unsigned int no_coal_events,
+				 unsigned int no_gene_conv_events,
+				 unsigned int no_recomb_events);
+
+	void start_mutating() {}
+	void mutator_update(unsigned int marker_no) {}
+	void retry_mutation() {}
+	void retry_arg_building() {}
+
+	void simulation_terminated() {}
+    };
+}
+
+namespace {
     struct ARGData {
 	const core::ARG *arg;
 	const core::Configuration *conf;
-	ARGData(core::ARG *arg, core::Configuration *conf)
-	    : arg(arg), conf(conf)
+	const ProfileMonitor *monitor;
+	ARGData(core::ARG *arg, core::Configuration *conf,
+		ProfileMonitor *monitor)
+	    : arg(arg), conf(conf), monitor(monitor)
 	{};
 	~ARGData()
 	{
 	    delete arg;
 	    delete conf;
+	    delete monitor;
 	}
     };
 
@@ -105,28 +172,6 @@ free_interval(SCM s_interval)
 }
 
 
-namespace {
-    class CLISimMonitor : public core::SimulationMonitor {
-	void start_arg_building(unsigned int no_leaves);
-	void builder_update(unsigned int no_nodes, unsigned int no_top_nodes,
-			    unsigned long int no_iterations, double cur_time,
-			    unsigned int no_coal_events,
-			    unsigned int no_gene_conv_events,
-			    unsigned int no_recomb_events);
-	void builder_termination(unsigned int no_nodes, unsigned int no_top_nodes,
-				 unsigned long int no_iterations, double cur_time,
-				 unsigned int no_coal_events,
-				 unsigned int no_gene_conv_events,
-				 unsigned int no_recomb_events);
-
-	void start_mutating();
-	void mutator_update(unsigned int marker_no);
-	void retry_mutation();
-	void retry_arg_building();
-
-	void simulation_terminated();
-    };
-}
 void CLISimMonitor::start_arg_building(unsigned int no_leaves)
 {
     std::cout << "START BUILDING ARG...\n";
@@ -192,6 +237,23 @@ void CLISimMonitor::simulation_terminated()
     std::cout << "\nSIMULATION COMPLETED\n";
 }
 
+void ProfileMonitor::builder_termination(unsigned int no_nodes,
+					 unsigned int no_top_nodes,
+					 unsigned long int no_iterations,
+					 double cur_time,
+					 unsigned int no_coal_events,
+					 unsigned int no_gene_conv_events,
+					 unsigned int no_recomb_events)
+{
+    this->no_nodes = no_nodes;
+    this->no_top_nodes = no_top_nodes;
+    this->no_iterations = no_iterations;
+    this->termination_time = cur_time;
+    this->no_coal_events = no_coal_events;
+    this->no_gene_conv_events = no_gene_conv_events;
+    this->no_recomb_events = no_recomb_events;
+}
+
 
 /* --<GUILE COMMENT>---------------------------------------------
 
@@ -243,16 +305,14 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
 
 
     try {
-	CLISimMonitor mon;
-	core::Configuration *conf 
-	    = new core::Configuration(no_leaves,
-				      markers.begin(), markers.end(),
-				      p->rho, p->Q, p->G, p->growth);
-	core::ARG *arg = core::Simulator::simulate(*conf,
-						   options::verbose ? &mon:0);
+	std::auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
+	std::auto_ptr<core::Configuration> conf(new core::Configuration(no_leaves,
+									markers.begin(), markers.end(),
+									p->rho, p->Q, p->G, p->growth));
+	std::auto_ptr<core::ARG> arg(core::Simulator::simulate(*conf, monitor.get()));
 
 	void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
-	ARGData *arg_data = new(mem)ARGData(arg,conf);
+	ARGData *arg_data = new(mem)ARGData(arg.release(),conf.release(),monitor.release());
     
 	SCM_RETURN_NEWSMOB(guile::arg_tag, arg_data);
     } catch(core::Configuration::out_of_sequence&) {
@@ -468,6 +528,137 @@ total_branch_length(SCM interval_smob)
 }
 
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="no-recombinations">
+  <brief>Returns the number of recombinations in the ARG.</brief>
+  <prototype>(no-recombinations arg)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate p markers 100))
+(define n (no-recombinations arg))</example>
+  <description>
+    <p>
+     Returns the number of recombinations in the ARG.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+static SCM 
+no_recomb_events(SCM arg_data_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
+	       arg_data_smob, SCM_ARG1, "no-recombinations");
+
+    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
+
+    return scm_int2num(arg_data->monitor->no_recomb_events);
+}
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="no-coalescence-events">
+  <brief>Returns the number of coalescence events in the ARG.</brief>
+  <prototype>(no-coalescence-events arg)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate p markers 100))
+(define n (no-coalescence-events arg))</example>
+  <description>
+    <p>
+     Returns the number of coalescence events in the ARG.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+static SCM 
+no_coal_events(SCM arg_data_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
+	       arg_data_smob, SCM_ARG1, "no-coalescence-events");
+
+    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
+
+    return scm_int2num(arg_data->monitor->no_coal_events);
+}
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="no-gene-conversions">
+  <brief>Returns the number of gene conversions in the ARG.</brief>
+  <prototype>(no-gene-conversions arg)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate p markers 100))
+(define n (no-gene-conversions arg))</example>
+  <description>
+    <p>
+     Returns the number of gene conversions in the ARG.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+static SCM 
+no_gene_conv_events(SCM arg_data_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
+	       arg_data_smob, SCM_ARG1, "no-gene-conversions");
+
+    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
+
+    return scm_int2num(arg_data->monitor->no_gene_conv_events);
+}
+
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="print-local-tree">
+  <brief>Print the tree local to an interval.</brief>
+  <prototype>(print-local-tree itnerval)</prototype>
+  <example>(define p (arg-parameters rho Q G beta))
+(define markers (make-random-snp-markers 10 0.1 0.9))
+(define intervals (let ((arg (simulate p markers 100))) (intervals arg)))
+(map print-local-tree intervals) </example>
+  <description>
+    <p>Print the tree local to an interval.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+static SCM 
+print_local_tree(SCM interval_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::interval_tag, interval_smob),
+	       interval_smob, SCM_ARG1, "print-local-tree");
+
+    IntervalData *interval_data = (IntervalData*) SCM_SMOB_DATA(interval_smob);
+    double start = interval_data->rinterval->start();
+    core::Node *node = interval_data->rinterval->top_node();
+
+    node->print_tree_at_point(std::cout, start);
+    std::cout << std::endl;
+
+#if 0
+    const char *fname = SCM_STRING_CHARS(s_filename);
+
+    std::ofstream os(fname);
+    if (!os) scm_throw(scm_str2symbol("open-error"), s_filename);
+
+    arg_data->arg->to_text(os);
+    os.close();
+#endif
+
+
+    return SCM_EOL;
+}
+
+
 void
 guile::install_simulate()
 {
@@ -494,6 +685,16 @@ guile::install_simulate()
 		       (scm_unused_struct*(*)())interval_end);
     scm_c_define_gsubr("total-branch-length", 1, 0, 0, 
 		       (scm_unused_struct*(*)())total_branch_length);
+
+    scm_c_define_gsubr("no-recombinations", 1, 0, 0, 
+		       (scm_unused_struct*(*)())no_recomb_events);
+    scm_c_define_gsubr("no-coalescence-events", 1, 0, 0, 
+		       (scm_unused_struct*(*)())no_coal_events);
+    scm_c_define_gsubr("no-gene-conversions", 1, 0, 0, 
+		       (scm_unused_struct*(*)())no_gene_conv_events);
+
+    scm_c_define_gsubr("print-local-tree", 1, 0, 0, 
+		       (scm_unused_struct*(*)())print_local_tree);
 }
 
 

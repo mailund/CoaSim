@@ -19,6 +19,10 @@
 #ifndef CORE__MONITOR_HH_INCLUDED
 # include "monitor.hh"
 #endif
+#ifndef SYS_TIME_H_INCLUDED
+# include <sys/time.h>
+# define SYS_TIME_H_INCLUDED
+#endif
 
 using namespace core;
 
@@ -28,6 +32,12 @@ core::Simulator::simulate(const Configuration &conf, SimulationMonitor *mon)
     Builder builder(conf);
     Descender descender(conf);
     ARG *arg = 0;
+
+    // set rand seed
+    struct timeval tv; struct timezone tz;
+    gettimeofday(&tv,&tz);
+    std::srand(tv.tv_usec);
+
 
     try {
 

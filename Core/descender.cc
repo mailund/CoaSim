@@ -27,7 +27,6 @@ using namespace core;
 void core::Descender::evolve(ARG &arg, SimulationMonitor *mon) const
 {
     std::vector<RetiredInterval>::const_iterator ri_itr, ri_begin, ri_end;
-    arg.sort_retired_intervals();
     ri_begin = arg.retired_intervals().begin();
     ri_end   = arg.retired_intervals().end();
 

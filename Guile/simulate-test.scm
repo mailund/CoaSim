@@ -19,6 +19,13 @@
 (define branch-lengths (map total-branch-length retired-intervals))
 ;;(display branch-lengths)(newline)
 
+;;(define no-recomb (no-recombinations arg))
+;;(display no-recomb)(newline)
+;;(define no-coal (no-coalescence-events arg))
+;;(display no-coal)(newline)
+;;(define no-gc (no-gene-conversions arg))
+;;(display no-gc)(newline)
+
 (catch 'wrong-number-of-args
        (lambda () (simulate p))
        (lambda (key . args) (display key)(newline)))

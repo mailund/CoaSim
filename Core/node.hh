@@ -47,6 +47,7 @@ namespace core {
 	Node(const Node&);
 	Node &operator = (const Node&);
 
+
     public:
 	Node(const Configuration &conf, double time) 
 	    : i_time(time), i_states(-1,conf.no_markers()) 
@@ -69,6 +70,15 @@ namespace core {
 	// tree in point, with this node as root (zero if the point is not
 	// in this node's intervals).
 	virtual double surface_at_point(double point) const
+	    throw(std::out_of_range) = 0;
+
+	// Prints the local tree to a stream
+	void print_tree_at_point(std::ostream &os, double point) const
+	    throw(std::out_of_range) 
+	{ print_tree_at_point(os, point, 0.0); }
+	// Prints the local tree to a stream
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length) const
 	    throw(std::out_of_range) = 0;
 
 	// Calculate the number of leaves hit by the binary tree in point

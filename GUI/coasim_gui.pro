@@ -46,3 +46,7 @@ unix {
   OBJECTS_DIR = .obj
 }
 
+
+
+DISTFILES += designer_plugins/custom.pro
+DISTFILES += designer_plugins/custom_widgets.cc
