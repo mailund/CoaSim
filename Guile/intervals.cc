@@ -8,6 +8,10 @@
 #include "intervals.hh"
 using namespace guile;
 
+#ifndef GUILE_NODES_HH_INCLUDED
+# include "nodes.hh"
+#endif
+
 #ifndef CORE__RETIRED_INTERVAL_HH_INCLUDED
 # include <Core/retired_interval.hh>
 #endif
@@ -284,11 +288,57 @@ namespace {
 
 /* --<GUILE COMMENT>---------------------------------------------
 
+<method name="root">
+  <brief>Returns the root of the local tree of an interval.</brief>
+  <prototype>(root interval-or-tree)</prototype>
+  <example> (use-modules (coasim rand))
+ (define markers (make-random-snp-markers 10 0.1 0.9))
+ (define trees (local-trees (simulate markers 100 :rho 400)))
+ (map root trees)</example>
+  <description>
+    <p>
+     Returns the root node of the local tree of an interval.
+     The argument to the function can be either a local interval, as returned
+     by the intervals function, or a local tree, as returned by the local-trees
+     function.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+  SCM root(SCM smob)
+  {
+      if (SCM_SMOB_PREDICATE(guile::interval_tag, smob))
+          {
+	      IntervalData *interval_data = (IntervalData*)SCM_SMOB_DATA(smob);
+	      return guile::wrap_node(interval_data->arg,
+				      interval_data->rinterval->top_node());
+	  }
+      else if (SCM_SMOB_PREDICATE(guile::local_tree_tag, smob))
+          {
+	      TreeData *tree_data = (TreeData*) SCM_SMOB_DATA(smob);
+	      return guile::wrap_node(tree_data->arg,
+				      tree_data->rinterval->top_node());
+	  }
+      else
+         {
+	     scm_wrong_type_arg("tree-height", 1, smob);
+         }
+      
+      // not reached
+      assert(false);
+      return SCM_EOL;
+  }
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
 <method name="interval->tree">
   <brief>Returns tree local to an interval.</brief>
   <prototype>(interval->tree interval)</prototype>
   <example>(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
+(define intervals (intervals (simulate markers 100 :rho 400)))
 (define trees (map interval->tree intervals)) </example>
   <description>
     <p>Returns the tree local to an interval.</p>
@@ -374,6 +424,8 @@ guile::install_intervals()
 		       (scm_unused_struct*(*)())total_branch_length);
     scm_c_define_gsubr("tree-height", 1, 0, 0, 
 		       (scm_unused_struct*(*)())tree_height);
+    scm_c_define_gsubr("root", 1, 0, 0, 
+		       (scm_unused_struct*(*)())root);
 
     scm_c_define_gsubr("interval->tree", 1, 0, 0, 
 		       (scm_unused_struct*(*)())interval2tree);

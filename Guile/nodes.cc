@@ -205,6 +205,126 @@ guile::wrap_node(SCM arg, const core::Node *node)
 
 namespace {
 
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="contains-point?">
+  <brief>Checks if a node contains ancestral material in a given point.</brief>
+  <prototype>(contains-point? node point)</prototype>
+  <example>(define coa-times '()) ; times for coalescent events at point 0.5
+(define (coa-cb n k) 
+  (if (contains-point? 0.5) (set! coa-times (cons (event-time n) coa-times))))
+(simulate markers no-leaves :rho 400 :coalescence-callback coa-cb) </example>
+  <description>
+    <p>Checks if a node contains ancestral material in a given point.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM contains_point_p(SCM node_smob, SCM s_point)
+    {
+	double point  = scm_num2dbl(s_point,  "contains-point");
+	const core::Node *core_node = 0;
+
+	if (SCM_SMOB_PREDICATE(guile::leaf_node_tag, node_smob))
+	    {
+		LeafNode *lnode = (LeafNode*)SCM_SMOB_DATA(node_smob);
+		core_node = lnode->node;
+	    }
+	else if (SCM_SMOB_PREDICATE(guile::coalescent_node_tag, node_smob))
+	    {
+		CoalescentNode *cnode 
+		    = (CoalescentNode*)SCM_SMOB_DATA(node_smob);
+		core_node = cnode->node;
+	    }
+	else if (SCM_SMOB_PREDICATE(guile::recombination_node_tag, node_smob))
+	    {
+		RecombinationNode *rnode 
+		    = (RecombinationNode*)SCM_SMOB_DATA(node_smob);
+		core_node = rnode->node;
+	    }
+	else if (SCM_SMOB_PREDICATE(guile::gene_conversion_node_tag, node_smob))
+	    {
+		GeneConversionNode *gnode 
+		    = (GeneConversionNode*)SCM_SMOB_DATA(node_smob);
+		core_node = gnode->node;
+	    }
+
+	if (!core_node)
+	    scm_throw(scm_str2symbol("not-a-node-error"), SCM_EOL);
+
+	
+	return SCM_BOOL(core_node->contains_point(point));
+    }
+
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="children">
+  <brief>Returns the children of a node.</brief>
+  <prototype>(children node)</prototype>
+  <example>(define (collect-event-times i)
+  (letrec ((collect-et-r
+	    (lambda (root point)
+	      (if (not (contains-point? root point))
+		  '()
+		  (cond ((leaf-node? root) 
+			 (list (event-time root)))
+			((coalescent-node? root)
+			 (let* ((cs (children root))
+				(left (collect-et-r (car cs) point))
+				(right (collect-et-r (cadr cs) point)))
+			   (cons (event-time root) (append left right))))
+			((or (recombination-node? root) 
+			     (gene-conversion-node? root))
+			 (cons (event-time root)
+			       (collect-et-r (car (children root))
+						point))))))))
+    (collect-et-r (root i) (interval-start i))))</example>
+  <description>
+    <p>Returns the children of a node.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM children(SCM node_smob)
+    {
+	if (SCM_SMOB_PREDICATE(guile::leaf_node_tag, node_smob))
+	    {
+		return SCM_EOL;
+	    }
+	else if (SCM_SMOB_PREDICATE(guile::coalescent_node_tag, node_smob))
+	    {
+		CoalescentNode *cnode 
+		    = (CoalescentNode*)SCM_SMOB_DATA(node_smob);
+		SCM left  = wrap_node(cnode->arg, cnode->node->left_child());
+		SCM right = wrap_node(cnode->arg, cnode->node->right_child());
+		return scm_list_2(left, right);
+	    }
+	else if (SCM_SMOB_PREDICATE(guile::recombination_node_tag, node_smob))
+	    {
+		RecombinationNode *rnode 
+		    = (RecombinationNode*)SCM_SMOB_DATA(node_smob);
+		return scm_list_1(wrap_node(rnode->arg, rnode->node->child()));
+
+	    }
+	else if (SCM_SMOB_PREDICATE(guile::gene_conversion_node_tag, node_smob))
+	    {
+		GeneConversionNode *gnode 
+		    = (GeneConversionNode*)SCM_SMOB_DATA(node_smob);
+		return scm_list_1(wrap_node(gnode->arg, gnode->node->child()));
+	    }
+
+	scm_throw(scm_str2symbol("not-a-node-error"), SCM_EOL);
+	return SCM_EOL; // never reached
+    }
+
+
     
 /* --<GUILE COMMENT>---------------------------------------------
 
@@ -255,6 +375,85 @@ namespace {
 	scm_throw(scm_str2symbol("not-a-node-error"), SCM_EOL);
 	return SCM_EOL;
     }
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="leaf-node?">
+  <brief>A predicate recognising leaf nodes.</brief>
+  <prototype>(leaf-node? node)</prototype>
+  <example>(if (leaf-node? n) 0.0 (event-time n))</example>
+  <description>
+    <p>Returns #t if `node` is a leaf node, #f otherwise.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM leaf_node_p(SCM smob)
+    {
+	return SCM_BOOL(SCM_SMOB_PREDICATE(leaf_node_tag, smob));
+    }
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="coalescent-node?">
+  <brief>A predicate recognising coalescent nodes.</brief>
+  <prototype>(coalescent-node? node)</prototype>
+  <example>(if (coalescent-node? n) (event-time n))</example>
+  <description>
+    <p>Returns #t if `node` is a coalescent node, #f otherwise.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM coalescent_node_p(SCM smob)
+    {
+	return SCM_BOOL(SCM_SMOB_PREDICATE(coalescent_node_tag, smob));
+    }
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="recombination-node?">
+  <brief>A predicate recognising recombination nodes.</brief>
+  <prototype>(recombination-node? node)</prototype>
+  <example>(if (recombination-node? n) (event-time n))</example>
+  <description>
+    <p>Returns #t if `node` is a recombination node, #f otherwise.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM recombination_node_p(SCM smob)
+    {
+	return SCM_BOOL(SCM_SMOB_PREDICATE(recombination_node_tag, smob));
+    }
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="gene-conversion-node?">
+  <brief>A predicate recognising gene conversion nodes.</brief>
+  <prototype>(gene-conversion-node? node)</prototype>
+  <example>(if (gene-conversion-node? n) (event-time n))</example>
+  <description>
+    <p>Returns #t if `node` is a gene conversion node, #f otherwise.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM gene_conversion_node_p(SCM smob)
+    {
+	return SCM_BOOL(SCM_SMOB_PREDICATE(gene_conversion_node_tag, smob));
+    }
+
+
 
 /* --<GUILE COMMENT>---------------------------------------------
 
@@ -369,10 +568,25 @@ guile::install_nodes()
 		      free_gene_conversion_node);
 
 
+    scm_c_define_gsubr("leaf-node?", 1, 0, 0, 
+		       (scm_unused_struct*(*)())leaf_node_p);
+    scm_c_define_gsubr("coalescent-node?", 1, 0, 0, 
+		       (scm_unused_struct*(*)())coalescent_node_p);
+    scm_c_define_gsubr("recombination-node?", 1, 0, 0, 
+		       (scm_unused_struct*(*)())recombination_node_p);
+    scm_c_define_gsubr("gene-conversion-node?", 1, 0, 0, 
+		       (scm_unused_struct*(*)())gene_conversion_node_p);
+
     scm_c_define_gsubr("event-time", 1, 0, 0, 
 		       (scm_unused_struct*(*)())event_time);
+    scm_c_define_gsubr("contains-point?", 2, 0, 0, 
+		       (scm_unused_struct*(*)())contains_point_p);
+    scm_c_define_gsubr("children", 1, 0, 0, 
+		       (scm_unused_struct*(*)())children);
+
     scm_c_define_gsubr("recombination-point", 1, 0, 0, 
 		       (scm_unused_struct*(*)())recombination_point);
+
     scm_c_define_gsubr("gene-conversion-start", 1, 0, 0, 
 		       (scm_unused_struct*(*)())gene_conversion_start);
     scm_c_define_gsubr("gene-conversion-end", 1, 0, 0, 
