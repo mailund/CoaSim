@@ -152,14 +152,6 @@ core::CoalescentNode::mutate_marker(unsigned int idx, Mutator &m)
 	{
 	    set_state(i_left, idx, m.mutate(*this,*i_left,state(idx)));
 	    i_left->mutate_marker(idx,m);
-
-#if 0
-	    // propagate value
-	    set_state(i_left,idx,state(idx));
-	    if (m.edge_has_mutation(time(),i_left->time()))
-		set_state(i_left, idx, m.mutate_to(*i_left,idx));
-	    i_left->mutate_marker(idx,m);
-#endif
 	}
     
     
@@ -167,13 +159,6 @@ core::CoalescentNode::mutate_marker(unsigned int idx, Mutator &m)
 	{
 	    set_state(i_right, idx, m.mutate(*this,*i_right,state(idx)));
 	    i_right->mutate_marker(idx,m);
-
-#if 0
-	    set_state(i_right,idx,state(idx));
-	    if (m.edge_has_mutation(time(),i_right->time()))
-		set_state(i_right, idx, m.mutate_to(*i_right,idx));
-	    i_right->mutate_marker(idx,m);
-#endif
 	}
 }
 
@@ -214,14 +199,6 @@ core::RecombinationNode::mutate_marker(unsigned int idx, Mutator &m)
 
     set_state(i_child, idx, m.mutate(*this,*i_child,state(idx)));
     i_child->mutate_marker(idx,m);
-
-#if 0    
-    // propagate value
-    set_state(i_child,idx,state(idx));
-    if (m.edge_has_mutation(time(),i_child->time()))
-	set_state(i_child,idx,m.mutate_to(*i_child,idx));
-    i_child->mutate_marker(idx,m);
-#endif
 }
 
 
@@ -262,14 +239,6 @@ core::GeneConversionNode::mutate_marker(unsigned int idx, Mutator &m)
 
     set_state(i_child, idx, m.mutate(*this,*i_child,state(idx)));
     i_child->mutate_marker(idx,m);
-
-#if 0    
-    // propagate value
-    set_state(i_child,idx,state(idx));
-    if (m.edge_has_mutation(time(),i_child->time()))
-	set_state(i_child,idx,m.mutate_to(*i_child,idx));
-    i_child->mutate_marker(idx,m);
-#endif
 }
 
 

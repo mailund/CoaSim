@@ -84,10 +84,10 @@ namespace
 	return mutate;
     }
 
-    int SNPMutator::mutate_to(const Node &n, int parent_allele)
+    int SNPMutator::mutate_to(const Node &child, int parent_allele)
     {
 	// check frequency
-	unsigned int leaf_count = n.leaves_at_point(i_marker.position());
+	unsigned int leaf_count = child.leaves_at_point(i_marker.position());
 	if ((leaf_count < i_low_leaf_count) or (i_high_leaf_count < leaf_count))
 	    throw Mutator::retry_mutation();
 	return !parent_allele;
@@ -97,7 +97,7 @@ namespace
 			   int parent_allele)
     {
 	if (edge_has_mutation(parent.time(), child.time()))
-	    return mutate_to(parent, parent_allele);
+	    return mutate_to(child, parent_allele);
 	else
 	    return parent_allele;
     }
