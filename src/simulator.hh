@@ -6,6 +6,7 @@ class ARG;
 class Configuration;
 
 namespace Simulator {
+  // Returns the resulting ARG, or 0 if the simulation was aborted
   ARG *simulate(const Configuration &conf);
 }
 

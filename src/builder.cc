@@ -4,7 +4,9 @@
 #ifndef DIST_FUNCTIONS_HH_INCLUDED
 # include "dist_funcs.hh"
 #endif
-
+#ifndef MONITOR_HH_INCLUDED
+# include "monitor.hh"
+#endif
 
 namespace
 {
@@ -66,14 +68,21 @@ ARG * Builder::build() const
     top_nodes.push(arg->leaf());
 
 
-  unsigned int no_iterations = 0;
+  unsigned long int no_iterations = 0;
   unsigned int coal_events = 0;
   unsigned int gene_conv_events = 0;
   unsigned int recomb_events = 0;
 
+  double time = 0.0;
+
+  SimulationMonitor *mon = _conf.monitor();
+  if (mon) mon->builder_update(_conf.no_leaves(), // no_nodes
+			       _conf.no_leaves(), // no_top_nodes
+			       no_iterations, time,
+			       coal_events, gene_conv_events, recomb_events);
+			       
 
   // build tree
-  double time = 0.0;
   while (top_nodes.size() > 1)
     {
       unsigned int k = top_nodes.size();
@@ -83,12 +92,11 @@ ARG * Builder::build() const
 
       ++no_iterations;
 
-#if 0 // FIXME: Find a general way to display progress, that works in
-      // both gui and cli.
-      if ( (no_iterations % 1000) == 0)
-	std::cout << "After " << no_iterations << ' '
-		  << k << " nodes remains to be processed.\n";
-#endif
+      if ( mon && (no_iterations % 10000) == 0)
+	mon->builder_update(arg->no_nodes(),
+			    top_nodes.size(),
+			    no_iterations, time,
+			    coal_events, gene_conv_events, recomb_events);
 
       switch (event)
 	{
@@ -158,18 +166,16 @@ ARG * Builder::build() const
 	}
     }
 
-#if 0 // FIXME: Find a general way to display progress, that works in
-      // both gui and cli.
-  std::cout << "Terminated after " << no_iterations << " iterations\n";
-  std::cout << coal_events << " coalecense events,\n"
-	    << gene_conv_events << " gene-conversion events,\nand "
-	    << recomb_events << " recombination events\n";
+  if (mon) mon->builder_termination(arg->no_nodes(),
+				    top_nodes.size(),
+				    no_iterations, time,
+				    coal_events, gene_conv_events,
+				    recomb_events);
+
+#if 0
   std::cout << "There are " << arg->retired_intervals().size()
 	    << " retired intervals and "
 	    << arg->no_nodes() << " nodes.\n";
-#endif
-
-#if 0
   std::vector<RetiredInterval>::const_iterator itr;
   for (itr = arg->retired_intervals().begin(); 
        itr != arg->retired_intervals().end();

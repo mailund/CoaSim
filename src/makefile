@@ -7,8 +7,8 @@ include_dir = /usr/include/coasim
 lib_dir = /usr/lib/
 dtd_dir = /usr/share/coasim/
 
-include_headers = configuration.hh \
-	all_markers.hh markers.hh \
+include_headers = monitor.hh configuration.hh \
+	all_markers.hh marker.hh \
 	trait_marker.hh snp_marker.hh micro_satellite_marker.hh \
 	node.hh interval.hh retired_interval.hh \
 	simulator.hh
@@ -75,9 +75,9 @@ test: $(test_programs)
 install: coasim libcoasim.a
 	cp coasim $(bin_dir)
 	cp libcoasim.a $(lib_dir)
-	mkdir $(dtd_dir)
+	-mkdir $(dtd_dir)
 	cp coasim.dtd $(dtd_dir)
-	mkdir $(include_dir)
+	-mkdir $(include_dir)
 	cp $(include_headers) $(include_dir)
 
 profiler: $(profiler_objects)
@@ -112,7 +112,8 @@ simulator_test: $(simulator_test_objects)
 
 
 
-coasim.o: coasim.cc node.o builder.o descender.hh reporter.hh dist_funcs.hh
+coasim.o: coasim.cc node.o builder.o descender.hh reporter.hh dist_funcs.hh \
+	  monitor.hh
 
 interval.o: interval.hh interval.cc
 interval_test.o: interval.hh interval.cc interval_test.cc testing.hh
@@ -132,11 +133,11 @@ node.o: node.hh node.cc dist_funcs.hh interval.hh marker.hh retired_interval.hh
 node_test.o: node_test.cc node.hh node.cc testing.hh interval.hh configuration.hh
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o node_test.o node_test.cc
 
-builder.o: builder.hh builder.cc reporter.hh dist_funcs.hh node.hh
+builder.o: builder.hh builder.cc reporter.hh dist_funcs.hh node.hh monitor.hh
 builder_test.o: builder.hh builder.cc builder_test.cc
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o builder_test.o builder_test.cc
 
-descender.o: node.o interval.o dist_funcs.hh
+descender.o: node.o interval.o dist_funcs.hh monitor.hh
 descender_test.o: descender.hh descender_test.cc
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o descender_test.o descender_test.cc
 

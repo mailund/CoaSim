@@ -14,6 +14,9 @@
 #ifndef RC_PARSER_HH_INCLUDED
 # include "rc-parser.hh"
 #endif
+#ifndef MONITOR_HH_INCLUDED
+# include "monitor.hh"
+#endif
 
 #ifndef FSTREAM_INCLUDED
 # include <fstream>
@@ -26,11 +29,21 @@
 using namespace std;
 
 namespace options {
+  int verbose;
   const char *rc_file;
   const char *xml_file;
 }
 
 static struct poptOption cl_options[] = {
+    {
+      "verbose",
+      'v',
+      POPT_ARG_NONE,
+      &options::verbose,
+      0,
+      "Toggle verbose output.",
+      0
+    },
     {
       "run-commands",
       'r',
@@ -53,6 +66,93 @@ static struct poptOption cl_options[] = {
     POPT_AUTOHELP
     { 0 } // sentinel
 };
+
+namespace {
+  class CLISimMonitor : public SimulationMonitor {
+    void start_arg_building();
+    void builder_update(unsigned int no_nodes, unsigned int no_top_nodes,
+			unsigned long int no_iterations, double cur_time,
+			unsigned int no_coal_events,
+			unsigned int no_gene_conv_events,
+			unsigned int no_recomb_events);
+    void builder_termination(unsigned int no_nodes, unsigned int no_top_nodes,
+			     unsigned long int no_iterations, double cur_time,
+			     unsigned int no_coal_events,
+			     unsigned int no_gene_conv_events,
+			     unsigned int no_recomb_events);
+
+    void start_mutating();
+    void mutator_update(unsigned int marker_no);
+    void retry_mutation();
+    void retry_arg_building();
+
+    void simulation_terminated();
+  };
+}
+void CLISimMonitor::start_arg_building()
+{
+  std::cout << "START BUILDING ARG...\n";
+}
+
+void CLISimMonitor::builder_update(unsigned int no_nodes,
+				   unsigned int no_top_nodes,
+				   unsigned long int no_iterations, 
+				   double cur_time,
+				   unsigned int no_coal_events,
+				   unsigned int no_gene_conv_events,
+				   unsigned int no_recomb_events)
+{
+  std::cout << "Iteration: " << no_iterations
+	    << " time " << cur_time << '\n'
+	    << no_nodes << " nodes in ARG, "
+	    << no_top_nodes << " remaining to be processed.\n"
+	    << '\t' << no_coal_events << " coalescence events\n"
+	    << '\t' << no_gene_conv_events << " gene conversion events\n"
+	    << '\t' << no_recomb_events << " recombination events\n";
+}
+
+void CLISimMonitor::builder_termination(unsigned int no_nodes,
+					unsigned int no_top_nodes,
+					unsigned long int no_iterations,
+					double cur_time,
+					unsigned int no_coal_events,
+					unsigned int no_gene_conv_events,
+					unsigned int no_recomb_events)
+{
+  std::cout << "\nARG Building terminated after " << no_iterations 
+	    << " iterations at time " << cur_time << '\n'
+	    << no_nodes << " nodes in ARG, "
+	    << no_top_nodes << " remaining to be processed.\n"
+	    << '\t' << no_coal_events << " coalescence events\n"
+	    << '\t' << no_gene_conv_events << " gene conversion events\n"
+	    << '\t' << no_recomb_events << " recombination events\n\n";
+}
+
+void CLISimMonitor::start_mutating()
+{
+  std::cout << "START MUTATING ARG...\n";
+}
+
+void CLISimMonitor::mutator_update(unsigned int marker_no)
+{
+  std::cout << "Mutating marker " << marker_no << "...\n";
+}
+
+void CLISimMonitor::retry_mutation()
+{
+  std::cout << "\tmutation not withing bounds, retrying...\n";
+}
+
+void CLISimMonitor::retry_arg_building()
+{
+  std::cout << "\tmutation not withing bounds of trait marker\n"
+	    << "\tbuilding new ARG...\n\n";
+}
+
+void CLISimMonitor::simulation_terminated()
+{
+  std::cout << "\nSIMULATION COMPLETED\n";
+}
 
 static void set_markers(Configuration &conf,
 			vector<string> &markers,
@@ -163,6 +263,9 @@ static Configuration *parse_rc(const char *rc_file)
       exit(2);
     }
 
+  SimulationMonitor *mon = 0;
+  if (options::verbose) mon = new CLISimMonitor();
+
   Configuration *conf = new Configuration(no_leaves,
 					  positions.begin(), positions.end(),
 					  recombination_rate,
@@ -170,12 +273,15 @@ static Configuration *parse_rc(const char *rc_file)
 					  gene_conversion_length,
 					  growth,
 					  mutation_rate,
-					  print_all_nodes);
+					  print_all_nodes,
+					  mon);
 
   set_markers(*conf, markers, low_freq, high_freq, no_values);
 
   return conf;
 }
+
+
 
 int main(int argc, const char *argv[])
 {
@@ -209,6 +315,11 @@ int main(int argc, const char *argv[])
     std::ofstream out(options::xml_file);
     Configuration *conf = parse_rc(options::rc_file);
     ARG *arg = Simulator::simulate(*conf);
+    if (!arg)
+      {
+	std::cout << "Simulation aborted!\n";
+	return 0;
+      }
     out << *arg;
 
   } catch (std::exception &ex) {

@@ -12,6 +12,7 @@
 #endif
 
 class Marker;
+class SimulationMonitor;
 
 class Configuration
 {
@@ -40,7 +41,8 @@ public:
 		InItr positions_begin, InItr positions_end,
 		double rho, double Q, double G, double growth,
 		double mu,
-		bool print_all_nodes = false)
+		bool print_all_nodes = false,
+		SimulationMonitor *monitor = 0)
     throw(out_of_sequence);
   ~Configuration();
 
@@ -73,6 +75,9 @@ public:
   // Parameters for output
   bool print_all_nodes() const { return _print_all_nodes; }
 
+  // For monitoring progress
+  SimulationMonitor *monitor() const { return _monitor; }
+
 private:
   // Disable these
   Configuration(const Configuration&);
@@ -91,6 +96,8 @@ private:
   double _mu;
 
   bool _print_all_nodes;
+
+  SimulationMonitor *_monitor; // 0 if we are not monitoring
 };
 
 
@@ -99,13 +106,15 @@ Configuration::Configuration(unsigned int no_leaves,
 			     InItr begin, InItr end,
 			     double rho, double Q, double G, double growth,
 			     double mu,
-			     bool print_all_nodes)
+			     bool print_all_nodes,
+			     SimulationMonitor *monitor)
   throw(out_of_sequence)
   : _no_leaves(no_leaves),
     _positions(begin,end),
     _rho(rho), _Q(Q), _G(G), _growth(growth),
     _mu(mu),
-    _print_all_nodes(print_all_nodes)
+    _print_all_nodes(print_all_nodes),
+    _monitor(monitor)
 {
   for (size_t m = 1; m < _positions.size(); ++m)
     if (_positions[m-1] >= _positions[m]) throw out_of_sequence();

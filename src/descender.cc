@@ -7,6 +7,9 @@
 #ifndef MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
+#ifndef MONITOR_HH_INCLUDED
+# include "monitor.hh"
+#endif
 
 
 void Descender::evolve(ARG &arg) const
@@ -14,6 +17,8 @@ void Descender::evolve(ARG &arg) const
   std::vector<RetiredInterval>::const_iterator ri_itr, ri_begin, ri_end;
   ri_begin = arg.retired_intervals().begin();
   ri_end   = arg.retired_intervals().end();
+
+  SimulationMonitor *mon = _conf.monitor();
 
   // FIXME: we could do this merging of retired intervals and value
   // sets faster if we sorted the retired intervals, but if the number
@@ -24,17 +29,11 @@ void Descender::evolve(ARG &arg) const
 	{
 	  if (ri_itr->contains_point(_conf.position(m)))
 	    {
-#if 0
-	      std::cout << "mutating marker " << m << '\n'
-			<< "position " << _conf.position(m) << ' '
-			<< "in interval " << *ri_itr << std::endl;
-#endif
+	      if (mon) mon->mutator_update(m);
 	    retry: // handle retries when wrong freqs
 	      try { ri_itr->mutate(_conf,m); } 
 	      catch (Mutator::retry_mutation&) {
-#if 0
-		std::cout << "\t!!! retrying mutation " << m << std::endl;
-#endif
+		if (mon) mon->retry_mutation();
 		goto retry; 
 	      }
 	    }
