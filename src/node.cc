@@ -21,8 +21,15 @@
 # define STRING_INCLUDED
 #endif
 
+#ifndef CASSERT_INCLUDED
+# include <cassert>
+# define CASSERT_INCLUDED
+#endif
 #if EXPENSIVE_ASSERTS
-# include <fstream>
+# ifndef FSTREAM_INCLUDED
+#  include <fstream>
+#  define FSTREAM_INCLUDED
+# endif
 #endif
 
 void Node::haplotype_to_xml(std::ostream &os) const

@@ -2,6 +2,12 @@
 #ifndef MONITOR_HH_INCLUDED
 #define MONITOR_HH_INCLUDED
 
+#ifndef STDEXCEPT_INCLUDED
+# include <stdexcept>
+# define STDEXCEPT_INCLUDED
+#endif
+
+
 class SimulationMonitor {
 
 public:

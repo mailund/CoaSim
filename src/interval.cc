@@ -10,6 +10,11 @@
 # define ALGORITHM_INCLUDED
 #endif
 
+#ifndef CASSERT_INCLUDED
+# include <cassert>
+# define CASSERT_INCLUDED
+#endif
+
 
 using std::min; using std::max;
 
