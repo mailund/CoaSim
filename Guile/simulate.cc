@@ -13,6 +13,9 @@
 #ifndef GUILE__ARG_PARAMETERS_HH_INCLUDED
 # include "arg_parameters.hh"
 #endif
+#ifndef GUILE__OPTIONS_HH_INCLUDED
+# include "options.hh"
+#endif
 
 using namespace guile;
 
@@ -25,6 +28,9 @@ using namespace guile;
 #endif
 #ifndef CORE__SIMULATOR_HH_INCLUDED
 # include <Core/simulator.hh>
+#endif
+#ifndef CORE__MONITOR_HH_INCLUDED
+# include <Core/monitor.hh>
 #endif
 #ifndef CORE__NODE_HH_INCLUDED
 # include <Core/node.hh>
@@ -67,6 +73,93 @@ free_arg(SCM s_arg_data)
     return sizeof(ARGData);
 }
 
+namespace {
+    class CLISimMonitor : public core::SimulationMonitor {
+	void start_arg_building(unsigned int no_leaves);
+	void builder_update(unsigned int no_nodes, unsigned int no_top_nodes,
+			    unsigned long int no_iterations, double cur_time,
+			    unsigned int no_coal_events,
+			    unsigned int no_gene_conv_events,
+			    unsigned int no_recomb_events);
+	void builder_termination(unsigned int no_nodes, unsigned int no_top_nodes,
+				 unsigned long int no_iterations, double cur_time,
+				 unsigned int no_coal_events,
+				 unsigned int no_gene_conv_events,
+				 unsigned int no_recomb_events);
+
+	void start_mutating();
+	void mutator_update(unsigned int marker_no);
+	void retry_mutation();
+	void retry_arg_building();
+
+	void simulation_terminated();
+    };
+}
+void CLISimMonitor::start_arg_building(unsigned int no_leaves)
+{
+    std::cout << "START BUILDING ARG...\n";
+}
+
+void CLISimMonitor::builder_update(unsigned int no_nodes,
+				   unsigned int no_top_nodes,
+				   unsigned long int no_iterations, 
+				   double cur_time,
+				   unsigned int no_coal_events,
+				   unsigned int no_gene_conv_events,
+				   unsigned int no_recomb_events)
+{
+    std::cout << "Iteration: " << no_iterations
+	      << " time " << cur_time << '\n'
+	      << no_nodes << " nodes in ARG, "
+	      << no_top_nodes << " remaining to be processed.\n"
+	      << '\t' << no_coal_events << " coalescence events\n"
+	      << '\t' << no_gene_conv_events << " gene conversion events\n"
+	      << '\t' << no_recomb_events << " recombination events\n";
+}
+
+void CLISimMonitor::builder_termination(unsigned int no_nodes,
+					unsigned int no_top_nodes,
+					unsigned long int no_iterations,
+					double cur_time,
+					unsigned int no_coal_events,
+					unsigned int no_gene_conv_events,
+					unsigned int no_recomb_events)
+{
+    std::cout << "\nARG Building terminated after " << no_iterations 
+	      << " iterations at time " << cur_time << '\n'
+	      << no_nodes << " nodes in ARG, "
+	      << no_top_nodes << " remaining to be processed.\n"
+	      << '\t' << no_coal_events << " coalescence events\n"
+	      << '\t' << no_gene_conv_events << " gene conversion events\n"
+	      << '\t' << no_recomb_events << " recombination events\n\n";
+}
+
+void CLISimMonitor::start_mutating()
+{
+    std::cout << "START MUTATING ARG...\n";
+}
+
+void CLISimMonitor::mutator_update(unsigned int marker_no)
+{
+    std::cout << "Mutating marker " << marker_no << "...\n";
+}
+
+void CLISimMonitor::retry_mutation()
+{
+    std::cout << "\tmutation not withing bounds, retrying...\n";
+}
+
+void CLISimMonitor::retry_arg_building()
+{
+    std::cout << "\tmutation not withing bounds of trait marker\n"
+	      << "\tbuilding new ARG...\n\n";
+}
+
+void CLISimMonitor::simulation_terminated()
+{
+    std::cout << "\nSIMULATION COMPLETED\n";
+}
+
 
 static SCM
 simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
@@ -98,11 +191,13 @@ simulate(SCM arg_parameters_smob, SCM s_markers, SCM s_no_leaves)
 
     int no_leaves = scm_num2int(s_no_leaves, SCM_ARG3, "simulate");
 
+    CLISimMonitor mon;
+
     core::Configuration *conf 
 	= new core::Configuration(no_leaves,
 				  markers.begin(), markers.end(),
 				  p->rho, p->Q, p->G, p->growth,
-				  0); // FIXME: monitor?
+				  options::verbose ? &mon : 0);
     core::ARG *arg = core::Simulator::simulate(*conf);
 
     void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
@@ -131,6 +226,30 @@ save_sequences(SCM arg_data_smob, SCM s_filename)
     return SCM_EOL;
 }
 
+static SCM 
+sequences(SCM arg_data_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
+	       arg_data_smob, SCM_ARG1, "save-sequences");
+
+    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
+
+    SCM sequences = SCM_EOL;
+
+    const std::vector<core::Node*> &leaves = arg_data->arg->leaves();
+    std::vector<core::Node*>::const_iterator i;
+    for (i = leaves.begin(); i != leaves.end(); ++i)
+	{
+	    SCM seq = SCM_EOL;
+	    for (size_t j = 0; j < (*i)->no_states(); ++j)
+		seq = scm_cons(scm_int2num((*i)->state(j)), seq);
+	    sequences = scm_cons(scm_reverse(seq), sequences);
+	}
+
+    return scm_reverse(sequences);
+}
+
+
 void
 guile::install_simulate()
 {
@@ -141,6 +260,8 @@ guile::install_simulate()
 		       (scm_unused_struct*(*)())simulate);
     scm_c_define_gsubr("save-sequences", 2, 0, 0, 
 		       (scm_unused_struct*(*)())save_sequences);
+    scm_c_define_gsubr("sequences", 1, 0, 0, 
+		       (scm_unused_struct*(*)())sequences);
 }
 
 

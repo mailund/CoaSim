@@ -10,6 +10,8 @@
 (define arg (simulate p markers 10))
 
 (save-sequences arg "seq.out")
+(define seqs (sequences arg))
+(display seqs)(newline)
 
 (catch 'wrong-number-of-args
        (lambda () (simulate p))
