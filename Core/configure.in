@@ -1,4 +1,4 @@
-AC_INIT(CoaSim-Core, 3.0.3, mailund@birc.dk) dnl FIMXE: update mail address
+AC_INIT(CoaSim-Core, 3.0.4, mailund@birc.dk) dnl FIMXE: update mail address
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.hh)
 

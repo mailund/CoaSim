@@ -132,12 +132,11 @@ ARG * Builder::build(SimulationMonitor *mon,
 			Node *child2 = top_nodes.pop();
 			CoalescentNode *coa_node = arg->coalescence(time, child1, child2);
 
+			if (callbacks)
+			    callbacks->coalescence_callback(coa_node,k);
+
 			if (coa_node->intervals().size() > 0)
-			    {
-				top_nodes.push(coa_node);
-				if (callbacks)
-				    callbacks->coalescence_callback(coa_node,k);
-			    }
+			    top_nodes.push(coa_node);
 		    }
 		    break;
 	  
