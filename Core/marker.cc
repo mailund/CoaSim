@@ -26,3 +26,4 @@ core::Marker::to_text(std::ostream &os) const
 {
     os << this->type();
 }
+

@@ -40,55 +40,69 @@ core::SNPMarker::default_value() const
 namespace
 {
     class SNPMutator : public Mutator {
-	const Configuration &_conf;
-    
-	// allowed frequencies, translated into leaf node counts
-	unsigned int _low_leaf_count;
-	unsigned int _high_leaf_count;
+	
+	const SNPMarker &i_marker;
 
-	double _mutation_point;	// the point on the "surface" where
+	// allowed frequencies, translated into leaf node counts
+	unsigned int i_low_leaf_count;
+	unsigned int i_high_leaf_count;
+
+	double i_mutation_point;	// the point on the "surface" where
 				// the mutation sits
-	double _surface_so_far;	// the surface seen so far
+	double i_surface_so_far;	// the surface seen so far
 
     public:
-	SNPMutator(const Configuration &conf,
+	SNPMutator(const SNPMarker &marker, 
 		   unsigned int low_leaf_count,
 		   unsigned int high_leaf_count,
 		   double mutation_point);
 
 	bool edge_has_mutation(double parent_time, double child_time);
-	int  mutate_to(const Node &n, unsigned int marker_index);
+	int  mutate_to(const Node &n, int parent_allele);
+	virtual int  mutate(const Node &parent, 
+			    const Node &child, 
+			    int parent_allele);
     };
 
-    SNPMutator::SNPMutator(const Configuration &conf,
+    SNPMutator::SNPMutator(const SNPMarker &marker,
 			   unsigned int low_leaf_count, 
 			   unsigned int high_leaf_count,
 			   double mutation_point)
-	: _conf(conf),
-	  _low_leaf_count(low_leaf_count), _high_leaf_count(high_leaf_count),
-	  _mutation_point(mutation_point), _surface_so_far(0.0)
+	: i_marker(marker),
+	  i_low_leaf_count(low_leaf_count), i_high_leaf_count(high_leaf_count),
+	  i_mutation_point(mutation_point), i_surface_so_far(0.0)
     {
     }
 
     bool SNPMutator::edge_has_mutation(double parent_time, double child_time) 
     {
 	double edge_length = parent_time - child_time;
-	bool mutate = (_surface_so_far <= _mutation_point
+	bool mutate = (i_surface_so_far <= i_mutation_point
 		       and
-		       _mutation_point < _surface_so_far+edge_length);
-	_surface_so_far += edge_length;
+		       i_mutation_point < i_surface_so_far+edge_length);
+	i_surface_so_far += edge_length;
 	return mutate;
     }
 
-    int SNPMutator::mutate_to(const Node &n, unsigned int marker_index)
+    int SNPMutator::mutate_to(const Node &n, int parent_allele)
     {
 	// check frequency
-	unsigned int leaf_count = n.leaves_at_point(_conf.position(marker_index));
-	if ((leaf_count < _low_leaf_count) or (_high_leaf_count < leaf_count))
+	unsigned int leaf_count = n.leaves_at_point(i_marker.position());
+	if ((leaf_count < i_low_leaf_count) or (i_high_leaf_count < leaf_count))
 	    throw Mutator::retry_mutation();
-	return !n.state(marker_index);
+	return !parent_allele;
+    }
+
+    int SNPMutator::mutate(const Node &parent, const Node &child,
+			   int parent_allele)
+    {
+	if (edge_has_mutation(parent.time(), child.time()))
+	    return mutate_to(parent, parent_allele);
+	else
+	    return parent_allele;
     }
 }
+
 
 static inline void swap(unsigned int &i, unsigned int &j)
 { unsigned int tmp = i; i = j; j = tmp; }
@@ -107,7 +121,7 @@ core::SNPMarker::create_mutator(const Configuration   &conf,
 
     double mutation_point = ri.surface() * Distribution_functions::uniform();
 
-    return new SNPMutator(conf, low_leaf_count, high_leaf_count, mutation_point);
+    return new SNPMutator(*this, low_leaf_count, high_leaf_count, mutation_point);
 }
 
 const char *

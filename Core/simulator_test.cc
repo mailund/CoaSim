@@ -38,8 +38,7 @@ int main(int argc, const char *argv[])
 	markers.push_back(new SNPMarker(0.0, 0.0,1.0));
 	markers.push_back(new TraitMarker(0.2, 0.0,1.0));
 	markers.push_back(new SNPMarker(0.3, 0.0,1.0));
-	MicroSatelliteMarker *mm = new MicroSatelliteMarker(0.4, mu);
-	mm->add_value(4); mm->add_value(8);
+	MicroSatelliteMarker *mm = new MicroSatelliteMarker(0.4, mu, 2);
 	markers.push_back(mm);
 	markers.push_back(new SNPMarker(0.67, 0.0,1.0));
 

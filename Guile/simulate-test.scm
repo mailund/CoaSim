@@ -3,7 +3,7 @@
   (list (snp-marker   0.1 0.1 0.9)
 	(snp-marker   0.2 0.1 0.9)
 	(trait-marker 0.3 0.18 0.22)
-	(ms-marker    0.4 0.5 4)
+	(ms-marker    0.4 0.5 20)
 	(snp-marker   0.6 0.1 0.9)))
 
 (define arg (simulate markers 10 :rho 50 :random-seed 100))

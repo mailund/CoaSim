@@ -35,8 +35,7 @@ int main(int argc, const char *argv[])
 	markers.push_back(new TraitMarker(0.3, 0.0,1.0));
 	markers.push_back(new TraitMarker(0.31, 0.0,0.4));
 	markers.push_back(new TraitMarker(0.32, 0.0,0.5));
-	MicroSatelliteMarker *ms_m = new MicroSatelliteMarker(0.4, 0.7);
-	ms_m->add_value(42); ms_m->add_value(86);
+	MicroSatelliteMarker *ms_m = new MicroSatelliteMarker(0.4, 0.7, 2);
 	markers.push_back(ms_m);
 	markers.push_back(new SNPMarker(0.67, 0.0,1.0));
 	markers.push_back(new SNPMarker(0.68, 0.0,0.4));

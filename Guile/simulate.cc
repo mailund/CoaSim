@@ -19,6 +19,9 @@
 #ifndef GUILE__INTERVALS_HH_INCLUDED
 # include "intervals.hh"
 #endif
+#ifndef GUILE__EXCEPTIONS_HH_INCLUDED
+# include "exceptions.hh"
+#endif
 
 using namespace guile;
 
@@ -355,14 +358,16 @@ public:
 					  int k);
 };
 
+
 void Callbacks::coalescence_callback(core::CoalescentNode *n, int k)
 {
     if (!i_has_coa_cb) return;
     // fake ARG -- real does not exist yet
     SCM node = wrap_coalescent_node(SCM_EOL, n);
     SCM s_k   = scm_int2num(k);
-    scm_apply(i_coa_cb, scm_cons(node, scm_cons(s_k, SCM_EOL)), SCM_EOL);
+    wrapped_apply(i_coa_cb, scm_cons(node, scm_cons(s_k, SCM_EOL)));
 }
+
 void Callbacks::recombination_callback(core::RecombinationNode *n1,
 				       core::RecombinationNode *n2,
 				       int k)
@@ -372,10 +377,10 @@ void Callbacks::recombination_callback(core::RecombinationNode *n1,
     SCM node1 = wrap_recombination_node(SCM_EOL, n1);
     SCM node2 = wrap_recombination_node(SCM_EOL, n2);
     SCM s_k   = scm_int2num(k);
-    scm_apply(i_rc_cb, 
-	      scm_cons(node1, scm_cons(node2, scm_cons(s_k, SCM_EOL))), 
-	      SCM_EOL);
+    wrapped_apply(i_rc_cb, 
+		  scm_cons(node1, scm_cons(node2, scm_cons(s_k, SCM_EOL))));
 }
+
 void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
 					 core::GeneConversionNode *n2,
 					 int k)
@@ -385,9 +390,8 @@ void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
     SCM node1 = wrap_gene_conversion_node(SCM_EOL, n1);
     SCM node2 = wrap_gene_conversion_node(SCM_EOL, n2);
     SCM s_k   = scm_int2num(k);
-    scm_apply(i_gc_cb, 
-	      scm_cons(node1, scm_cons(node2, scm_cons(s_k, SCM_EOL))), 
-	      SCM_EOL);
+    wrapped_apply(i_gc_cb, 
+		  scm_cons(node1, scm_cons(node2, scm_cons(s_k, SCM_EOL))));
 }
 
 static SCM
@@ -481,6 +485,8 @@ simulate(SCM s_markers,		// 1
 	SCM_RETURN_NEWSMOB(guile::arg_tag, arg_data);
     } catch(core::Configuration::out_of_sequence&) {
 	scm_throw(scm_str2symbol("out-of-sequence"), s_markers);
+    } catch(SchemeException &sex) { // ;-)
+	propagate(sex);
     } catch(exception &ex) {
 	scm_throw(scm_str2symbol("unexcepted-exception"), 
 		  scm_mem2string(ex.what(),strlen(ex.what())));

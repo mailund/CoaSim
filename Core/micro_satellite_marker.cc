@@ -32,48 +32,57 @@ core::MicroSatelliteMarker::run_first() const
 int
 core::MicroSatelliteMarker::default_value() const 
 {
-    if (size() == 0) throw std::out_of_range("No value set");
-    return i_values.front(); 
+    return 0;
 }
 
 
 namespace
 {
-  class MicroSatelliteMutator : public Mutator {
-  public:
-    MicroSatelliteMutator(const MicroSatelliteMarker &marker);
-    bool edge_has_mutation(double parent_time, double child_time);
-    int  mutate_to(const Node &n, unsigned int marker_index)
-      throw (retry_mutation, retry_arg);
+    class MicroSatelliteMutator : public Mutator {
+    public:
+	MicroSatelliteMutator(const MicroSatelliteMarker &marker);
+	bool edge_has_mutation(double parent_time, double child_time);
+	int  mutate_to(const Node &n, int parent_allele)
+	    throw (retry_mutation, retry_arg);
+	virtual int  mutate(const Node &parent, 
+			    const Node &child, 
+			    int parent_allele);
 
-  private:
-    const MicroSatelliteMarker &_marker;
-  };
+    private:
+	const MicroSatelliteMarker &i_marker;
+    };
 
-  MicroSatelliteMutator::MicroSatelliteMutator(const MicroSatelliteMarker &marker)
-    : _marker(marker)
-  {
-  }
+    MicroSatelliteMutator::MicroSatelliteMutator(const MicroSatelliteMarker &marker)
+	: i_marker(marker)
+    {
+    }
 
-  bool MicroSatelliteMutator::edge_has_mutation(double parent_time, 
-						double child_time) 
-  {
-    using namespace Distribution_functions;
-    double time = parent_time - child_time;
-    return uniform() < expdist(_marker.theta()/2,time);
-  }
+    bool MicroSatelliteMutator::edge_has_mutation(double parent_time, 
+						  double child_time) 
+    {
+	using namespace Distribution_functions;
+	double time = parent_time - child_time;
+	return uniform() < expdist(i_marker.theta()/2,time);
+    }
+    
+    int MicroSatelliteMutator::mutate_to(const Node &n, 
+					 int parent_allele)
+	throw (retry_mutation, retry_arg) 
+    {
+	using namespace Distribution_functions;
+	int new_value = irand(i_marker.K()-1);
+	if (new_value == parent_allele) new_value = i_marker.K()-1;
+	return new_value;
+    }
 
-  int MicroSatelliteMutator::mutate_to(const Node &n, 
-				       unsigned int marker_index)
-    throw (retry_mutation, retry_arg) 
-  {
-    using namespace Distribution_functions;
-    int current_value = n.state(marker_index);
-    int new_value = _marker.value(irand(_marker.size()-1));
-    if (new_value == current_value)
-      new_value = _marker.value(_marker.size()-1);
-    return new_value;
-  }
+    int MicroSatelliteMutator::mutate(const Node &parent, const Node &child,
+				      int parent_allele)
+    {
+	if (edge_has_mutation(parent.time(), child.time()))
+	    return mutate_to(parent, parent_allele);
+	else
+	    return parent_allele;
+    }
 }
 
 Mutator *
@@ -81,7 +90,7 @@ core::MicroSatelliteMarker::create_mutator(const Configuration   &conf,
 					   const RetiredInterval &ri) const
 {
 
-  return new MicroSatelliteMutator(*this);
+    return new MicroSatelliteMutator(*this);
 }
 
 

@@ -41,10 +41,12 @@ namespace core {
 	struct retry_arg : public std::exception { retry_arg() {} };
   
 
-	virtual bool edge_has_mutation(double parent_time, double child_time) = 0;
-	virtual int  mutate_to(const Node &n, unsigned int marker_index)      = 0;
+	virtual int  mutate(const Node &parent, 
+			    const Node &child, 
+			    int parent_allele) = 0;
     };
 
+    
     // Abstract class for the different possible marker types
     class Marker
     {
@@ -64,11 +66,7 @@ namespace core {
 	double position() const { return i_position; }
 	virtual bool run_first() const = 0;
     
-	size_t size()     const { return i_values.size(); }
-
 	virtual int default_value() const = 0;
-	int value(size_t index)     const throw(std::out_of_range);
-	virtual void add_value(int value) throw(illegal_value) = 0;
 
 	// creates a new mutator -- the mutator must be deleted after use.
 	virtual Mutator *create_mutator(const Configuration &conf,
@@ -89,9 +87,6 @@ namespace core {
 	// Disable
 	Marker &operator = (const Marker&);
     };
-
-    inline int Marker::value(size_t index) const throw (std::out_of_range)
-    { return i_values.at(index); }
 
     inline std::ostream &operator << (std::ostream &os, const Marker &m)
     { m.to_text(os); return os; }

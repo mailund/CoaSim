@@ -112,9 +112,6 @@ namespace core {
 
     private:
 	friend class ARG;
-	virtual void node_to_xml(std::ostream &os)                const = 0;
-	virtual void mutation_to_xml(std::ostream &os)            const = 0;
-	void haplotype_to_xml(std::ostream &os)                   const;
 
 	double    i_time;
 	Intervals i_intervals;
@@ -184,7 +181,6 @@ namespace core {
 	unsigned int no_nodes() const
 	{ return i_leaf_pool.size() + i_node_pool.size(); }
 
-	void to_xml (std::ostream &os, bool print_all_nodes = false) const;
 	void to_text(std::ostream &os) const;
 
 	const std::vector<Node*> &leaves() const { return i_leaf_pool; }
@@ -222,8 +218,6 @@ namespace core {
 					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
-	virtual void node_to_xml(std::ostream &os) const;
-	virtual void mutation_to_xml(std::ostream &os) const;
 
 	unsigned int i_id;
     };
@@ -241,8 +235,6 @@ namespace core {
 	CoalescentNode(const Configuration &conf, double time, 
 		       Node *left, Node *right, const Intervals &is)
 	    : Node(conf,time,is), i_left(left), i_right(right),
-	      i_left_mutating(false,conf.no_markers()),
-	      i_right_mutating(false,conf.no_markers()),
 	      i_conf(conf)
 	{}
 
@@ -253,13 +245,9 @@ namespace core {
 					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
-	virtual void node_to_xml(std::ostream &os) const;
-	virtual void mutation_to_xml(std::ostream &os) const;
 
 	Node *const i_left;
 	Node *const i_right;
-	std::valarray<bool> i_left_mutating;
-	std::valarray<bool> i_right_mutating;
 	const Configuration &i_conf;
     };
   
@@ -274,7 +262,6 @@ namespace core {
 			  double time, Node *child, const Intervals &is,
 			  double cross_over_point, bool is_left)
 	    : Node(conf,time,is), i_child(child),
-	      i_child_mutating(false,conf.no_markers()),
 	      i_cross_over_point(cross_over_point), i_is_left(is_left)
 	{}
 
@@ -285,11 +272,8 @@ namespace core {
 					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
-	virtual void node_to_xml(std::ostream &os) const;
-	virtual void mutation_to_xml(std::ostream &os) const;
 
 	Node *const i_child;
-	std::valarray<bool> i_child_mutating;
 	double i_cross_over_point;
 	bool i_is_left;
 
@@ -308,7 +292,6 @@ namespace core {
 			   double conversion_start, double conversion_end,
 			   bool is_inside)
 	    : Node(conf,time,is), i_child(child),
-	      i_child_mutating(false,conf.no_markers()),
 	      i_conversion_start(conversion_start), i_conversion_end(conversion_end),
 	      i_is_inside(is_inside)
 	{}
@@ -320,11 +303,8 @@ namespace core {
 					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
-	virtual void node_to_xml(std::ostream &os) const;
-	virtual void mutation_to_xml(std::ostream &os) const;
 
 	Node *const i_child;
-	std::valarray<bool> i_child_mutating;
 	double i_conversion_start, i_conversion_end;
 	bool i_is_inside;
     };

@@ -82,7 +82,7 @@ print_ms_marker (SCM marker_smob, SCM port, scm_print_state *pstate)
     scm_puts("(ms-marker ", port);
     scm_display(scm_make_real(m->position()),  port); scm_puts(" ", port);
     scm_display(scm_make_real(m->theta()),     port); scm_puts(" ", port);
-    scm_display(scm_long2num(m->size()),       port);
+    scm_display(scm_long2num(m->K()),          port);
     scm_puts(")", port);
 
     return 1;
@@ -177,8 +177,7 @@ ms_marker(SCM s_position, SCM s_theta, SCM s_alphabet_size)
     void *mem = scm_must_malloc(sizeof(core::MicroSatelliteMarker), 
 				"ms-marker");
     core::MicroSatelliteMarker *m 
-	= new(mem)core::MicroSatelliteMarker(position, theta);
-    for (int i = 0; i < alphabet_size; ++i) m->add_value(i);
+	= new(mem)core::MicroSatelliteMarker(position, theta, alphabet_size);
     SCM_RETURN_NEWSMOB(guile::ms_marker_tag, m);
 }
 
