@@ -23,21 +23,20 @@
 using namespace core;
 
 ARG *
-core::Simulator::simulate(const Configuration &conf)
+core::Simulator::simulate(const Configuration &conf, SimulationMonitor *mon)
 {
     Builder builder(conf);
     Descender descender(conf);
     ARG *arg = 0;
-    SimulationMonitor *mon = conf.monitor();
 
     try {
 
     retry:
 	try {
 	    if (mon) mon->start_arg_building(conf.no_leaves());
-	    arg = builder.build();
+	    arg = builder.build(mon);
 	    if (mon) mon->start_mutating();
-	    descender.evolve(*arg);
+	    descender.evolve(*arg, mon);
 	} catch (Mutator::retry_arg&) {
 	    if (mon) mon->retry_arg_building();
 	    delete arg; arg = 0;

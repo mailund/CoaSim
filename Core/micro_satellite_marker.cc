@@ -84,8 +84,9 @@ core::MicroSatelliteMarker::create_mutator(const Configuration   &conf,
   return new MicroSatelliteMutator(*this);
 }
 
-void 
-core::MicroSatelliteMarker::to_text(std::ostream &os) const
+
+const char *
+core::MicroSatelliteMarker::type() const
 {
-    os << "ms";
+    return "ms";
 }

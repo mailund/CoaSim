@@ -110,9 +110,8 @@ core::SNPMarker::create_mutator(const Configuration   &conf,
     return new SNPMutator(conf, low_leaf_count, high_leaf_count, mutation_point);
 }
 
-void 
-core::SNPMarker::to_text(std::ostream &os) const
+const char *
+core::SNPMarker::type() const
 {
-    os << "snp";
+    return "snp";
 }
-

@@ -24,10 +24,8 @@ using namespace core;
 // this could of course be generalized if at some point it is needed.
 // It would require a re-write of this, though.
 
-void core::Descender::evolve(ARG &arg) const
+void core::Descender::evolve(ARG &arg, SimulationMonitor *mon) const
 {
-    SimulationMonitor *mon = i_conf.monitor();
-
     std::vector<RetiredInterval>::const_iterator ri_itr, ri_begin, ri_end;
     arg.sort_retired_intervals();
     ri_begin = arg.retired_intervals().begin();

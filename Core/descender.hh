@@ -26,7 +26,7 @@ namespace core {
 	// If the traits cannot be assigned according to specification, the
 	// method returns `false' which means that a new ARG should be build
 	// and processed.  If everything goes well, evolve returns `true'.
-	void evolve(ARG &arg) const;
+	void evolve(ARG &arg, SimulationMonitor *mon) const;
 
     private:
 	const Configuration &i_conf;

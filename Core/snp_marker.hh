@@ -36,7 +36,7 @@ namespace core {
 	double low_freq()  const { return i_low_freq; }
 	double high_freq() const { return i_high_freq; }
 
-	virtual void to_text(std::ostream &os) const;
+	virtual const char * type() const;
 
     private:
 	double i_low_freq, i_high_freq; // allowed range of mutation frequencies

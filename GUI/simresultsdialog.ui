@@ -1,0 +1,142 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>SimResultsDialog</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>SimResultsDialog</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>684</width>
+            <height>328</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Simulation Results</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QGroupBox">
+            <property name="name">
+                <cstring>groupBox1</cstring>
+            </property>
+            <property name="title">
+                <string>Haplotypes:</string>
+            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QTable">
+                    <property name="name">
+                        <cstring>haplotypeTable</cstring>
+                    </property>
+                    <property name="numRows">
+                        <number>3</number>
+                    </property>
+                    <property name="numCols">
+                        <number>3</number>
+                    </property>
+                    <property name="readOnly">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </vbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout4</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QPushButton" row="1" column="2">
+                    <property name="name">
+                        <cstring>pushButton3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Close</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox" row="0" column="0">
+                    <property name="name">
+                        <cstring>mode</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Print leaves only</string>
+                    </property>
+                    <property name="checked">
+                        <bool>true</bool>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Selects whether the entire recomgination graph should be printed, or only the leaves</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton" row="0" column="2">
+                    <property name="name">
+                        <cstring>saveTextButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Save Text</string>
+                    </property>
+                    <property name="default">
+                        <bool>true</bool>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Run the simulation</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton" row="0" column="1">
+                    <property name="name">
+                        <cstring>saveXMLButton</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Save XML</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Run the simulation</string>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>pushButton3</sender>
+        <signal>clicked()</signal>
+        <receiver>SimResultsDialog</receiver>
+        <slot>accept()</slot>
+    </connection>
+    <connection>
+        <sender>saveTextButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SimResultsDialog</receiver>
+        <slot>saveText()</slot>
+    </connection>
+    <connection>
+        <sender>saveXMLButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SimResultsDialog</receiver>
+        <slot>saveXML()</slot>
+    </connection>
+</connections>
+<includes>
+    <include location="local" impldecl="in implementation">simresultsdialog.ui.h</include>
+</includes>
+<forwards>
+    <forward>namespace core { class ARG; }</forward>
+</forwards>
+<variables>
+    <variable access="public">core::ARG *i_arg;</variable>
+</variables>
+<slots>
+    <slot access="private" specifier="non virtual">saveXML()</slot>
+    <slot access="private" specifier="non virtual">saveText()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

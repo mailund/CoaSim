@@ -35,7 +35,7 @@ int main(int argc, const char *argv[])
     try {
 	Configuration conf(0,
 			   markers.begin(), markers.end(),
-			   0.0, 0.0, 0.0, 0.0, 0);
+			   0.0, 0.0, 0.0, 0.0);
 	ERROR("Unsorted positions");
     } catch (Configuration::out_of_sequence&) {}
 
@@ -55,7 +55,7 @@ int main(int argc, const char *argv[])
 
 	Configuration conf(0,
 			   markers.begin(), markers.end(),
-			   0.0, 0.0, 0.0, 0.0, 0);
+			   0.0, 0.0, 0.0, 0.0);
 	for (size_t i = 0; i < no_positions; ++i)
 	    CHECK(conf.position(i) == positions[i]);
 

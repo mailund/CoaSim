@@ -45,7 +45,7 @@ int main(int argc, const char *argv[])
 
 	Configuration conf(2,
 			   markers.begin(), markers.end(),
-			   0.0, 0.0, 0.0, 0.0, 0);
+			   0.0, 0.0, 0.0, 0.0);
 
 	std::vector<Marker*>::iterator i;
 	for (i = markers.begin(); i != markers.end(); ++i)

@@ -64,7 +64,7 @@ namespace
 }
 
 
-ARG * Builder::build() const
+ARG * Builder::build(SimulationMonitor *mon) const
 {
     using namespace Distribution_functions;
 
@@ -83,7 +83,6 @@ ARG * Builder::build() const
 
     double time = 0.0;
 
-    SimulationMonitor *mon = i_conf.monitor();
     if (mon) mon->builder_update(i_conf.no_leaves(), // no_nodes
 				 i_conf.no_leaves(), // no_top_nodes
 				 no_iterations, time,

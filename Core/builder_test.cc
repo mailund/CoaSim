@@ -40,7 +40,7 @@ int main(int argc, const char *argv[])
 
 	Configuration conf(10,
 			   markers.begin(), markers.end(),
-			   0.0, 0.0, 0.0, 0.0, 0);
+			   0.0, 0.0, 0.0, 0.0);
 
 	std::vector<Marker*>::iterator i;
 	for (i = markers.begin(); i != markers.end(); ++i)
@@ -49,7 +49,7 @@ int main(int argc, const char *argv[])
 
 
 	Builder b(conf);
-	ARG *arg = b.build();
+	ARG *arg = b.build(0);
 
 	CHECK(arg != 0);
 

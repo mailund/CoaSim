@@ -22,7 +22,7 @@ namespace core {
 
 	// Builds an ARG.  The ARG is dynamically allocated and must be
 	// deleted after use.
-	ARG *build() const;
+	ARG *build(SimulationMonitor *mon) const;
 
     private:
 	const Configuration &i_conf;

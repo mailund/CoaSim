@@ -108,8 +108,8 @@ Mutator *TraitMarker::create_mutator(const Configuration   &conf,
     return new TraitMutator(conf,low_leaf_count,high_leaf_count,mutation_point);
 }
 
-void 
-core::TraitMarker::to_text(std::ostream &os) const
+const char *
+core::TraitMarker::type() const
 {
-    os << "trait";
+    return "trait";
 }

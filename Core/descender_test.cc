@@ -136,7 +136,7 @@ int main(int argc, const char *argv[])
 	Descender desc(conf);
 
 	ARG *arg = build_arg(conf);
-	desc.evolve(*arg);
+	desc.evolve(*arg, 0);
 
 
     } catch (std::exception &ex) {

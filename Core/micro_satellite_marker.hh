@@ -35,7 +35,7 @@ namespace core {
 					const RetiredInterval &ri) const;
 	double mu() const { return i_mu; }
 
-	virtual void to_text(std::ostream &os) const;
+	virtual const char * type() const;
 
     private:
 	double i_mu; // mutation parameter

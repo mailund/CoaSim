@@ -62,6 +62,8 @@ public:
     virtual ~Marker();
 
     double position() const { return i_position; }
+
+
     virtual bool run_first() const = 0;
     
     size_t size()     const { return i_values.size(); }
@@ -74,7 +76,8 @@ public:
     virtual Mutator *create_mutator(const Configuration &conf,
 				    const RetiredInterval &ri) const = 0;
 
-    virtual void to_text(std::ostream &os) const = 0;
+    virtual void to_text(std::ostream &os) const;
+    virtual const char * type() const = 0;
 
 protected:
     Marker(double position) : i_position(position) { assert(0 <= position); assert(position < 1); };

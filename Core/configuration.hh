@@ -51,8 +51,7 @@ namespace core {
 	template <typename InItr>
 	Configuration(unsigned int no_leaves,
 		      InItr begin, InItr end,
-		      double rho, double Q, double G, double growth,
-		      SimulationMonitor *monitor = 0)
+		      double rho, double Q, double G, double growth)
 	    throw(out_of_sequence);
 	~Configuration();
 
@@ -91,9 +90,6 @@ namespace core {
 	double G()      const { return i_G; }
 	double growth() const { return i_growth; }
 
-	// For monitoring progress
-	SimulationMonitor *monitor() const { return i_monitor; }
-
     private:
 	// Disable these
 	Configuration(const Configuration&);
@@ -110,19 +106,16 @@ namespace core {
 	double i_G;
 	double i_growth;
 
-	SimulationMonitor *i_monitor; // 0 if we are not monitoring
     };
 
 
     template <typename InItr>
     Configuration::Configuration(unsigned int no_leaves,
 				 InItr begin, InItr end,
-				 double rho, double Q, double G, double growth,
-				 SimulationMonitor *monitor)
+				 double rho, double Q, double G, double growth)
 	throw(out_of_sequence)
 	: i_no_leaves(no_leaves),
-	  i_rho(rho), i_Q(Q), i_G(G), i_growth(growth),
-	  i_monitor(monitor)
+	  i_rho(rho), i_Q(Q), i_G(G), i_growth(growth)
     {
 	i_no_markers = end - begin;
     
