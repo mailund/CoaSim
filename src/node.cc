@@ -514,7 +514,7 @@ namespace {
 
 void ARG::to_xml(std::ostream &os) const
 {
-  std::string dtd = "unknown"; 	// FIXME: set dtd?
+  std::string dtd = "coasim.dtd"; 	// FIXME: set dtd?
 
   const std::vector<Node*>::const_iterator lpb = _leaf_pool.begin();
   const std::vector<Node*>::const_iterator lpe = _leaf_pool.end();
