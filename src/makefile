@@ -33,9 +33,9 @@ coasim.o: coasim.cc node.o builder.o descender.hh reporter.hh dist_funcs.hh
 interval.o: interval.hh interval.cc
 interval_test.o: interval.hh interval.cc interval_test.cc testing.hh
 
-node.o: node.hh node.cc dist_funcs.hh
+node.o: node.hh node.cc dist_funcs.hh interval.hh
 
-node_t.o: node.hh node.cc dist_funcs.hh
+node_t.o: node.hh node.cc dist_funcs.hh interval.hh
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o node_t.o node.cc
 
 node_test.o: node_test.cc node.hh node.cc testing.hh

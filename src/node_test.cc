@@ -17,13 +17,13 @@ static Intervals *make_intervals()
   static double starts[] =  {  0, 10, 30, 40, };
   static double lengths[] = { 20, 10, 10, 10, };
 
-  Interval* interval_array[] = {
-    new Interval(starts[0],lengths[0]),
-    new Interval(starts[1],lengths[1]),
-    new Interval(starts[2],lengths[2]),
-    new Interval(starts[3],lengths[3]),
+  Interval interval_array[] = {
+    Interval(starts[0],lengths[0]),
+    Interval(starts[1],lengths[1]),
+    Interval(starts[2],lengths[2]),
+    Interval(starts[3],lengths[3]),
   };
-  const int no_intervals = (sizeof interval_array)/sizeof(Interval*);
+  const int no_intervals = (sizeof interval_array)/sizeof(Interval);
 
   Intervals *intervals = new Intervals();
   for (int i = 0; i < no_intervals; ++i)
@@ -380,11 +380,11 @@ static Intervals *make_left_intervals()
   static double starts[] =  {  0, 40, };
   static double lengths[] = { 20, 10, };
 
-  Interval* interval_array[] = {
-    new Interval(starts[0],lengths[0]),
-    new Interval(starts[1],lengths[1]),
+  Interval interval_array[] = {
+    Interval(starts[0],lengths[0]),
+    Interval(starts[1],lengths[1]),
   };
-  const int no_intervals = (sizeof interval_array)/sizeof(Interval*);
+  const int no_intervals = (sizeof interval_array)/sizeof(Interval);
 
   Intervals *intervals = new Intervals();
   for (int i = 0; i < no_intervals; ++i)
@@ -401,11 +401,11 @@ static Intervals *make_right_intervals()
   static double starts[] =  { 30, 10, };
   static double lengths[] = { 10, 10, };
 
-  Interval* interval_array[] = {
-    new Interval(starts[0],lengths[0]),
-    new Interval(starts[1],lengths[1]),
+  Interval interval_array[] = {
+    Interval(starts[0],lengths[0]),
+    Interval(starts[1],lengths[1]),
   };
-  const int no_intervals = (sizeof interval_array)/sizeof(Interval*);
+  const int no_intervals = (sizeof interval_array)/sizeof(Interval);
 
   Intervals *intervals = new Intervals();
   for (int i = 0; i < no_intervals; ++i)
@@ -586,7 +586,21 @@ static void test_Coalescent_node()
 
 static void test_Recombination_node()
 {
-  // FIXME
+  try {
+    Recombination_node::get_new_recombination_node(false, 0, 0.0, 0.0, 0, 0);
+    ERROR("Coalescent_node::get_new_coalescent_node should not accept a NULL\n"
+	  "child as it dereferences it without testing for NULL");
+  } catch(std::exception) {};
+
+  try {
+    Intervals *intervals = make_intervals();
+    Node n(0.0,no_positions,0,intervals);
+    Recombination_node::get_new_recombination_node(false,&n, 0.0, 0.0, 0, 0);
+    ERROR("Coalescent_node::get_new_coalescent_node should not accept a NULL\n"
+	  "intervals as it dereferences without checking.");
+  } catch(std::exception) {};
+
+   // FIXME
 }
 
 static void test_Genconversion_node()

@@ -16,7 +16,7 @@ public:
   Retired_intervals( Intervals* i_val, Node* child = 0) : _interval(i_val), _child(child) { };
  ~Retired_intervals(){ delete _interval; };
   Intervals& interval(){ return *_interval; };
-  Interval& interval(int index){ return (*_interval)[index]; };
+  const Interval& interval(int index){ return _interval->interval(index); };
   Node* connection(){ return _child; };
   void set_connection(Node* n){ _child = n; };
   void write(std::string& _nodes, std::string& _haplotypes);
@@ -70,7 +70,7 @@ public:
   int mutate_snp(int site, bool forced);
  
   Intervals& interval(){ return *_intervals; };
-  Interval& interval(int index){ return (*_intervals)[index]; };
+  const Interval& interval(int index){ return _intervals->interval(index); };
   //  void set_intervals(Intervals intervals){ _intervals=&intervals; };
   void set_written(bool v = false){ written = v; };
   void reset_node(double time, bool leaf_intervals = false, Intervals* i_val = 0)
@@ -190,9 +190,9 @@ public:
   Node* right_child(){ return _right_child;}
   void set_right_child(Node* c){ _right_child = c; }; 
   Intervals& left_interval(){ return left_child()->interval(); };
-  Interval& left_interval(int index){ return left_child()->interval()[index]; };
+  const Interval& left_interval(int index){ return left_child()->interval().interval(index); };
   Intervals& right_interval(){ return right_child()->interval(); };
-  Interval& right_interval(int index){ return right_child()->interval()[index]; };
+  const Interval& right_interval(int index){ return right_child()->interval().interval(index); };
 private:
   Coalescent_node(Node* left_child, Node* right_child, int size, Intervals* i_val);
   Node* _left_child;

@@ -101,10 +101,10 @@ double Genconversion_node::conversion_end()
 
 Intervals* Coalescent_node::has_finished_intervals(int leaf_nodes_size)
 {
-  std::vector<Interval*> ivals(0);
+  std::vector<Interval> ivals;
   for (int i=0; i<interval().size(); i++){
     if (interval(i).leaf_contacts()==leaf_nodes_size){
-      ivals.push_back(&interval(i));
+      ivals.push_back(interval(i));
     }
   }
   Intervals* iv = 0;
@@ -120,7 +120,7 @@ bool Coalescent_node::retire_finished_intervals(int leaf_nodes_size)
 {
   for (int i=0; i<interval().size(); i++){
     if (interval(i).leaf_contacts()==leaf_nodes_size){
-      interval().remove(i);
+      //FIXME: remove has been removed for a bit, so get it back in some form to do this!!!  interval().remove(i);
       i--;
     }
   }
@@ -175,11 +175,11 @@ void Node::genconversion(Genconversion_node*& gcon_node_1, Genconversion_node*& 
                                                                        //and one of the new nodes would contain only non-ancestral, 
 	                                                               //and the other be identical to the starting node
 	// we have to make two new nodes!
-	Intervals* i_val = interval().copy(start, end);
-	gcon_node_1 = &(Genconversion_node::get_new_geneconversion_node(true, this, start, end-start, time, size(), i_val)); 
-	Intervals* i_val1 = interval().copy(active_left(), start);
-	Intervals* i_val2 = interval().copy(end, active_right());
-	Intervals* i_val3 = (i_val1 -> add_interval(i_val2));
+	Intervals i_val = interval().copy(start, end);
+	gcon_node_1 = &(Genconversion_node::get_new_geneconversion_node(true, this, start, end-start, time, size(), &i_val)); 
+	Intervals i_val1 = interval().copy(active_left(), start);
+	Intervals i_val2 = interval().copy(end, active_right());
+	Intervals *i_val3 = (i_val1.add_interval(&i_val2));
  //	i_val = (*(interval().copy(active_left(), start)) + *(interval().copy(end, active_right())));
 	gcon_node_2 = &(Genconversion_node::get_new_geneconversion_node(false, this, start, end-start, time, size(), i_val3 ));   
       }
@@ -194,10 +194,10 @@ void Node::recombination(Recombination_node*& rcom_node_1, Recombination_node*& 
   rcom_node_2 = 0;
   // if only one of the new nodes should be made, the new node will be identical to the old node, and nothing therefore needs to be done
   if ((cross_over_point>=active_left())&&(cross_over_point<active_right())){
-    Intervals* i_val = interval().copy(active_left(),cross_over_point);
-    rcom_node_1 = &(Recombination_node::get_new_recombination_node(true, this, cross_over_point, time, size(), i_val));
+    Intervals i_val = interval().copy(active_left(),cross_over_point);
+    rcom_node_1 = &(Recombination_node::get_new_recombination_node(true, this, cross_over_point, time, size(), &i_val));
     i_val = interval().copy(cross_over_point, active_right());
-    rcom_node_2 = &(Recombination_node::get_new_recombination_node(false, this, cross_over_point, time, size(), i_val ));
+    rcom_node_2 = &(Recombination_node::get_new_recombination_node(false, this, cross_over_point, time, size(), &i_val ));
   }
 };
 

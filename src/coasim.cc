@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
   std::vector<Node*> _leaf_nodes;
   for (int i=0; i<leaf_nodes; i++){
     i_val = new Intervals();
-    for (int j=0; j<Node::position_size(); j++) i_val -> add(new Interval(Node::position(j)-0.00001, 0.00002,1));
+    for (int j=0; j<Node::position_size(); j++) i_val -> add(Node::position(j)-0.00001, 0.00002,1);
     Node* np = new Node(0.0, Node::position_size(), -1, i_val);
     _leaf_nodes.push_back(np);
   }
