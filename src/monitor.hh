@@ -9,7 +9,7 @@ public:
   // thrown this if the monitor wants the simulation aborted
   class AbortSimulation : public std::exception {};
 
-  virtual void start_arg_building() = 0;
+  virtual void start_arg_building(unsigned int no_leaves) = 0;
   virtual void builder_update(unsigned int no_nodes,
 			      unsigned int no_top_nodes,
 			      unsigned long int no_iterations,

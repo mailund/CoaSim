@@ -1,5 +1,5 @@
 CXX = c++
-CXXFLAGS = -Wall -O3 -lpopt
+CXXFLAGS = -Wall -g -lpopt #-O3 -lpopt
 
 # locations for installation
 bin_dir = /usr/bin/
@@ -152,7 +152,7 @@ trait_marker_t.o: trait_marker.hh trait_marker.cc marker.hh
 micro_satellite_marker_t.o: micro_satellite_marker.hh micro_satellite_marker.cc marker.hh
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o micro_satellite_marker_t.o micro_satellite_marker.cc
 
-simulator.o: simulator.hh simulator.cc builder.hh marker.hh descender.hh
+simulator.o: simulator.hh simulator.cc builder.hh marker.hh descender.hh monitor.hh
 simulator_test.o: simulator.hh simulator.cc simulator_test.cc
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o simulator_test.o simulator_test.cc
 

@@ -69,7 +69,7 @@ static struct poptOption cl_options[] = {
 
 namespace {
   class CLISimMonitor : public SimulationMonitor {
-    void start_arg_building();
+    void start_arg_building(unsigned int no_leaves);
     void builder_update(unsigned int no_nodes, unsigned int no_top_nodes,
 			unsigned long int no_iterations, double cur_time,
 			unsigned int no_coal_events,
@@ -89,7 +89,7 @@ namespace {
     void simulation_terminated();
   };
 }
-void CLISimMonitor::start_arg_building()
+void CLISimMonitor::start_arg_building(unsigned int no_leaves)
 {
   std::cout << "START BUILDING ARG...\n";
 }
