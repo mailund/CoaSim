@@ -1,5 +1,5 @@
 CXX = c++
-CXXFLAGS = -Wall -O3 -lpopt
+CXXFLAGS = -Wall -pg -O2 -lpopt #-Wall -O3 -lpopt
 
 coasim_a_objects = simulator.o node.o interval.o retired_interval.o\
 	 	 configuration.o builder.o descender.o \

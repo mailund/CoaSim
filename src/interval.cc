@@ -37,16 +37,6 @@ namespace {
 
 
 
-void Interval::check_empty() const throw(empty_interval)
-{
-  if (length() <= 0.0) throw empty_interval();
-}
-
-void Interval::check_range() const throw(interval_out_of_range)
-{
-  if ((start() < 0 or 1 <= start()) or (end() <= 0 or 1 < end()))
-    throw interval_out_of_range();
-}
 
 Interval::Interval(double start, double end, unsigned int leaf_contacts)
   throw(empty_interval,interval_out_of_range)
@@ -211,6 +201,7 @@ unsigned int Intervals::leaf_contacts(double point) const
     return 0;
 }
 
+
 // Copy the intervals between start and stop, trunkating the
 // end-intervals to start and stop.
 Intervals Intervals::copy(double start, double stop) const
@@ -350,6 +341,8 @@ Intervals Intervals::merge(const Intervals& i) const
   Intervals res; res.i_intervals = res_intervals;
   return res;
 }
+
+
 
 void Intervals::print(std::ostream &os) const
 {

@@ -207,6 +207,7 @@ namespace {
       throw(std::out_of_range)
     {
       if (! intervals().contains_point(point)) return 0.0;
+
       double surface = 0.0;
       if (i_child->intervals().contains_point(point))
 	{
@@ -274,6 +275,7 @@ namespace {
       throw(std::out_of_range)
     {
       if (! intervals().contains_point(point)) return 0.0;
+
       double surface = 0.0;
       if (i_child->intervals().contains_point(point))
 	{
@@ -409,6 +411,27 @@ Node *ARG::coalescence(double time, Node *left, Node *right)
   return n;
 }
 
+static inline bool contains_marker(const Configuration &conf,
+				   const Interval &i)
+{
+  for (size_t m = 0; m < conf.no_markers(); ++m)
+    if (i.contains_point(conf.position(m))) return true;
+  return false;
+}
+
+static Intervals filter_contains_marker(const Intervals &intervals,
+					const Configuration &conf)
+{
+  Intervals result;
+  for (int i = 0; i < intervals.size(); ++i)
+    {
+      const Interval &it = intervals.interval(i);
+      if (contains_marker(conf,it)) result.add(it);
+    }
+  return result;
+}
+
+
 ARG::node_pair_t ARG::recombination(double time, Node *child,
 				    double cross_over_point)
   throw(null_child,Interval::interval_out_of_range,Interval::empty_interval)
@@ -422,6 +445,16 @@ ARG::node_pair_t ARG::recombination(double time, Node *child,
 
   Intervals left  = child->intervals().copy(0.0,cross_over_point);
   Intervals right = child->intervals().copy(cross_over_point,1.0);
+
+#if 0
+  left  = filter_contains_marker(left, i_conf);
+  right = filter_contains_marker(right, i_conf);
+
+  if (left.size() == 0)
+    return std::make_pair<Node*,Node*>(child,0);
+  if (right.size() == 0)
+    return std::make_pair<Node*,Node*>(child,0);
+#endif
 
 #if 0
   std::cout << "recombination -- child: " << child->intervals() << std::endl;
@@ -451,30 +484,26 @@ ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
   if (conversion_start == conversion_end)
     return std::make_pair<Node*,Node*>(child,0); // empty interval...
 
-#if 0
   if (conversion_end <= child->intervals().first_point())
       return std::make_pair<Node*,Node*>(child,0);
   if (child->intervals().last_point() <= conversion_start)
       return std::make_pair<Node*,Node*>(child,0);
-#else
-  Interval conv(conversion_start,conversion_end,0);
-  if (!child->intervals().overlaps(conv))
-    return std::make_pair<Node*,Node*>(child,0);
-#endif
 
-
-  // FIXME: we could optimize here by not creating intervals without markers
-
-#if 0
-  std::cout << "gene-conversion -- interval: "
-	    << '[' << conversion_start << ',' << conversion_end << ")\n";
-  std::cout << "gene-conversion -- child: " << child->intervals() << std::endl;
-#endif  
 
   Intervals left  = child->intervals().copy(0.0, conversion_start)
     + child->intervals().copy(conversion_end, 1.0);
   Intervals right =
     child->intervals().copy(conversion_start, conversion_end);
+
+#if 0
+  left  = filter_contains_marker(left, i_conf);
+  right = filter_contains_marker(right, i_conf);
+
+  if (left.size() == 0)
+    return std::make_pair<Node*,Node*>(child,0);
+  if (right.size() == 0)
+    return std::make_pair<Node*,Node*>(child,0);
+#endif
 
 #if 0
   std::cout << "gene-conversion -- left: " << left << std::endl;
@@ -495,6 +524,22 @@ ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
   return std::make_pair<Node*,Node*>(n1,n2);
 
 }
+
+namespace {
+  using std::binary_function;
+  struct starts_before : 
+    public binary_function<const Interval&,const Interval&,bool> {
+    bool operator () (const Interval &i1, const Interval &i2) const
+    { return i1.start() < i2.start(); }
+  };
+};
+
+void ARG::sort_retired_intervals()
+{
+  sort(i_retired_intervals.begin(), i_retired_intervals.end(),
+       starts_before());
+}
+
 
 namespace {
   class interval_printer :

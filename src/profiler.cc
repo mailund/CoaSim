@@ -35,6 +35,97 @@
 #include <popt.h>
 
 
+
+#include "monitor.hh"
+namespace {
+  class CLISimMonitor : public SimulationMonitor {
+    void start_arg_building(unsigned int no_leaves);
+    void builder_update(unsigned int no_nodes, unsigned int no_top_nodes,
+			unsigned long int no_iterations, double cur_time,
+			unsigned int no_coal_events,
+			unsigned int no_gene_conv_events,
+			unsigned int no_recomb_events);
+    void builder_termination(unsigned int no_nodes, unsigned int no_top_nodes,
+			     unsigned long int no_iterations, double cur_time,
+			     unsigned int no_coal_events,
+			     unsigned int no_gene_conv_events,
+			     unsigned int no_recomb_events);
+
+    void start_mutating();
+    void mutator_update(unsigned int marker_no);
+    void retry_mutation();
+    void retry_arg_building();
+
+    void simulation_terminated();
+  };
+}
+void CLISimMonitor::start_arg_building(unsigned int no_leaves)
+{
+  std::cout << "START BUILDING ARG...\n";
+}
+
+void CLISimMonitor::builder_update(unsigned int no_nodes,
+				   unsigned int no_top_nodes,
+				   unsigned long int no_iterations, 
+				   double cur_time,
+				   unsigned int no_coal_events,
+				   unsigned int no_gene_conv_events,
+				   unsigned int no_recomb_events)
+{
+  std::cout << "Iteration: " << no_iterations
+	    << " time " << cur_time << '\n'
+	    << no_nodes << " nodes in ARG, "
+	    << no_top_nodes << " remaining to be processed.\n"
+	    << '\t' << no_coal_events << " coalescence events\n"
+	    << '\t' << no_gene_conv_events << " gene conversion events\n"
+	    << '\t' << no_recomb_events << " recombination events\n";
+}
+
+void CLISimMonitor::builder_termination(unsigned int no_nodes,
+					unsigned int no_top_nodes,
+					unsigned long int no_iterations,
+					double cur_time,
+					unsigned int no_coal_events,
+					unsigned int no_gene_conv_events,
+					unsigned int no_recomb_events)
+{
+  std::cout << "\nARG Building terminated after " << no_iterations 
+	    << " iterations at time " << cur_time << '\n'
+	    << no_nodes << " nodes in ARG, "
+	    << no_top_nodes << " remaining to be processed.\n"
+	    << '\t' << no_coal_events << " coalescence events\n"
+	    << '\t' << no_gene_conv_events << " gene conversion events\n"
+	    << '\t' << no_recomb_events << " recombination events\n\n";
+}
+
+void CLISimMonitor::start_mutating()
+{
+  std::cout << "START MUTATING ARG...\n";
+}
+
+void CLISimMonitor::mutator_update(unsigned int marker_no)
+{
+  std::cout << "Mutating marker " << marker_no << "...\n";
+}
+
+void CLISimMonitor::retry_mutation()
+{
+  //std::cout << "\tmutation not withing bounds, retrying...\n";
+}
+
+void CLISimMonitor::retry_arg_building()
+{
+  std::cout << "\tmutation not withing bounds of trait marker\n"
+	    << "\tbuilding new ARG...\n\n";
+}
+
+void CLISimMonitor::simulation_terminated()
+{
+  std::cout << "\nSIMULATION COMPLETED\n";
+}
+
+
+
 enum marker_type_t { TRAIT, SNP, MS };
 struct marker_t {
   marker_type_t type;
@@ -106,7 +197,8 @@ time_t run_simulation(unsigned int no_leaves,
 
   Configuration conf(no_leaves,
 		     positions.begin(), positions.end(),
-		     rho, Q, G, growth);
+		     rho, Q, G, growth,
+		     0);//new CLISimMonitor());
 
   TraitMarker          trait_m(0.1,0.2); // 10%-20%
   SNPMarker            snp_m  (0.1,0.2); // 10%-20%
@@ -262,6 +354,7 @@ static struct poptOption cl_options[] = {
     { 0 } // sentinel
 };
 
+
 int main(int argc, const char *argv[])
 {
 
@@ -279,7 +372,6 @@ int main(int argc, const char *argv[])
       std::cerr << "number of leaves not specified!\n";
       return 2;
     }
-
 
   try {
     time_t runtime = run_simulation(options::no_leaves,

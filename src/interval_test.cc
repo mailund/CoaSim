@@ -374,10 +374,6 @@ static void test_Intervals4()	// sorted, but overlapping intervals
 }
 
 
-static void test_Intervals_add_intervals()
-{
-  // tested in the sum test that just dispatches to add_intervals
-}
 
 static void test_Intervals_sum()
 {

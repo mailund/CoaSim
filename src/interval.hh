@@ -14,6 +14,7 @@
 # define IOSTREAM_INCLUDED
 #endif
 
+
 /* A sub-interval on the real interval [0,1), closed on the left and
  * open on the right. */
 class Interval
@@ -86,6 +87,7 @@ inline bool Interval::operator != (const Interval &i) const
 
 inline std::ostream & operator << (std::ostream &os, const Interval &i)
 { i.print(os); return os; }
+
 
 /* A set of non-overlapping intervals. */
 class Intervals
@@ -193,6 +195,18 @@ inline double Intervals::last_point() const throw(std::out_of_range)
   if (i_intervals.size() == 0) throw std::out_of_range("no intervals!");
   return i_intervals.back().end();
 }
+
+inline void Interval::check_empty() const throw(empty_interval)
+{
+  if (length() <= 0.0) throw empty_interval();
+}
+
+inline void Interval::check_range() const throw(interval_out_of_range)
+{
+  if ((start() < 0 or 1 <= start()) or (end() <= 0 or 1 < end()))
+    throw interval_out_of_range();
+}
+
 
 
 inline Intervals Intervals::operator | (const Intervals &i) const

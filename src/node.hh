@@ -139,6 +139,8 @@ public:
 
   const std::vector<RetiredInterval> &retired_intervals() const
   { return i_retired_intervals; }
+  void sort_retired_intervals();
+
   unsigned int no_nodes() const
   { return i_leaf_pool.size() + i_node_pool.size(); }
 
