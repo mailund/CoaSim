@@ -43,3 +43,19 @@ coasim_guile_SOURCES += arg_parameters.hh arg_parameters.cc
 coasim_guile_SOURCES += options.hh options.cc
 coasim_guile_SOURCES += simulate.hh simulate.cc
 coasim_guile_SOURCES += coasim_guile.cc
+
+
+
+test_inputdir = ${prefix}/share/coasim/test-input
+dist_test_input_DATA =
+
+dist_test_input_DATA += test-input/snp-haplotype.scm
+dist_test_input_DATA += test-input/snp-haplotype-split.scm
+
+
+schemedir = ${prefix}/share/coasim/scheme
+dist_scheme_DATA =
+scheme_coasimdir = ${prefix}/share/coasim/scheme/coasim
+dist_scheme_coasim_DATA =
+dist_scheme_coasim_DATA += scheme/coasim/io.scm
+dist_scheme_coasim_DATA += scheme/coasim/rand.scm

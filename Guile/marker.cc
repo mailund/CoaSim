@@ -126,6 +126,38 @@ ms_marker(SCM s_position, SCM s_mu, SCM s_alphabet_size)
     SCM_RETURN_NEWSMOB(guile::ms_marker_tag, m);
 }
 
+static SCM
+trait_marker_p(SCM marker_smob)
+{
+    return SCM_BOOL(SCM_SMOB_PREDICATE(guile::trait_marker_tag, marker_smob));
+}
+
+static SCM
+snp_marker_p(SCM marker_smob)
+{
+    return SCM_BOOL(SCM_SMOB_PREDICATE(guile::snp_marker_tag, marker_smob));
+}
+
+static SCM
+ms_marker_p(SCM marker_smob)
+{
+    return SCM_BOOL(SCM_SMOB_PREDICATE(guile::ms_marker_tag, marker_smob));
+}
+
+static SCM
+position(SCM marker_smob)
+{
+    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::trait_marker_tag, marker_smob)
+	       or
+	       SCM_SMOB_PREDICATE(guile::snp_marker_tag, marker_smob)
+	       or
+	       SCM_SMOB_PREDICATE(guile::ms_marker_tag, marker_smob),
+	       marker_smob, SCM_ARG1, "position");
+
+    core::Marker *marker = (core::Marker*) SCM_SMOB_DATA(marker_smob);
+    return scm_make_real(marker->position());
+}
+
 void
 guile::install_marker()
 {
@@ -152,5 +184,15 @@ guile::install_marker()
 		       (scm_unused_struct*(*)())snp_marker);
     scm_c_define_gsubr("ms-marker", 3, 0, 0, 
 		       (scm_unused_struct*(*)())ms_marker);
+
+    // other functions
+    scm_c_define_gsubr("trait-marker?", 1, 0, 0, 
+		       (scm_unused_struct*(*)())trait_marker_p);
+    scm_c_define_gsubr("snp-marker?", 1, 0, 0, 
+		       (scm_unused_struct*(*)())snp_marker_p);
+    scm_c_define_gsubr("ms-marker?", 1, 0, 0, 
+		       (scm_unused_struct*(*)())ms_marker_p);
+
+    scm_c_define_gsubr("position", 1, 0, 0, (scm_unused_struct*(*)())position);
 
 }
