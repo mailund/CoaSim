@@ -41,21 +41,21 @@ class Node
 
 public:
   Node(const Configuration &conf, double time) 
-    : _time(time), _states(-1,conf.no_markers()) 
+    : i_time(time), i_states(-1,conf.no_markers()) 
   {}
   Node(const Configuration &conf, double time, const Intervals &i)
-    : _time(time), _intervals(i),  _states(-1,conf.no_markers())
+    : i_time(time), i_intervals(i),  i_states(-1,conf.no_markers())
   {}
   virtual ~Node() {};
 
-  double time() const { return _time; }
+  double time() const { return i_time; }
 
   // the sub-intervals of the range [0,1) that connects this node to
   // a leaf node in the ARG -- if a point is not in one of these
   // intervals it is lost somewhere from here to the leaves.  As an
   // invariant, two points on the same interval correspond to the
   // same binary tree of the ARG.
-  const Intervals &intervals() const { return _intervals; }
+  const Intervals &intervals() const { return i_intervals; }
 
   // calculate the "surface" (i.e. the total edge-length) of the
   // tree in point, with this node as root (zero if the point is not
@@ -75,17 +75,17 @@ public:
 
   
   int state(unsigned int s) const throw(std::out_of_range)
-  { if (_states.size() <= s) throw std::out_of_range("s out of range");
-    return _states[s]; }
+  { if (i_states.size() <= s) throw std::out_of_range("s out of range");
+    return i_states[s]; }
 
 protected:
-  unsigned int no_states()  const { return _states.size(); }
-  void set_state(unsigned int s, int val) { _states[s] = val; }
+  unsigned int no_states()  const { return i_states.size(); }
+  void set_state(unsigned int s, int val) { i_states[s] = val; }
 
   // hack to work around C++'s crappy "don't access protected through
   // other than this" protection...
   static void set_state(Node *n, unsigned int s, int val)
-  { n->_states[s] = val; }
+  { n->i_states[s] = val; }
 
 private:
   friend class ARG;
@@ -93,9 +93,9 @@ private:
   virtual void mutation_to_xml(std::ostream &os)            const = 0;
   void haplotype_to_xml(std::ostream &os)                   const;
 
-  double    _time;
-  Intervals _intervals;
-  std::valarray<int> _states;
+  double    i_time;
+  Intervals i_intervals;
+  std::valarray<int> i_states;
 };
 
 
@@ -110,7 +110,7 @@ public:
 
 
   // -- Initialization and book-keeping -----------------------------------
-  ARG(const Configuration &conf) : _conf(conf), _no_leaves(0) {}
+  ARG(const Configuration &conf) : i_conf(conf), i_no_leaves(0) {}
 
   // Cleanup.  Destroying the ARG also deletes all nodes in it, so
   // don't keep any pointers to them around after this deletion.
@@ -138,9 +138,9 @@ public:
 
 
   const std::vector<RetiredInterval> &retired_intervals() const
-  { return _retired_intervals; }
+  { return i_retired_intervals; }
   unsigned int no_nodes() const
-  { return _leaf_pool.size() + _node_pool.size(); }
+  { return i_leaf_pool.size() + i_node_pool.size(); }
 
   void to_xml(std::ostream &os) const;
 
@@ -150,14 +150,14 @@ private:
   ARG(const ARG&);
   ARG &operator = (const ARG&);
 
-  const Configuration &_conf;
-  size_t _no_leaves;
+  const Configuration &i_conf;
+  size_t i_no_leaves;
 
   // pools of nodes -- FIXME: can be handled more efficiently...
-  std::vector<Node*> _leaf_pool;
-  std::vector<Node*> _node_pool;
+  std::vector<Node*> i_leaf_pool;
+  std::vector<Node*> i_node_pool;
 
-  std::vector<RetiredInterval> _retired_intervals;
+  std::vector<RetiredInterval> i_retired_intervals;
 };
 
 

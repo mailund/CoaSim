@@ -19,10 +19,10 @@ public:
   
   RetiredInterval(const Interval &interval, Node *const top_node)
     throw(null_top_node)
-    : Interval(interval), _top_node(top_node)
+    : Interval(interval), i_top_node(top_node)
   { if (top_node == 0) throw null_top_node(); }
   
-  Node *top_node() const { return _top_node; }
+  Node *top_node() const { return i_top_node; }
   double surface() const;
 
   void mutate(const Configuration &conf, unsigned int marker_index) const;
@@ -30,7 +30,7 @@ public:
   void to_xml(std::ostream &os) const;
   
 private:
-  Node *_top_node;
+  Node *i_top_node;
 };
 
 inline std::ostream & operator << (std::ostream &os, const RetiredInterval &i)

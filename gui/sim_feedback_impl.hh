@@ -17,13 +17,13 @@ class SimFeedbackImpl : public SimFeedbackForm, public SimulationMonitor
 
   // ref back to main window -- needed to access marker table and
   // provide feedback back to main window.
-  CoasimGuiImpl &_main_window;
+  CoasimGuiImpl &i_main_window;
 
   // we need to remember this between start_arg_building and
   // builder_update/terminate.
-  unsigned int _no_leaves;
+  unsigned int i_no_leaves;
 
-  bool _abort;         // set if aborting, abort as soon as we can
+  bool i_abort;	       // set if aborting, abort as soon as we can
   void handle_abort(); // close dialog and report abort back to simulator
 
 public:

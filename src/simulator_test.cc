@@ -31,11 +31,11 @@ int main(int argc, const char *argv[])
 
     Configuration conf(no_leaves,
 		       (const double*)positions, &positions[no_positions],
-		       rho, Q, G, growth, mu, true);
+		       rho, Q, G, growth, true);
 
     TraitMarker          trait_m(0.1,0.2); // 10%-20%
     SNPMarker            snp_m  (0.1,0.2); // 10%-20%
-    MicroSatelliteMarker ms_m(conf.mu()); ms_m.add_value(4); ms_m.add_value(8);
+    MicroSatelliteMarker ms_m(mu); ms_m.add_value(4); ms_m.add_value(8);
 
     conf.set_marker(0,&snp_m);
     conf.set_marker(1,&trait_m);

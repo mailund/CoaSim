@@ -56,7 +56,7 @@
                                         </property>
                                         <widget class="QLineEdit" row="1" column="2">
                                             <property name="name">
-                                                <cstring>_top_nodes</cstring>
+                                                <cstring>i_top_nodes</cstring>
                                             </property>
                                             <property name="text">
                                                 <string>0</string>
@@ -103,7 +103,7 @@
                                         </widget>
                                         <widget class="QLineEdit" row="0" column="2">
                                             <property name="name">
-                                                <cstring>_total_nodes</cstring>
+                                                <cstring>i_total_nodes</cstring>
                                             </property>
                                             <property name="text">
                                                 <string>0</string>
@@ -117,7 +117,7 @@
                                         </widget>
                                         <widget class="QLineEdit" row="2" column="2">
                                             <property name="name">
-                                                <cstring>_time</cstring>
+                                                <cstring>i_time</cstring>
                                             </property>
                                             <property name="text">
                                                 <string>0.0</string>
@@ -152,7 +152,7 @@
                                         </property>
                                         <widget class="QProgressBar" row="3" column="1">
                                             <property name="name">
-                                                <cstring>_gene_conv_events_progress</cstring>
+                                                <cstring>i_gene_conv_events_progress</cstring>
                                             </property>
                                             <property name="frameShadow">
                                                 <enum>Plain</enum>
@@ -163,7 +163,7 @@
                                         </widget>
                                         <widget class="QProgressBar" row="1" column="1">
                                             <property name="name">
-                                                <cstring>_coal_events_progress</cstring>
+                                                <cstring>i_coal_events_progress</cstring>
                                             </property>
                                             <property name="percentageVisible">
                                                 <bool>false</bool>
@@ -171,7 +171,7 @@
                                         </widget>
                                         <widget class="QProgressBar" row="2" column="1">
                                             <property name="name">
-                                                <cstring>_recomb_events_progress</cstring>
+                                                <cstring>i_recomb_events_progress</cstring>
                                             </property>
                                             <property name="percentageVisible">
                                                 <bool>false</bool>
@@ -179,7 +179,7 @@
                                         </widget>
                                         <widget class="QLineEdit" row="0" column="2">
                                             <property name="name">
-                                                <cstring>_no_leaf_events</cstring>
+                                                <cstring>i_no_leaf_events</cstring>
                                             </property>
                                             <property name="sizePolicy">
                                                 <sizepolicy>
@@ -198,7 +198,7 @@
                                         </widget>
                                         <widget class="QLineEdit" row="2" column="2">
                                             <property name="name">
-                                                <cstring>_recomb_events</cstring>
+                                                <cstring>i_recomb_events</cstring>
                                             </property>
                                             <property name="sizePolicy">
                                                 <sizepolicy>
@@ -225,7 +225,7 @@
                                         </widget>
                                         <widget class="QProgressBar" row="0" column="1">
                                             <property name="name">
-                                                <cstring>_leaf_nodes_progress</cstring>
+                                                <cstring>i_leaf_nodes_progress</cstring>
                                             </property>
                                             <property name="percentageVisible">
                                                 <bool>false</bool>
@@ -241,7 +241,7 @@
                                         </widget>
                                         <widget class="QLineEdit" row="3" column="2">
                                             <property name="name">
-                                                <cstring>_gene_conv_events</cstring>
+                                                <cstring>i_gene_conv_events</cstring>
                                             </property>
                                             <property name="sizePolicy">
                                                 <sizepolicy>
@@ -260,7 +260,7 @@
                                         </widget>
                                         <widget class="QLineEdit" row="1" column="2">
                                             <property name="name">
-                                                <cstring>_coal_events</cstring>
+                                                <cstring>i_coal_events</cstring>
                                             </property>
                                             <property name="sizePolicy">
                                                 <sizepolicy>
@@ -318,7 +318,7 @@
                                 </widget>
                                 <widget class="QLineEdit" row="1" column="2">
                                     <property name="name">
-                                        <cstring>_marker_type</cstring>
+                                        <cstring>i_marker_type</cstring>
                                     </property>
                                     <property name="readOnly">
                                         <bool>true</bool>
@@ -326,7 +326,7 @@
                                 </widget>
                                 <widget class="QLineEdit" row="2" column="2">
                                     <property name="name">
-                                        <cstring>_marker_pos</cstring>
+                                        <cstring>i_marker_pos</cstring>
                                     </property>
                                     <property name="readOnly">
                                         <bool>true</bool>
@@ -342,7 +342,7 @@
                                 </widget>
                                 <widget class="QLineEdit" row="0" column="2">
                                     <property name="name">
-                                        <cstring>_marker_no</cstring>
+                                        <cstring>i_marker_no</cstring>
                                     </property>
                                     <property name="readOnly">
                                         <bool>true</bool>
@@ -407,7 +407,7 @@
                         </property>
                         <widget class="QTextEdit">
                             <property name="name">
-                                <cstring>_sim_log</cstring>
+                                <cstring>i_sim_log</cstring>
                             </property>
                             <property name="minimumSize">
                                 <size>
@@ -470,7 +470,7 @@
                 </spacer>
                 <widget class="QPushButton">
                     <property name="name">
-                        <cstring>_abort_button</cstring>
+                        <cstring>i_abort_button</cstring>
                     </property>
                     <property name="text">
                         <string>Abort</string>
@@ -481,7 +481,7 @@
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
-                        <cstring>_close_button</cstring>
+                        <cstring>i_close_button</cstring>
                     </property>
                     <property name="enabled">
                         <bool>false</bool>
@@ -499,13 +499,13 @@
 </widget>
 <connections>
     <connection>
-        <sender>_close_button</sender>
+        <sender>i_close_button</sender>
         <signal>clicked()</signal>
         <receiver>SimFeedbackForm</receiver>
         <slot>close()</slot>
     </connection>
     <connection>
-        <sender>_abort_button</sender>
+        <sender>i_abort_button</sender>
         <signal>clicked()</signal>
         <receiver>SimFeedbackForm</receiver>
         <slot>abort_simulation()</slot>

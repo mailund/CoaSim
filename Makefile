@@ -1,28 +1,34 @@
 
-version=2.0.0b
+version=2.0.0-b2
 
 install_prefix=/usr/local
 escaped_prefix=\/usr\/local
 bindir=$(install_prefix)/bin
+
+# the shared dir is where we put the DTD; if the coasim.dtd file is
+# not found in this place, the xml processing will not work
 sharedir=$(install_prefix)/share/coasim
 escaped_sharedir=$(escaped_prefix)\/share\/coasim
 
+makeflags=bindir=$(bindir) sharedir=$(sharedir)
+
 all:
-	cd src && make all
-	cd gui && make all
+	cd src && make all $(makeflags)
+	cd gui && make all $(makeflags)
 
 test:
-	cd src && make test
+	cd src && make test $(makeflags)
 	# FIXME: no gui test
 
 install: all
-	cd src && make install bindir=$(bindir) sharedir=$(sharedir)
+	cd src && make install $(makeflags)
 
 	cp gui/coasim_gui	$(bindir)
 
 	cp coasim_to_dot.xsl	$(sharedir)
 	cat coasim_to_ps | sed "s/'coasim_to_dot.xsl'/'$(escaped_sharedir)\/coasim_to_dot.xsl'/" > $(bindir)/coasim_to_ps
-	cp coasim_separate.py	$(bindir)
+	chmod a+x $(bindir)/coasim_to_ps
+	cp coasim_separate	$(bindir)
 
 dist:
 	mkdir coasim-$(version)

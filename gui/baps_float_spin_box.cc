@@ -8,12 +8,12 @@
 
 BapsFloatSpinBox::BapsFloatSpinBox(QWidget *parent, const char *name)
     : QSpinBox(parent,name),
-      _decimals(2),
-      _double_validator(0,0,0,this)
+      i_decimals(2),
+      i_double_validator(0,0,0,this)
 {
     scaleRange();		// update scale factor
     updateDisplay();		// correctly format initial text
-    setValidator(&_double_validator);
+    setValidator(&i_double_validator);
 }
 
 BapsFloatSpinBox::~BapsFloatSpinBox()
@@ -24,29 +24,29 @@ BapsFloatSpinBox::~BapsFloatSpinBox()
 void
 BapsFloatSpinBox::setDecimals(unsigned int decimals)
 {
-    _decimals = decimals;
+    i_decimals = decimals;
     scaleRange();
 }
 
 unsigned int
 BapsFloatSpinBox::decimals() const
 {
-    return _decimals;
+    return i_decimals;
 }
 
 
 QString
 BapsFloatSpinBox::mapValueToText(int value)
 {
-    double real_value = value / _scale;
-    return QString("%1").arg(real_value, 0, 'f', _decimals);
+    double real_value = value / i_scale;
+    return QString("%1").arg(real_value, 0, 'f', i_decimals);
 }
 
 int
 BapsFloatSpinBox::mapTextToValue(bool *ok)
 {
     double real_value = text().toFloat();
-    int    value = int (real_value * _scale + 0.5);
+    int    value = int (real_value * i_scale + 0.5);
     *ok = true;
     return value;
 }
@@ -54,9 +54,9 @@ BapsFloatSpinBox::mapTextToValue(bool *ok)
 void
 BapsFloatSpinBox::scaleRange()
 {
-    _scale = ::pow(10,_decimals);
-    double bottom = minValue()/_scale;
-    double top    = maxValue()/_scale;
-    _double_validator.setRange(bottom,top,_decimals);
+    i_scale = ::pow(10,i_decimals);
+    double bottom = minValue()/i_scale;
+    double top    = maxValue()/i_scale;
+    i_double_validator.setRange(bottom,top,i_decimals);
     updateDisplay();
 }

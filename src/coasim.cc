@@ -158,7 +158,8 @@ static void set_markers(Configuration &conf,
 			vector<string> &markers,
 			vector<double> &low_freq,
 			vector<double> &high_freq,
-			vector<int> &no_values)
+			vector<int> &no_values,
+			vector<double> &mutation_rates)
 {
   unsigned int i;
   for (i = 0; i < markers.size(); ++i)
@@ -181,7 +182,8 @@ static void set_markers(Configuration &conf,
 			<< "micro-satttelite at marker " << i << std::endl;
 	      exit(2);
 	    }
-	  MicroSatelliteMarker *mm = new MicroSatelliteMarker(conf.mu());
+	  double mu = mutation_rates[i];
+	  MicroSatelliteMarker *mm = new MicroSatelliteMarker(mu);
 	  for (int j = 0; j < no_values[i]; ++j)
 	    mm->add_value(j);
 	  conf.set_marker(i,mm);
@@ -206,7 +208,6 @@ static Configuration *parse_rc(const char *rc_file)
   double gene_conversion_rate, gene_conversion_length;
   double recombination_rate;
   double growth;
-  double mutation_rate;
 
   bool print_all_nodes;
 
@@ -215,6 +216,7 @@ static Configuration *parse_rc(const char *rc_file)
   vector<double> low_freq;
   vector<double> high_freq;
   vector<int>    no_values;
+  vector<double> mutation_rates;
 
   no_leaves = rcp.get_int("no_leaves");
 
@@ -222,7 +224,6 @@ static Configuration *parse_rc(const char *rc_file)
   gene_conversion_length = rcp.get_double("gene_conversion_length");
   recombination_rate = rcp.get_double("recombination_rate");
   growth = rcp.get_double("growth");
-  mutation_rate = rcp.get_double("mutation_rate");
 
   print_all_nodes = rcp.get_bool("print_all_nodes");
 
@@ -231,6 +232,7 @@ static Configuration *parse_rc(const char *rc_file)
   low_freq = rcp.get_double_vector("low_freq");
   high_freq = rcp.get_double_vector("high_freq");
   no_values = rcp.get_int_vector("no_values");
+  mutation_rates = rcp.get_double_vector("mutation_rates");
 
   // test the input a bit...
   if (no_leaves < 1)
@@ -263,6 +265,13 @@ static Configuration *parse_rc(const char *rc_file)
       exit(2);
     }
 
+  if (positions.size() != mutation_rates.size())
+    {
+      std::cerr << "There should be as many mutation rates as there are markers\n";
+      exit(2);
+    }
+
+
   SimulationMonitor *mon = 0;
   if (options::verbose) mon = new CLISimMonitor();
 
@@ -272,11 +281,10 @@ static Configuration *parse_rc(const char *rc_file)
 					  gene_conversion_rate,
 					  gene_conversion_length,
 					  growth,
-					  mutation_rate,
 					  print_all_nodes,
 					  mon);
 
-  set_markers(*conf, markers, low_freq, high_freq, no_values);
+  set_markers(*conf, markers, low_freq, high_freq, no_values, mutation_rates);
 
   return conf;
 }

@@ -12,7 +12,7 @@
 class CoasimGuiImpl : public CoasimGuiForm
 {
   Q_OBJECT
-  SimFeedbackImpl _monitor;
+  SimFeedbackImpl i_monitor;
 
 public:
   CoasimGuiImpl(QWidget* parent = 0, const char* name = 0, WFlags fl = 0);

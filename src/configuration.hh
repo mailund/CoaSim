@@ -33,23 +33,22 @@ public:
   // Initialize the configuration with the marker positions given by
   // the sequence from begin to end -- an exception is thrown if the
   // positions are not sorted in increasing order; the build
-  // parameters rho, Q, G, and growth; evolution parameter mu; and a
-  // flag specifying if the full output of the simulation is desired,
-  // or just information about the leaf nodes.
+  // parameters rho, Q, G, and growth; and a flag specifying if the
+  // full output of the simulation is desired, or just information
+  // about the leaf nodes.
   template <typename InItr>
   Configuration(unsigned int no_leaves,
 		InItr positions_begin, InItr positions_end,
 		double rho, double Q, double G, double growth,
-		double mu,
 		bool print_all_nodes = false,
 		SimulationMonitor *monitor = 0)
     throw(out_of_sequence);
   ~Configuration();
 
-  unsigned int no_leaves() const { return _no_leaves; }
+  unsigned int no_leaves() const { return i_no_leaves; }
 
   // Number of markers for the configuration
-  size_t no_markers() const { return _positions.size(); }
+  size_t no_markers() const { return i_positions.size(); }
   // The positions of the markers
   double position(size_t index) const throw(std::out_of_range);
 
@@ -65,39 +64,35 @@ public:
     throw(std::out_of_range);
 
   // Parameters for building the ARG and assigning mutations
-  double rho()    const { return _rho; }
-  double Q()      const { return _Q; }
-  double G()      const { return _G; }
-  double growth() const { return _growth; }
-
-  double mu()     const { return _mu; }
+  double rho()    const { return i_rho; }
+  double Q()      const { return i_Q; }
+  double G()      const { return i_G; }
+  double growth() const { return i_growth; }
 
   // Parameters for output
-  bool print_all_nodes() const { return _print_all_nodes; }
+  bool print_all_nodes() const { return i_print_all_nodes; }
 
   // For monitoring progress
-  SimulationMonitor *monitor() const { return _monitor; }
+  SimulationMonitor *monitor() const { return i_monitor; }
 
 private:
   // Disable these
   Configuration(const Configuration&);
   Configuration& operator = (const Configuration&);
 
-  unsigned int _no_leaves;
+  unsigned int i_no_leaves;
 
-  std::vector<double>  _positions;
-  const Marker** _markers;
+  std::vector<double>  i_positions;
+  const Marker** i_markers;
 
-  double _rho;
-  double _Q;
-  double _G;
-  double _growth;
+  double i_rho;
+  double i_Q;
+  double i_G;
+  double i_growth;
 
-  double _mu;
+  bool i_print_all_nodes;
 
-  bool _print_all_nodes;
-
-  SimulationMonitor *_monitor; // 0 if we are not monitoring
+  SimulationMonitor *i_monitor; // 0 if we are not monitoring
 };
 
 
@@ -105,47 +100,45 @@ template <typename InItr>
 Configuration::Configuration(unsigned int no_leaves,
 			     InItr begin, InItr end,
 			     double rho, double Q, double G, double growth,
-			     double mu,
 			     bool print_all_nodes,
 			     SimulationMonitor *monitor)
   throw(out_of_sequence)
-  : _no_leaves(no_leaves),
-    _positions(begin,end),
-    _rho(rho), _Q(Q), _G(G), _growth(growth),
-    _mu(mu),
-    _print_all_nodes(print_all_nodes),
-    _monitor(monitor)
+  : i_no_leaves(no_leaves),
+    i_positions(begin,end),
+    i_rho(rho), i_Q(Q), i_G(G), i_growth(growth),
+    i_print_all_nodes(print_all_nodes),
+    i_monitor(monitor)
 {
-  for (size_t m = 1; m < _positions.size(); ++m)
-    if (_positions[m-1] >= _positions[m]) throw out_of_sequence();
-  _markers = new const Marker* [no_markers()];
+  for (size_t m = 1; m < i_positions.size(); ++m)
+    if (i_positions[m-1] >= i_positions[m]) throw out_of_sequence();
+  i_markers = new const Marker* [no_markers()];
   for (size_t m = 0; m < no_markers(); ++m)
-    _markers[m] = 0;
+    i_markers[m] = 0;
 }
 
 inline Configuration::~Configuration() 
-{ delete[] _markers; }
+{ delete[] i_markers; }
 
 
 inline double Configuration::position(size_t index)
   const throw(std::out_of_range)
 {
-  return _positions.at(index);
+  return i_positions.at(index);
 }
 
 inline const Marker &Configuration::marker(size_t index)
   const throw(uninitialized_marker,std::out_of_range)
 {
   if (index >= no_markers()) throw std::out_of_range("No marker at index");
-  if (!_markers[index]) throw uninitialized_marker();
-  else return *_markers[index];
+  if (!i_markers[index]) throw uninitialized_marker();
+  else return *i_markers[index];
 }
 
 inline void Configuration::set_marker(size_t index, const Marker *marker)
   throw(std::out_of_range)
 {
   if (index >= no_markers()) throw std::out_of_range("No marker at index");
-  _markers[index] = marker;
+  i_markers[index] = marker;
 }
 
 

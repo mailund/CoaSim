@@ -9,7 +9,7 @@
 class Builder
 {
 public:
-  Builder(const Configuration &conf) : _conf(conf) {};
+  Builder(const Configuration &conf) : i_conf(conf) {};
   ~Builder() {};
 
   // Builds an ARG.  The ARG is dynamically allocated and must be
@@ -17,7 +17,7 @@ public:
   ARG *build() const;
 
 private:
-  const Configuration &_conf;
+  const Configuration &i_conf;
 };
 
 

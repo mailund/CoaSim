@@ -39,7 +39,7 @@
  */
 AddMarkerImpl::AddMarkerImpl( QTable *marker_table,
 			      QWidget* parent,  const char* name, WFlags fl )
-  : AddMarkerForm( parent, name, fl ), _marker_table(marker_table)
+  : AddMarkerForm( parent, name, fl ), i_marker_table(marker_table)
 {
 }
 
@@ -56,11 +56,11 @@ bool AddMarkerImpl::check_position(int pos) const
 {
   // FIXME: if this turns out to be too slow, use binary search -- we
   // know the positions are sorted.
-  int no_rows = _marker_table->numRows();
+  int no_rows = i_marker_table->numRows();
   for (int i = 0; i < no_rows; ++i)
     {
       // text field == "0.xxx" where xxx is the int we want
-      int row_pos = _marker_table->text(i,0).mid(2).toInt();
+      int row_pos = i_marker_table->text(i,0).mid(2).toInt();
       if (row_pos == pos)
 	{
 	  // the pos is not allowed; it is already taken
@@ -78,77 +78,78 @@ bool AddMarkerImpl::check_position(int pos) const
 
 void AddMarkerImpl::add_trait()
 {
-  int pos = _trait_pos->value();
+  int pos = i_trait_pos->value();
   if (!check_position(pos)) return;
 
-  _marker_table->insertRows(0);
+  i_marker_table->insertRows(0);
 
-  _marker_table->setText(0,0,QString("").sprintf("0.%03d",pos));
-  _marker_table->setText(0,1,"trait");
-  _marker_table->setText(0,2,_trait_low_freq->text());
-  _marker_table->setText(0,3,_trait_high_freq->text());
-  _marker_table->setText(0,4,"");
+  i_marker_table->setText(0,0,QString("").sprintf("0.%03d",pos));
+  i_marker_table->setText(0,1,"trait");
+  i_marker_table->setText(0,2,i_trait_low_freq->text());
+  i_marker_table->setText(0,3,i_trait_high_freq->text());
+  i_marker_table->setText(0,4,"");
 
-  _marker_table->sortColumn(0,true,true);
+  i_marker_table->sortColumn(0,true,true);
 
-  _trait_pos->setValue(update_next_position(pos));
+  i_trait_pos->setValue(update_next_position(pos));
 }
 
 void AddMarkerImpl::add_snp()
 {
-  int pos = _snp_pos->value();
+  int pos = i_snp_pos->value();
   if (!check_position(pos)) return;
 
-  _marker_table->insertRows(0);
+  i_marker_table->insertRows(0);
 
-  _marker_table->setText(0,0,QString("").sprintf("0.%03d",pos));
-  _marker_table->setText(0,1,"snp");
-  _marker_table->setText(0,2,_snp_low_freq->text());
-  _marker_table->setText(0,3,_snp_high_freq->text());
-  _marker_table->setText(0,4,"");
+  i_marker_table->setText(0,0,QString("").sprintf("0.%03d",pos));
+  i_marker_table->setText(0,1,"snp");
+  i_marker_table->setText(0,2,i_snp_low_freq->text());
+  i_marker_table->setText(0,3,i_snp_high_freq->text());
+  i_marker_table->setText(0,4,"");
 
-  _marker_table->sortColumn(0,true,true);
+  i_marker_table->sortColumn(0,true,true);
 
-  _snp_pos->setValue(update_next_position(pos));
+  i_snp_pos->setValue(update_next_position(pos));
 }
 
 void AddMarkerImpl::add_ms()
 {
-  int pos = _ms_pos->value();
+  int pos = i_ms_pos->value();
   if (!check_position(pos)) return;
 
-  _marker_table->insertRows(0);
+  i_marker_table->insertRows(0);
 
-  _marker_table->setText(0,0,QString("").sprintf("0.%03d",pos));
-  _marker_table->setText(0,1,"ms");
-  _marker_table->setText(0,2,"");
-  _marker_table->setText(0,3,"");
-  _marker_table->setText(0,4,_ms_size->text());
+  i_marker_table->setText(0,0,QString("").sprintf("0.%03d",pos));
+  i_marker_table->setText(0,1,"ms");
+  i_marker_table->setText(0,2,"");
+  i_marker_table->setText(0,3,"");
+  i_marker_table->setText(0,4,i_ms_size->text());
+  i_marker_table->setText(0,5,i_ms_mutation_rate->text());
 
-  _marker_table->sortColumn(0,true,true);
+  i_marker_table->sortColumn(0,true,true);
 
-  _ms_pos->setValue(update_next_position(pos));
+  i_ms_pos->setValue(update_next_position(pos));
 }
 
 void AddMarkerImpl::next_pos_changed(int pos)
 {
-  _next_pos->setText(QString("").sprintf("0.%03d",pos));
-  _trait_pos->setValue(pos);
-  _snp_pos  ->setValue(pos);
-  _ms_pos   ->setValue(pos);
+  i_next_pos->setText(QString("").sprintf("0.%03d",pos));
+  i_trait_pos->setValue(pos);
+  i_snp_pos  ->setValue(pos);
+  i_ms_pos   ->setValue(pos);
 }
 
 
 int AddMarkerImpl::update_next_position(int pos)
 {
-  int cur_next_pos = _next_pos_slider->value();
+  int cur_next_pos = i_next_pos_slider->value();
   if (pos != cur_next_pos) return cur_next_pos;
 
-  int step = _next_pos_step->value();
+  int step = i_next_pos_step->value();
   int next_pos = cur_next_pos + step;
 
   // move position -- this automatically updates all that depends on it.
-  _next_pos_slider->setValue(next_pos);
+  i_next_pos_slider->setValue(next_pos);
 
   return next_pos;
 }

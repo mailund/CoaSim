@@ -13,16 +13,16 @@
 
 double RetiredInterval::surface() const
 { 
-  return _top_node->surface_at_point(start()); 
+  return i_top_node->surface_at_point(start()); 
 }
 
 void RetiredInterval::mutate(const Configuration &conf,
 			     unsigned int marker_index)  const
 {
   const Marker &marker = conf.marker(marker_index);
-  _top_node->initialize_marker(marker_index, marker);
+  i_top_node->initialize_marker(marker_index, marker);
   std::auto_ptr<Mutator> mutator(marker.create_mutator(conf,*this));
-  _top_node->mutate_marker(marker_index,*mutator);
+  i_top_node->mutate_marker(marker_index,*mutator);
 }
 
 

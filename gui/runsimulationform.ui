@@ -37,7 +37,7 @@
                 </widget>
                 <widget class="QLineEdit">
                     <property name="name">
-                        <cstring>xml_file_name</cstring>
+                        <cstring>i_xml_file_name</cstring>
                     </property>
                 </widget>
                 <widget class="QPushButton">

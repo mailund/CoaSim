@@ -37,7 +37,7 @@ public:
   std::vector<double>      get_double_vector(const std::string &key);
 
 private:
-  std::map<std::string,std::string> _m;
+  std::map<std::string,std::string> i_m;
 };
 
 #endif // RC_PARSER_HH_INCLUDED

@@ -14,7 +14,7 @@ int main(int argc, const char *argv[])
 
   Configuration conf(0,
 		     (const double*)positions, &positions[no_positions],
-		     0.0, 0.0, 0.0, 0.0, 0.0, true);
+		     0.0, 0.0, 0.0, 0.0, true);
 
   ARG arg(conf);
 

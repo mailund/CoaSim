@@ -48,7 +48,7 @@ public:
 
   virtual ~Marker() {};
 
-  size_t size()     const { return _values.size(); }
+  size_t size()     const { return i_values.size(); }
 
   virtual int default_value() const = 0;
   int value(size_t index)     const throw(std::out_of_range);
@@ -60,7 +60,7 @@ public:
 
 protected:
   Marker() {};
-  std::vector<int> _values;
+  std::vector<int> i_values;
 
 private:
   // Disable these
@@ -69,7 +69,7 @@ private:
 };
 
 inline int Marker::value(size_t index) const throw (std::out_of_range)
-{ return _values.at(index); }
+{ return i_values.at(index); }
 
 
 

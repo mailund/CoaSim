@@ -35,17 +35,17 @@ public:
     throw(empty_interval,interval_out_of_range);
   ~Interval() {}
 
-  double start()  const { return _start; }
-  double end()    const { return _end; }
-  double length() const { return _end - _start; }
+  double start()  const { return i_start; }
+  double end()    const { return i_end; }
+  double length() const { return i_end - i_start; }
 
-  unsigned int leaf_contacts() const { return _leaf_contacts; }
+  unsigned int leaf_contacts() const { return i_leaf_contacts; }
 
 
   // it is better to use these for comparison as exact double equality
   // is hard to get.
-  bool is_start(double point) const { return point == _start; }
-  bool is_end(double point)   const { return point == _end; }
+  bool is_start(double point) const { return point == i_start; }
+  bool is_end(double point)   const { return point == i_end; }
 
 
   // returns whether point is in the interval
@@ -54,7 +54,7 @@ public:
   bool overlaps(const Interval &i) const;
 
   void print(std::ostream &os) const
-  { os << '[' << _start << ':' << _end << ")<" << _leaf_contacts << '>'; }
+  { os << '[' << i_start << ':' << i_end << ")<" << i_leaf_contacts << '>'; }
 
   bool operator == (const Interval &i) const;
   bool operator != (const Interval &i) const;
@@ -63,9 +63,9 @@ private:
   void check_empty() const throw(empty_interval);
   void check_range() const throw(interval_out_of_range);
 
-  double _start;
-  double _end;
-  unsigned int _leaf_contacts; // number of leaf nodes that this
+  double i_start;
+  double i_end;
+  unsigned int i_leaf_contacts; // number of leaf nodes that this
 			       // interval connects to
 };
 
@@ -78,8 +78,8 @@ inline bool Interval::overlaps(const Interval &i) const
 
 
 inline bool Interval::operator == (const Interval &i) const
-{ return (_start == i._start) and (_end == i._end)
-	  and (_leaf_contacts == i._leaf_contacts); }
+{ return (i_start == i.i_start) and (i_end == i.i_end)
+	  and (i_leaf_contacts == i.i_leaf_contacts); }
 
 inline bool Interval::operator != (const Interval &i) const
 { return !(*this == i); }
@@ -112,10 +112,10 @@ public:
 
   // these methods looks up the intervals NOT CHECKING if the index is
   // within range!
-  const Interval& interval(int index)     const { return _intervals[index]; }
+  const Interval& interval(int index)     const { return i_intervals[index]; }
   const Interval& operator [] (int index) const { return interval(index); }
 
-  int size() const { return _intervals.size(); }
+  int size() const { return i_intervals.size(); }
 
   // checking the predicates on the relevant intervals.  Throws an
   // exception if point is outside [0,1).
@@ -134,7 +134,7 @@ public:
   // point).
   unsigned int leaf_contacts(double point) const;
 
-  void reset() { _intervals.clear(); }
+  void reset() { i_intervals.clear(); }
 
   // copy the intervals between start and stop, trunkating intervals
   // that overlap start and stop.
@@ -157,7 +157,7 @@ private:
 
   // INVARIANT: The _intervals vector contains the non-overlapping
   // intervals in sorted order, wrt to < on intervals.
-  std::vector<Interval> _intervals;
+  std::vector<Interval> i_intervals;
 
   std::vector<Interval>::const_iterator interval_starting_before(double point) const;
   std::vector<Interval>::const_iterator interval_starting_after(double point) const;
@@ -185,13 +185,13 @@ inline bool Intervals::contains_point(double point) const
 
 inline double Intervals::first_point() const throw(std::out_of_range)
 {
-  if (_intervals.size() == 0) throw std::out_of_range("no intervals!");
-  return _intervals.front().start();
+  if (i_intervals.size() == 0) throw std::out_of_range("no intervals!");
+  return i_intervals.front().start();
 }
 inline double Intervals::last_point() const throw(std::out_of_range)
 {
-  if (_intervals.size() == 0) throw std::out_of_range("no intervals!");
-  return _intervals.back().end();
+  if (i_intervals.size() == 0) throw std::out_of_range("no intervals!");
+  return i_intervals.back().end();
 }
 
 

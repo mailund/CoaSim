@@ -41,8 +41,8 @@ SimFeedbackImpl::SimFeedbackImpl(CoasimGuiImpl &main_window,
 				 const char* name, 
 				 WFlags fl)
   : SimFeedbackForm( &main_window, name, fl ),
-    _main_window(main_window),
-    _no_leaves(0), _abort(false)
+    i_main_window(main_window),
+    i_no_leaves(0), i_abort(false)
 {
 }
 
@@ -53,7 +53,7 @@ SimFeedbackImpl::~SimFeedbackImpl()
 
 void SimFeedbackImpl::handle_abort()
 {
-  if (!_abort) return; // not aborting
+  if (!i_abort) return; // not aborting
   close();
   throw SimulationMonitor::AbortSimulation();
 }
@@ -62,35 +62,35 @@ void SimFeedbackImpl::abort_simulation()
 {
   // simply flag so we know how to abort next time we can inform the
   // simulator.
-  _abort = true;
+  i_abort = true;
 }
 
 
 void SimFeedbackImpl::reset()
 {
-  _abort = false;
-  _abort_button->setDisabled(false);
-  _close_button->setDisabled(true);
+  i_abort = false;
+  i_abort_button->setDisabled(false);
+  i_close_button->setDisabled(true);
 
-  _total_nodes->setText("0");
-  _top_nodes->setText("0");
-  _time->setText("0.0");
+  i_total_nodes->setText("0");
+  i_top_nodes->setText("0");
+  i_time->setText("0.0");
 
-  _no_leaf_events->setText("");
-  _coal_events->setText("");
-  _recomb_events->setText("");
-  _gene_conv_events->setText("");
+  i_no_leaf_events->setText("");
+  i_coal_events->setText("");
+  i_recomb_events->setText("");
+  i_gene_conv_events->setText("");
 
-  _leaf_nodes_progress->setProgress(0,1);
-  _coal_events_progress->setProgress(0,1);
-  _recomb_events_progress->setProgress(0,1);
-  _gene_conv_events_progress->setProgress(0,1);
+  i_leaf_nodes_progress->setProgress(0,1);
+  i_coal_events_progress->setProgress(0,1);
+  i_recomb_events_progress->setProgress(0,1);
+  i_gene_conv_events_progress->setProgress(0,1);
 
-  _marker_no->setText("");
-  _marker_type->setText("");
-  _marker_pos->setText("");
+  i_marker_no->setText("");
+  i_marker_type->setText("");
+  i_marker_pos->setText("");
 
-  _sim_log->setText("");
+  i_sim_log->setText("");
 
 }
 
@@ -98,10 +98,10 @@ void SimFeedbackImpl::reset()
 // Monitor callbacks...
 void SimFeedbackImpl::start_arg_building(unsigned int no_leaves)
 {
-  _no_leaves = no_leaves;
-  _no_leaf_events->setText(QString("%1").arg(no_leaves));
+  i_no_leaves = no_leaves;
+  i_no_leaf_events->setText(QString("%1").arg(no_leaves));
   
-  _sim_log->append("Building ARG\n");
+  i_sim_log->append("Building ARG\n");
 
   while (coasim_main_app->hasPendingEvents())
     coasim_main_app->processEvents();
@@ -117,22 +117,22 @@ void SimFeedbackImpl::builder_update(unsigned int no_nodes,
 				     unsigned int no_gene_conv_events,
 				     unsigned int no_recomb_events)
 {
-  _total_nodes->setText(QString("%1").arg(no_nodes));
-  _top_nodes->setText(QString("%1").arg(no_top_nodes));
-  _time->setText(QString("%1").arg(cur_time));
+  i_total_nodes->setText(QString("%1").arg(no_nodes));
+  i_top_nodes->setText(QString("%1").arg(no_top_nodes));
+  i_time->setText(QString("%1").arg(cur_time));
 
-  _coal_events->setText(QString("%1").arg(no_coal_events));
-  _recomb_events->setText(QString("%1").arg(no_recomb_events));
-  _gene_conv_events->setText(QString("%1").arg(no_gene_conv_events));
+  i_coal_events->setText(QString("%1").arg(no_coal_events));
+  i_recomb_events->setText(QString("%1").arg(no_recomb_events));
+  i_gene_conv_events->setText(QString("%1").arg(no_gene_conv_events));
 
-  unsigned int max_events = std::max(std::max(_no_leaves,no_coal_events),
+  unsigned int max_events = std::max(std::max(i_no_leaves,no_coal_events),
 				     std::max(no_gene_conv_events,
 					      no_recomb_events));
 
-  _leaf_nodes_progress->setProgress(_no_leaves,max_events);
-  _coal_events_progress->setProgress(no_coal_events,max_events);
-  _recomb_events_progress->setProgress(no_recomb_events,max_events);
-  _gene_conv_events_progress->setProgress(no_gene_conv_events,max_events);
+  i_leaf_nodes_progress->setProgress(i_no_leaves,max_events);
+  i_coal_events_progress->setProgress(no_coal_events,max_events);
+  i_recomb_events_progress->setProgress(no_recomb_events,max_events);
+  i_gene_conv_events_progress->setProgress(no_gene_conv_events,max_events);
 
   while (coasim_main_app->hasPendingEvents())
     coasim_main_app->processEvents();
@@ -148,22 +148,22 @@ void SimFeedbackImpl::builder_termination(unsigned int no_nodes,
 					  unsigned int no_gene_conv_events,
 					  unsigned int no_recomb_events)
 {
-  _total_nodes->setText(QString("%1").arg(no_nodes));
-  _top_nodes->setText(QString("%1").arg(no_top_nodes));
-  _time->setText(QString("%1").arg(cur_time));
+  i_total_nodes->setText(QString("%1").arg(no_nodes));
+  i_top_nodes->setText(QString("%1").arg(no_top_nodes));
+  i_time->setText(QString("%1").arg(cur_time));
 
-  _coal_events->setText(QString("%1").arg(no_coal_events));
-  _recomb_events->setText(QString("%1").arg(no_recomb_events));
-  _gene_conv_events->setText(QString("%1").arg(no_gene_conv_events));
+  i_coal_events->setText(QString("%1").arg(no_coal_events));
+  i_recomb_events->setText(QString("%1").arg(no_recomb_events));
+  i_gene_conv_events->setText(QString("%1").arg(no_gene_conv_events));
 
-  unsigned int max_events = std::max(std::max(_no_leaves,no_coal_events),
+  unsigned int max_events = std::max(std::max(i_no_leaves,no_coal_events),
 				     std::max(no_gene_conv_events,
 					      no_recomb_events));
 
-  _leaf_nodes_progress->setProgress(_no_leaves,max_events);
-  _coal_events_progress->setProgress(no_coal_events,max_events);
-  _recomb_events_progress->setProgress(no_recomb_events,max_events);
-  _gene_conv_events_progress->setProgress(no_gene_conv_events,max_events);
+  i_leaf_nodes_progress->setProgress(i_no_leaves,max_events);
+  i_coal_events_progress->setProgress(no_coal_events,max_events);
+  i_recomb_events_progress->setProgress(no_recomb_events,max_events);
+  i_gene_conv_events_progress->setProgress(no_gene_conv_events,max_events);
 
   while (coasim_main_app->hasPendingEvents())
     coasim_main_app->processEvents();
@@ -173,16 +173,16 @@ void SimFeedbackImpl::builder_termination(unsigned int no_nodes,
 
 void SimFeedbackImpl::start_mutating() 
 {
-  _sim_log->append("Mutating ARG\n");
+  i_sim_log->append("Mutating ARG\n");
   while (coasim_main_app->hasPendingEvents())
     coasim_main_app->processEvents();
 }
 
 void SimFeedbackImpl::mutator_update(unsigned int marker_no) 
 {
-  _marker_no->setText(QString("%1").arg(marker_no));
-  _marker_type->setText(_main_window._marker_table->text(marker_no,1));
-  _marker_pos->setText(_main_window._marker_table->text(marker_no,0));
+  i_marker_no->setText(QString("%1").arg(marker_no));
+  i_marker_type->setText(i_main_window.i_marker_table->text(marker_no,1));
+  i_marker_pos->setText(i_main_window.i_marker_table->text(marker_no,0));
 
   while (coasim_main_app->hasPendingEvents())
     coasim_main_app->processEvents();
@@ -192,11 +192,11 @@ void SimFeedbackImpl::mutator_update(unsigned int marker_no)
 
 void SimFeedbackImpl::retry_mutation() 
 {
-  _sim_log->setColor("gray");
-  _sim_log->setItalic(true);
-  _sim_log->append("Mutation outside frequency bounds, rebilding arg\n");
-  _sim_log->setItalic(false);
-  _sim_log->setColor("black");
+  i_sim_log->setColor("gray");
+  i_sim_log->setItalic(true);
+  i_sim_log->append("Mutation outside frequency bounds, rebilding arg\n");
+  i_sim_log->setItalic(false);
+  i_sim_log->setColor("black");
 
   while (coasim_main_app->hasPendingEvents())
     coasim_main_app->processEvents();
@@ -206,11 +206,11 @@ void SimFeedbackImpl::retry_mutation()
 
 void SimFeedbackImpl::retry_arg_building() 
 {
-  _sim_log->setColor("red");
-  _sim_log->setItalic(true);
-  _sim_log->append("Trait mutation outside bounds, rebilding arg\n");
-  _sim_log->setItalic(false);
-  _sim_log->setColor("black");
+  i_sim_log->setColor("red");
+  i_sim_log->setItalic(true);
+  i_sim_log->append("Trait mutation outside bounds, rebilding arg\n");
+  i_sim_log->setItalic(false);
+  i_sim_log->setColor("black");
 
   while (coasim_main_app->hasPendingEvents())
     coasim_main_app->processEvents();
@@ -220,17 +220,17 @@ void SimFeedbackImpl::retry_arg_building()
 
 void SimFeedbackImpl::simulation_terminated()
 {
-  _sim_log->setBold(true);
-  _sim_log->append("Simulation completed.\n");
-  _sim_log->setBold(false);
+  i_sim_log->setBold(true);
+  i_sim_log->append("Simulation completed.\n");
+  i_sim_log->setBold(false);
 
   // no need to show last marker...
-  _marker_no->setText("");
-  _marker_type->setText("");
-  _marker_pos->setText("");
+  i_marker_no->setText("");
+  i_marker_type->setText("");
+  i_marker_pos->setText("");
 
-  _abort_button->setDisabled(true);
-  _close_button->setDisabled(false);
+  i_abort_button->setDisabled(true);
+  i_close_button->setDisabled(false);
 
   while (coasim_main_app->hasPendingEvents())
     coasim_main_app->processEvents();

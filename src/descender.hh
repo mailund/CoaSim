@@ -10,7 +10,7 @@ class ARG;
 class Descender
 {
 public:
-  Descender(const Configuration &conf) : _conf(conf) {}
+  Descender(const Configuration &conf) : i_conf(conf) {}
   ~Descender() {}
 
   // assign evolution to the ARG as specified by the configuration.
@@ -20,7 +20,7 @@ public:
   void evolve(ARG &arg) const;
 
 private:
-  const Configuration &_conf;
+  const Configuration &i_conf;
 };
 
 #endif

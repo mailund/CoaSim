@@ -51,27 +51,27 @@ static void parse_run_commands(std::istream &is,
 
 RCParser::RCParser(std::istream &is)
 {
-  parse_run_commands(is,_m);
+  parse_run_commands(is,i_m);
 }
 
 int RCParser::get_int(const std::string &key)
 {
-  return atoi(_m[key].c_str());
+  return atoi(i_m[key].c_str());
 }
 
 std::string RCParser::get_string(const std::string &key)
 {
-  return _m[key];
+  return i_m[key];
 }
 
 double RCParser::get_double(const std::string &key)
 {
-  return atof(_m[key].c_str());
+  return atof(i_m[key].c_str());
 }
 
 bool RCParser::get_bool(const std::string &key)
 {
-  const std::string &val = _m[key];
+  const std::string &val = i_m[key];
   if (val == "true" or atoi(val.c_str()) != 0) return true;
   return false;
 }
@@ -79,7 +79,7 @@ bool RCParser::get_bool(const std::string &key)
 
 std::vector<int> RCParser::get_int_vector(const std::string &key)
 {
-  std::istringstream is(_m[key]);
+  std::istringstream is(i_m[key]);
   std::vector<int> v;
   int i;
   while (is >> i) v.push_back(i);
@@ -88,7 +88,7 @@ std::vector<int> RCParser::get_int_vector(const std::string &key)
 
 std::vector<std::string> RCParser::get_string_vector(const std::string &key)
 {
-  std::istringstream is(_m[key]);
+  std::istringstream is(i_m[key]);
   std::vector<std::string> v;
   std::string s;
   while (is >> s) v.push_back(s);
@@ -97,7 +97,7 @@ std::vector<std::string> RCParser::get_string_vector(const std::string &key)
 
 std::vector<double> RCParser::get_double_vector(const std::string &key)
 {
-  std::istringstream is(_m[key]);
+  std::istringstream is(i_m[key]);
   std::vector<double> v;
   double d;
   while (is >> d) v.push_back(d);

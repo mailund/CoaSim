@@ -17,10 +17,10 @@ class BapsFloatSpinBox : public ::QSpinBox {
 
     Q_PROPERTY( uint   decimals READ decimals WRITE setDecimals )
 
-    uint   _decimals;
-    double _scale;
+    uint   i_decimals;
+    double i_scale;
 
-    QDoubleValidator _double_validator;
+    QDoubleValidator i_double_validator;
 
 public:
     BapsFloatSpinBox(QWidget *parent = 0, const char *name = 0);

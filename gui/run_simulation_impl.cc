@@ -31,11 +31,11 @@ RunSimulationImpl::RunSimulationImpl(QString &output_file, bool &leaves_only,
 				     QWidget* parent,  const char* name, 
 				     WFlags fl)
   : RunSimulationForm( parent, name, fl ),
-    _output_file(output_file), _leaves_only(leaves_only)
+    i_output_file(output_file), i_leaves_only(leaves_only)
 {
   // set "abort" defaults
-  _output_file = "";
-  _leaves_only = true;
+  i_output_file = "";
+  i_leaves_only = true;
 }
 
 RunSimulationImpl::~RunSimulationImpl()
@@ -47,13 +47,13 @@ void RunSimulationImpl::set_out_file()
 {
   QString fname = QFileDialog::getSaveFileName();
   if (fname == "") return; // cancel
-  xml_file_name->setText(fname);
+  i_xml_file_name->setText(fname);
 }
 
 
 void RunSimulationImpl::run_simulation()
 {
-  QString fname = xml_file_name->text();
+  QString fname = i_xml_file_name->text();
   bool leaves_only = mode->isOn();
 
  retry:
@@ -75,8 +75,8 @@ void RunSimulationImpl::run_simulation()
     }
 
   // set return values
-  _output_file = fname;
-  _leaves_only = leaves_only;
+  i_output_file = fname;
+  i_leaves_only = leaves_only;
 
   // close run sim. dialog
   close();

@@ -106,11 +106,11 @@ time_t run_simulation(unsigned int no_leaves,
 
   Configuration conf(no_leaves,
 		     positions.begin(), positions.end(),
-		     rho, Q, G, growth, mu);
+		     rho, Q, G, growth);
 
   TraitMarker          trait_m(0.1,0.2); // 10%-20%
   SNPMarker            snp_m  (0.1,0.2); // 10%-20%
-  MicroSatelliteMarker ms_m(conf.mu()); ms_m.add_value(4); ms_m.add_value(8);
+  MicroSatelliteMarker ms_m(mu); ms_m.add_value(4); ms_m.add_value(8);
 
   for (m = 0, itr = markers.begin(); itr != markers.end(); ++itr, ++m)
     {

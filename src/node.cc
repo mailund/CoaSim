@@ -35,9 +35,9 @@
 void Node::haplotype_to_xml(std::ostream &os) const
 {
   os << "    <haplotype id=\"h_" << this << "\"> " << std::endl;
-  for (unsigned int i = 0; i < _states.size(); ++i){
+  for (unsigned int i = 0; i < i_states.size(); ++i){
     os << "      <loci marker_ref=\"marker_" << i << "\">";
-    os << "<allele>" << _states[i] << "</allele>";
+    os << "<allele>" << i_states[i] << "</allele>";
     os << "</loci>" << std::endl;
   }
   os << "    </haplotype>" << std::endl;
@@ -45,9 +45,9 @@ void Node::haplotype_to_xml(std::ostream &os) const
 
 void Node::initialize_marker(unsigned int idx, const Marker &m)
 {
-  if (_states.size() <= idx) 
+  if (i_states.size() <= idx) 
     throw std::out_of_range("marker index out of range");
-  _states[idx] = m.default_value();
+  i_states[idx] = m.default_value();
 }
 
 
@@ -95,10 +95,10 @@ namespace {
     friend Node *ARG::coalescence(double,Node*,Node*);
     CoalescentNode(const Configuration &conf, double time, 
 		   Node *left, Node *right, const Intervals &is)
-      : Node(conf,time,is), _left(left), _right(right),
-	_left_mutating(false,conf.no_markers()),
-	_right_mutating(false,conf.no_markers()),
-	_conf(conf)
+      : Node(conf,time,is), i_left(left), i_right(right),
+	i_left_mutating(false,conf.no_markers()),
+	i_right_mutating(false,conf.no_markers()),
+	i_conf(conf)
     {}
 
     virtual double surface_at_point(double point) const
@@ -110,15 +110,15 @@ namespace {
       // will, so it still works out (althoug we call recursively at
       // little more than strictly necessary)
       double surface = 0.0;
-      if (_left->intervals().contains_point(point))
+      if (i_left->intervals().contains_point(point))
 	{
-	  surface += _left->surface_at_point(point);
-	  surface += time() - _left->time();
+	  surface += i_left->surface_at_point(point);
+	  surface += time() - i_left->time();
 	}
-      if (_right->intervals().contains_point(point))
+      if (i_right->intervals().contains_point(point))
 	{
-	  surface += _right->surface_at_point(point);
-	  surface += time() - _right->time();
+	  surface += i_right->surface_at_point(point);
+	  surface += time() - i_right->time();
 	}
       return surface;
     }
@@ -128,30 +128,30 @@ namespace {
       if (! (idx < no_states()) )
 	throw std::out_of_range("marker index out of range");
 
-      double point = _conf.position(idx);
+      double point = i_conf.position(idx);
 
-      if (_left->intervals().contains_point(point))
+      if (i_left->intervals().contains_point(point))
 	{
 	  // propagate value
-	  set_state(_left,idx,state(idx));
-	  if (m.edge_has_mutation(time(),_left->time()))
+	  set_state(i_left,idx,state(idx));
+	  if (m.edge_has_mutation(time(),i_left->time()))
 	    {
-	      set_state(_left, idx, m.mutate_to(*_left,idx));
-	      _left_mutating[idx] = true;
+	      set_state(i_left, idx, m.mutate_to(*i_left,idx));
+	      i_left_mutating[idx] = true;
 	    }
-	  _left->mutate_marker(idx,m);
+	  i_left->mutate_marker(idx,m);
 	}
 
 
-      if (_right->intervals().contains_point(point))
+      if (i_right->intervals().contains_point(point))
 	{
-	  set_state(_right,idx,state(idx));
-	  if (m.edge_has_mutation(time(),_right->time()))
+	  set_state(i_right,idx,state(idx));
+	  if (m.edge_has_mutation(time(),i_right->time()))
 	    {
-	      set_state(_right, idx, m.mutate_to(*_right,idx));
-	      _right_mutating[idx] = true;
+	      set_state(i_right, idx, m.mutate_to(*i_right,idx));
+	      i_right_mutating[idx] = true;
 	    }
-	  _right->mutate_marker(idx,m);
+	  i_right->mutate_marker(idx,m);
 	}
     }
 
@@ -159,32 +159,32 @@ namespace {
     {
       os << "  <coalescent time=\"" << time() << "\" id=\"i_" << this << '"'
 	 << " haplotype=\"h_" << this << "\">" << std::endl;
-      os << "    <child ref=\"i_" << _left << "\"/>" << std::endl;
-      os << "    <child ref=\"i_" << _right << "\"/>" << std::endl;
+      os << "    <child ref=\"i_" << i_left << "\"/>" << std::endl;
+      os << "    <child ref=\"i_" << i_right << "\"/>" << std::endl;
       os << "  </coalescent>" << std::endl; 
     }
 
     virtual void mutation_to_xml(std::ostream &os) const
     {
       for (size_t i = 0; i < no_states(); ++i){
-	if (_left_mutating[i])
+	if (i_left_mutating[i])
 	  os << "    <mutation marker_ref=\"marker_" << i << '"'
 	     << " parent_ref=\"i_" << this << '"'
-	     << " child_ref=\"i_" << _left << "\"/> "
+	     << " child_ref=\"i_" << i_left << "\"/> "
 	     << std::endl;
-	else if (_right_mutating[i])
+	else if (i_right_mutating[i])
 	  os << "    <mutation marker_ref=\"marker_" << i << '"'
 	     << " parent_ref=\"i_" << this << '"'
-	     << " child_ref=\"i_" << _right << "\"/> "
+	     << " child_ref=\"i_" << i_right << "\"/> "
 	     << std::endl;
       }
     }
 
-    Node *const _left;
-    Node *const _right;
-    std::valarray<bool> _left_mutating;
-    std::valarray<bool> _right_mutating;
-    const Configuration &_conf;
+    Node *const i_left;
+    Node *const i_right;
+    std::valarray<bool> i_left_mutating;
+    std::valarray<bool> i_right_mutating;
+    const Configuration &i_conf;
   };
   
   class RecombinationNode : public Node
@@ -193,9 +193,9 @@ namespace {
     RecombinationNode(const Configuration &conf,
 		      double time, Node *child, const Intervals &is,
 		      double cross_over_point, bool is_left)
-      : Node(conf,time,is), _child(child),
-	_child_mutating(false,conf.no_markers()),
-	_cross_over_point(cross_over_point), _is_left(is_left)
+      : Node(conf,time,is), i_child(child),
+	i_child_mutating(false,conf.no_markers()),
+	i_cross_over_point(cross_over_point), i_is_left(is_left)
     {}
 
     virtual double surface_at_point(double point) const
@@ -203,10 +203,10 @@ namespace {
     {
       if (! intervals().contains_point(point)) return 0.0;
       double surface = 0.0;
-      if (_child->intervals().contains_point(point))
+      if (i_child->intervals().contains_point(point))
 	{
-	  surface += _child->surface_at_point(point);
-	  surface += time() - _child->time();
+	  surface += i_child->surface_at_point(point);
+	  surface += time() - i_child->time();
 	}
       return surface;
     }
@@ -217,39 +217,39 @@ namespace {
 	throw std::out_of_range("marker index out of range");
 
       // propagate value
-      set_state(_child,idx,state(idx));
+      set_state(i_child,idx,state(idx));
 
-      if (m.edge_has_mutation(time(),_child->time()))
+      if (m.edge_has_mutation(time(),i_child->time()))
 	{
-	  set_state(_child,idx,m.mutate_to(*_child,idx));
-	  _child_mutating[idx] = true;
+	  set_state(i_child,idx,m.mutate_to(*i_child,idx));
+	  i_child_mutating[idx] = true;
 	}
-      _child->mutate_marker(idx,m);
+      i_child->mutate_marker(idx,m);
     }
 
     virtual void node_to_xml(std::ostream &os) const
     {
       os << "  <recombination time=\"" << time() << '"'
-	 << " crossover=\"" << _cross_over_point << '"'
+	 << " crossover=\"" << i_cross_over_point << '"'
 	 << " id=\"i_" << this << "\" haplotype=\"h_" << this << '"'
-	 << " is_left=\"" << _is_left << "\">" << std::endl
-	 << "    <child ref=\"i_" << _child << "\"/>" << std::endl
+	 << " is_left=\"" << i_is_left << "\">" << std::endl
+	 << "    <child ref=\"i_" << i_child << "\"/>" << std::endl
 	 << "  </recombination>" << std::endl; 
     }
 
     virtual void mutation_to_xml(std::ostream &os) const
     {
       for (size_t i = 0; i < no_states(); ++i)
-	if (_child_mutating[i])
+	if (i_child_mutating[i])
 	  os << "    <mutation marker_ref=\"marker_" << i << '"'
 	     << " parent_ref=\"i_" << this << '"'
-	     << " child_ref=\"i_" << _child << "\"/> " << std::endl; 
+	     << " child_ref=\"i_" << i_child << "\"/> " << std::endl; 
     }
 
-    Node *const _child;
-    std::valarray<bool> _child_mutating;
-    double _cross_over_point;
-    bool _is_left;
+    Node *const i_child;
+    std::valarray<bool> i_child_mutating;
+    double i_cross_over_point;
+    bool i_is_left;
   };
 
   class GeneConversionNode : public Node
@@ -259,10 +259,10 @@ namespace {
 		       double time, Node *child, const Intervals &is,
 		       double conversion_start, double conversion_end,
 		       bool is_inside)
-      : Node(conf,time,is), _child(child),
-	_child_mutating(false,conf.no_markers()),
-	_conversion_start(conversion_start), _conversion_end(conversion_end),
-	_is_inside(is_inside)
+      : Node(conf,time,is), i_child(child),
+	i_child_mutating(false,conf.no_markers()),
+	i_conversion_start(conversion_start), i_conversion_end(conversion_end),
+	i_is_inside(is_inside)
     {}
 
     virtual double surface_at_point(double point) const
@@ -270,10 +270,10 @@ namespace {
     {
       if (! intervals().contains_point(point)) return 0.0;
       double surface = 0.0;
-      if (_child->intervals().contains_point(point))
+      if (i_child->intervals().contains_point(point))
 	{
-	  surface += _child->surface_at_point(point);
-	  surface += time() - _child->time();
+	  surface += i_child->surface_at_point(point);
+	  surface += time() - i_child->time();
 	}
       return surface;
     }
@@ -284,40 +284,40 @@ namespace {
 	throw std::out_of_range("marker index out of range");
 
       // propagate value
-      set_state(_child,idx,state(idx));
+      set_state(i_child,idx,state(idx));
 
-      if (m.edge_has_mutation(time(),_child->time()))
+      if (m.edge_has_mutation(time(),i_child->time()))
 	{
-	  set_state(_child,idx,m.mutate_to(*_child,idx));
-	  _child_mutating[idx] = true;
+	  set_state(i_child,idx,m.mutate_to(*i_child,idx));
+	  i_child_mutating[idx] = true;
 	}
-      _child->mutate_marker(idx,m);
+      i_child->mutate_marker(idx,m);
     }
 
     virtual void node_to_xml(std::ostream &os) const
     {
       os << "  <genconversion time=\"" << time() << '"'
-	 << " conversion_start=\"" << _conversion_start << '"'
-	 << " conversion_end=\"" << _conversion_end << '"'
+	 << " conversion_start=\"" << i_conversion_start << '"'
+	 << " conversion_end=\"" << i_conversion_end << '"'
 	 << " id=\"i_" << this << "\" haplotype=\"h_" << this << '"'
-	 << "  is_inside=\"" << _is_inside <<"\">" << std::endl
-	 << "    <child ref=\"i_" << _child << "\"/>" << std::endl
+	 << "  is_inside=\"" << i_is_inside <<"\">" << std::endl
+	 << "    <child ref=\"i_" << i_child << "\"/>" << std::endl
 	 << "  </genconversion>" << std::endl; 
     }
 
     virtual void mutation_to_xml(std::ostream &os) const
     {
       for (size_t i = 0; i < no_states(); ++i)
-	if (_child_mutating[i])
+	if (i_child_mutating[i])
 	  os << "    <mutation marker_ref=\"marker_" << i << '"'
 	     << " parent_ref=\"i_" << this << '"'
-	     << " child_ref=\"i_" << _child << "\"/> " << std::endl; 
+	     << " child_ref=\"i_" << i_child << "\"/> " << std::endl; 
     }
 
-    Node *const _child;
-    std::valarray<bool> _child_mutating;
-    double _conversion_start, _conversion_end;
-    bool _is_inside;
+    Node *const i_child;
+    std::valarray<bool> i_child_mutating;
+    double i_conversion_start, i_conversion_end;
+    bool i_is_inside;
   };
 }
 
@@ -325,32 +325,31 @@ namespace {
 ARG::~ARG()
 {
   std::vector<Node*>::iterator itr;
-  for (itr = _leaf_pool.begin(); itr != _leaf_pool.end(); ++itr)
+  for (itr = i_leaf_pool.begin(); itr != i_leaf_pool.end(); ++itr)
     delete *itr;
-  for (itr = _node_pool.begin(); itr != _node_pool.end(); ++itr)
+  for (itr = i_node_pool.begin(); itr != i_node_pool.end(); ++itr)
     delete *itr;
 }
 
 Node *ARG::leaf() throw()
 {
-  LeafNode *n = new LeafNode(_conf);
+  LeafNode *n = new LeafNode(i_conf);
 
 #if 0 //OPTIMIZATION_1
-  for (unsigned int i = 0; i < _conf.no_markers(); ++i)
+  for (unsigned int i = 0; i < i_conf.no_markers(); ++i)
     {
-      double marker_pos = _conf.position(i);
+      double marker_pos = i_conf.position(i);
       double start = std::max(0.0, marker_pos - 1e-5);
       double stop  = std::min(1.0, marker_pos + 1e-5);
       n->_intervals.add(start,stop,1);
     }
 #else
   // the leaves covers the entire interval [0,1)
-  n->_intervals.add(0.0,1.0,1);
+  n->i_intervals.add(0.0,1.0,1);
 #endif
 
-  _leaf_pool.push_back(n);
-  ++_no_leaves;
-
+  i_leaf_pool.push_back(n);
+  ++i_no_leaves;
 
   return n;
 }
@@ -373,25 +372,25 @@ Node *ARG::coalescence(double time, Node *left, Node *right)
 
   for (int i = 0; i < merged.size(); ++i)
     {
-      if (merged.interval(i).leaf_contacts() < _no_leaves)
+      if (merged.interval(i).leaf_contacts() < i_no_leaves)
 	non_retired.add(merged.interval(i));
-      else if (merged.interval(i).leaf_contacts() == _no_leaves)
+      else if (merged.interval(i).leaf_contacts() == i_no_leaves)
 	retired.push_back(merged.interval(i));
       else
 	assert(false);
     }
 
-  CoalescentNode *n = new CoalescentNode(_conf,time,left,right,non_retired);
+  CoalescentNode *n = new CoalescentNode(i_conf,time,left,right,non_retired);
 
-  _node_pool.push_back(n);
+  i_node_pool.push_back(n);
 
   std::vector<Interval>::const_iterator itr;
   for (itr = retired.begin(); itr != retired.end(); ++itr)
     {
 #if EXPENSIVE_ASSERTS
       std::vector<RetiredInterval>::const_iterator jtr;
-      for (jtr = _retired_intervals.begin(); 
-	   jtr != _retired_intervals.end(); ++jtr)
+      for (jtr = i_retired_intervals.begin(); 
+	   jtr != i_retired_intervals.end(); ++jtr)
 	//assert(!jtr->overlaps(*itr));
 	if (jtr->overlaps(*itr))
 	  {
@@ -399,7 +398,7 @@ Node *ARG::coalescence(double time, Node *left, Node *right)
 	    assert(!jtr->overlaps(*itr));
 	  }
 #endif
-      _retired_intervals.push_back(RetiredInterval(*itr,n));
+      i_retired_intervals.push_back(RetiredInterval(*itr,n));
     }
 
   return n;
@@ -428,11 +427,11 @@ ARG::node_pair_t ARG::recombination(double time, Node *child,
 
   // FIXME: we could optimize here by not creating intervals without markers
 
-  RecombinationNode *n1 = new RecombinationNode(_conf,time,child,left,
+  RecombinationNode *n1 = new RecombinationNode(i_conf,time,child,left,
 						cross_over_point, true);
-  RecombinationNode *n2 = new RecombinationNode(_conf,time,child,right,
+  RecombinationNode *n2 = new RecombinationNode(i_conf,time,child,right,
 						cross_over_point, false);
-  _node_pool.push_back(n1); _node_pool.push_back(n2);
+  i_node_pool.push_back(n1); i_node_pool.push_back(n2);
 
   return std::make_pair(n1,n2);
 }
@@ -478,15 +477,15 @@ ARG::node_pair_t ARG::gene_conversion(double time, Node *child,
 #endif
 
 
-  GeneConversionNode *n1 = new GeneConversionNode(_conf,time,child,left,
+  GeneConversionNode *n1 = new GeneConversionNode(i_conf,time,child,left,
 						  conversion_start,
 						  conversion_end,
 						  false);
-  GeneConversionNode *n2 = new GeneConversionNode(_conf,time,child,right,
+  GeneConversionNode *n2 = new GeneConversionNode(i_conf,time,child,right,
 						  conversion_start,
 						  conversion_end,
 						  true);
-  _node_pool.push_back(n1); _node_pool.push_back(n2);
+  i_node_pool.push_back(n1); i_node_pool.push_back(n2);
 
   return std::make_pair<Node*,Node*>(n1,n2);
 
@@ -498,35 +497,35 @@ namespace {
   {
   public:
     typedef void (RetiredInterval::*to_xml_t)(std::ostream &os) const;
-    interval_printer(to_xml_t f, std::ostream &os) : _f(f), _os(os) {};
-    void operator () (const RetiredInterval &ri) { (ri.*_f)(_os); }
+    interval_printer(to_xml_t f, std::ostream &os) : i_f(f), i_os(os) {};
+    void operator () (const RetiredInterval &ri) { (ri.*i_f)(i_os); }
 
   private:
-    to_xml_t _f;
-    std::ostream &_os;
+    to_xml_t i_f;
+    std::ostream &i_os;
   };
 
   class node_printer : public std::unary_function<void,const Node*>
   {
   public:
     typedef void (Node::*to_xml_t)(std::ostream &os) const;
-    node_printer(to_xml_t f, std::ostream &os) : _f(f), _os(os) {};
-    void operator () (const Node *n) { (n->*_f)(_os); }
+    node_printer(to_xml_t f, std::ostream &os) : i_f(f), i_os(os) {};
+    void operator () (const Node *n) { (n->*i_f)(i_os); }
 
   private:
-    to_xml_t _f;
-    std::ostream &_os;
+    to_xml_t i_f;
+    std::ostream &i_os;
   };
 }
 
 void ARG::to_xml(std::ostream &os) const
 {
-  std::string dtd = DTD_DIR"coasim.dtd";
+  std::string dtd = DTD_DIR"/coasim.dtd";
 
-  const std::vector<Node*>::const_iterator lpb = _leaf_pool.begin();
-  const std::vector<Node*>::const_iterator lpe = _leaf_pool.end();
-  const std::vector<Node*>::const_iterator npb = _node_pool.begin();
-  const std::vector<Node*>::const_iterator npe = _node_pool.end();
+  const std::vector<Node*>::const_iterator lpb = i_leaf_pool.begin();
+  const std::vector<Node*>::const_iterator lpe = i_leaf_pool.end();
+  const std::vector<Node*>::const_iterator npb = i_node_pool.begin();
+  const std::vector<Node*>::const_iterator npe = i_node_pool.end();
 
 
   os << "<?xml version=\"1.0\"?>" << std::endl;
@@ -541,14 +540,14 @@ void ARG::to_xml(std::ostream &os) const
 
 
   os << "  <markers>" << std::endl;
-  for (size_t i = 0; i < _conf.no_markers(); ++i)
+  for (size_t i = 0; i < i_conf.no_markers(); ++i)
     {
       os << "    <marker id=\"marker_" << i << "\">\n"
-	 << "      <position>" << _conf.position(i) << "</position>\n"
+	 << "      <position>" << i_conf.position(i) << "</position>\n"
 	 << "      <value-set>";
 
-      for (size_t j = 0; j < _conf.marker(i).size(); ++j)
-	os << "<value>" << _conf.marker(i).value(j) << "</value>";
+      for (size_t j = 0; j < i_conf.marker(i).size(); ++j)
+	os << "<value>" << i_conf.marker(i).value(j) << "</value>";
 
       os << "</value-set>\n"
 	 << "    </marker>" << std::endl;
@@ -558,22 +557,22 @@ void ARG::to_xml(std::ostream &os) const
 
   os << "  <haplotypes>" << std::endl;
   for_each(lpb,lpe, node_printer(&Node::haplotype_to_xml,os));
-  if (_conf.print_all_nodes())
+  if (i_conf.print_all_nodes())
     for_each(npb,npe, node_printer(&Node::haplotype_to_xml,os));
   os << "  </haplotypes>" << std::endl;
 
-  std::for_each(_retired_intervals.begin(),
-		_retired_intervals.end(),
+  std::for_each(i_retired_intervals.begin(),
+		i_retired_intervals.end(),
 		interval_printer(&RetiredInterval::to_xml,os));
 
   std::for_each(lpb, lpe, node_printer(&Node::node_to_xml,os));
-  if (_conf.print_all_nodes()) 
+  if (i_conf.print_all_nodes()) 
     for_each(npb,npe,node_printer(&Node::node_to_xml,os));
 
   os << "  <mutations>" << std::endl;
 
   for_each(lpb,lpe, node_printer(&Node::mutation_to_xml,os));
-  if (_conf.print_all_nodes())
+  if (i_conf.print_all_nodes())
     for_each(npb,npe, node_printer(&Node::mutation_to_xml,os));
 
   os << "  </mutations>" << std::endl

@@ -11,7 +11,7 @@ class QTable;
 class AddMarkerImpl : public AddMarkerForm
 {
   Q_OBJECT
-  QTable *_marker_table;
+  QTable *i_marker_table;
 
   // NB: the positions below are in the integer coordinates -- to get
   // the "real" coordinates, divide by 1000

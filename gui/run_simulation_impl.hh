@@ -12,8 +12,8 @@ class Configuration;
 class RunSimulationImpl : public RunSimulationForm
 {
   Q_OBJECT
-  QString &_output_file;
-  bool    &_leaves_only;
+  QString &i_output_file;
+  bool    &i_leaves_only;
 
 public:
   RunSimulationImpl(QString &output_file,

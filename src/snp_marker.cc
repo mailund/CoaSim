@@ -74,9 +74,9 @@ Mutator *SNPMarker::create_mutator(const Configuration   &conf,
 				   const RetiredInterval &ri) const
 {
   unsigned int low_leaf_count
-    = static_cast<unsigned int>(ceil(_low_freq*conf.no_leaves()));
+    = static_cast<unsigned int>(ceil(i_low_freq*conf.no_leaves()));
   unsigned int high_leaf_count
-    = static_cast<unsigned int>(floor(_high_freq*conf.no_leaves()));
+    = static_cast<unsigned int>(floor(i_high_freq*conf.no_leaves()));
 
   // possible due to ceil/floor
   if (high_leaf_count < low_leaf_count) swap(low_leaf_count,high_leaf_count);

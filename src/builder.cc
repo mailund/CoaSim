@@ -60,11 +60,11 @@ ARG * Builder::build() const
 {
   using namespace Distribution_functions;
 
-  std::auto_ptr<ARG> arg(new ARG(_conf));
+  std::auto_ptr<ARG> arg(new ARG(i_conf));
   TopNodeSet top_nodes;
 
   // initialize
-  for (size_t i = 0; i < _conf.no_leaves(); ++i)
+  for (size_t i = 0; i < i_conf.no_leaves(); ++i)
     top_nodes.push(arg->leaf());
 
 
@@ -75,9 +75,9 @@ ARG * Builder::build() const
 
   double time = 0.0;
 
-  SimulationMonitor *mon = _conf.monitor();
-  if (mon) mon->builder_update(_conf.no_leaves(), // no_nodes
-			       _conf.no_leaves(), // no_top_nodes
+  SimulationMonitor *mon = i_conf.monitor();
+  if (mon) mon->builder_update(i_conf.no_leaves(), // no_nodes
+			       i_conf.no_leaves(), // no_top_nodes
 			       no_iterations, time,
 			       coal_events, gene_conv_events, recomb_events);
 			       
@@ -86,9 +86,9 @@ ARG * Builder::build() const
   while (top_nodes.size() > 1)
     {
       unsigned int k = top_nodes.size();
-      time += get_time_interval(_conf,time,k);
+      time += get_time_interval(i_conf,time,k);
 
-      int event = uniform((k-1)/2.,_conf.G(), _conf.rho());
+      int event = uniform((k-1)/2.,i_conf.G(), i_conf.rho());
 
       ++no_iterations;
 
@@ -118,7 +118,7 @@ ARG * Builder::build() const
 	    ++gene_conv_events;
 
 	    double point = uniform();
-	    double length = random_sign()*expdev(_conf.Q());
+	    double length = random_sign()*expdev(i_conf.Q());
 
 	    double start = std::max(0.0, (length < 0) ? point+length : point);
 	    double stop  = std::min(1.0, (length < 0) ? point : point+length);

@@ -8,13 +8,12 @@ recombination_rate: 0.5 # rho
 
 growth: 0.5
 
-mutation_rate: 0.5 # mu
-
-positions: 0.1 0.2 0.3   0.4 0.6 0.9   # marker positions
-markers:   snp snp trait ms  snp snp   # types of markers
-low_freq:  0.1 0.1 0.1   0.0 0.2 0.2   # low freq for traits and snps
-high_freq: 0.2 0.2 0.2   0.0 0.4 0.4   # high freq for traits and snps
-no_values: 0   0   0     4   0   0     # no possible values for ms
+positions:      0.1 0.2 0.3   0.4 0.6 0.9   # marker positions
+markers:        snp snp trait ms  snp snp   # types of markers
+low_freq:       0.1 0.1 0.1   0.0 0.2 0.2   # low freq for traits and snps
+high_freq:      0.2 0.2 0.2   0.0 0.4 0.4   # high freq for traits and snps
+no_values:      0   0   0     4   0   0     # no possible values for ms
+mutation_rates: 0   0   0     25  0   0     # rate of ms mutation
 
 print_all_nodes: true
 

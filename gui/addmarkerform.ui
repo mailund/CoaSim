@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>407</width>
-            <height>519</height>
+            <height>548</height>
         </rect>
     </property>
     <property name="caption">
@@ -85,7 +85,7 @@
                                 </property>
                                 <widget class="BapsFloatSpinBox">
                                     <property name="name">
-                                        <cstring>_trait_pos</cstring>
+                                        <cstring>i_trait_pos</cstring>
                                     </property>
                                     <property name="maxValue">
                                         <number>999</number>
@@ -99,7 +99,7 @@
                                 </widget>
                                 <widget class="BapsFloatSpinBox">
                                     <property name="name">
-                                        <cstring>_trait_low_freq</cstring>
+                                        <cstring>i_trait_low_freq</cstring>
                                     </property>
                                     <property name="maxValue">
                                         <number>1000</number>
@@ -113,7 +113,7 @@
                                 </widget>
                                 <widget class="BapsFloatSpinBox">
                                     <property name="name">
-                                        <cstring>_trait_high_freq</cstring>
+                                        <cstring>i_trait_high_freq</cstring>
                                     </property>
                                     <property name="maxValue">
                                         <number>1000</number>
@@ -225,7 +225,7 @@
                                 </property>
                                 <widget class="BapsFloatSpinBox">
                                     <property name="name">
-                                        <cstring>_snp_pos</cstring>
+                                        <cstring>i_snp_pos</cstring>
                                     </property>
                                     <property name="maxValue">
                                         <number>999</number>
@@ -239,7 +239,7 @@
                                 </widget>
                                 <widget class="BapsFloatSpinBox">
                                     <property name="name">
-                                        <cstring>_snp_low_freq</cstring>
+                                        <cstring>i_snp_low_freq</cstring>
                                     </property>
                                     <property name="maxValue">
                                         <number>1000</number>
@@ -253,7 +253,7 @@
                                 </widget>
                                 <widget class="BapsFloatSpinBox">
                                     <property name="name">
-                                        <cstring>_snp_high_freq</cstring>
+                                        <cstring>i_snp_high_freq</cstring>
                                     </property>
                                     <property name="maxValue">
                                         <number>1000</number>
@@ -323,7 +323,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout14</cstring>
+                                <cstring>layout28</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -345,11 +345,19 @@
                                         <string>Alphabet size:</string>
                                     </property>
                                 </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_2_3</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Mutation rate (theta):</string>
+                                    </property>
+                                </widget>
                             </vbox>
                         </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout31</cstring>
+                                <cstring>layout27</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -357,7 +365,7 @@
                                 </property>
                                 <widget class="BapsFloatSpinBox">
                                     <property name="name">
-                                        <cstring>_ms_pos</cstring>
+                                        <cstring>i_ms_pos</cstring>
                                     </property>
                                     <property name="maxValue">
                                         <number>999</number>
@@ -371,12 +379,26 @@
                                 </widget>
                                 <widget class="QSpinBox">
                                     <property name="name">
-                                        <cstring>_ms_size</cstring>
+                                        <cstring>i_ms_size</cstring>
                                     </property>
                                     <property name="minValue">
                                         <number>2</number>
                                     </property>
                                     <property name="value">
+                                        <number>2</number>
+                                    </property>
+                                </widget>
+                                <widget class="BapsFloatSpinBox">
+                                    <property name="name">
+                                        <cstring>i_ms_mutation_rate</cstring>
+                                    </property>
+                                    <property name="maxValue">
+                                        <number>10000</number>
+                                    </property>
+                                    <property name="lineStep">
+                                        <number>100</number>
+                                    </property>
+                                    <property name="decimals">
                                         <number>2</number>
                                     </property>
                                 </widget>
@@ -437,7 +459,7 @@
                 </property>
                 <widget class="QSlider">
                     <property name="name">
-                        <cstring>_next_pos_slider</cstring>
+                        <cstring>i_next_pos_slider</cstring>
                     </property>
                     <property name="maxValue">
                         <number>999</number>
@@ -470,7 +492,7 @@
                         </widget>
                         <widget class="QLineEdit">
                             <property name="name">
-                                <cstring>_next_pos</cstring>
+                                <cstring>i_next_pos</cstring>
                             </property>
                             <property name="enabled">
                                 <bool>true</bool>
@@ -495,7 +517,7 @@
                         </widget>
                         <widget class="BapsFloatSpinBox">
                             <property name="name">
-                                <cstring>_next_pos_step</cstring>
+                                <cstring>i_next_pos_step</cstring>
                             </property>
                             <property name="focusPolicy">
                                 <enum>WheelFocus</enum>
@@ -586,7 +608,7 @@
         <slot>add_trait()</slot>
     </connection>
     <connection>
-        <sender>_next_pos_slider</sender>
+        <sender>i_next_pos_slider</sender>
         <signal>valueChanged(int)</signal>
         <receiver>AddMarkerForm</receiver>
         <slot>next_pos_changed(int)</slot>
@@ -600,6 +622,7 @@
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
+    <includehint>baps_float_spin_box.hh</includehint>
     <includehint>baps_float_spin_box.hh</includehint>
     <includehint>baps_float_spin_box.hh</includehint>
     <includehint>baps_float_spin_box.hh</includehint>
