@@ -36,12 +36,31 @@
 <method name="total-branch-length">
   <brief>Returns the total tree branch length of the local tree of an interval.</brief>
   <prototype>(total-branch-length interval-or-tree)</prototype>
-  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
-(define intervals (let ((arg (simulate markers 100 :rho 400))) (intervals arg)))
-(map total-branch-length intervals)</example>
+  <example>  (use-modules (coasim rand))
+ (define markers (make-random-snp-markers 10 0.1 0.9))
+ (define intervals (intervals (simulate markers 100 :rho 400)))
+ (map total-branch-length intervals)</example>
   <description>
     <p>
      Returns the total tree branch length of the local tree of an interval.
+     The argument to the function can be either a local interval, as returned
+     by the intervals function, or a local tree, as returned by the local-trees
+     function.
+    </p>
+  </description>
+</method>
+
+
+<method name="tree-height">
+  <brief>Returns the height of the local tree of an interval.</brief>
+  <prototype>(tree-height interval-or-tree)</prototype>
+  <example> (use-modules (coasim rand))
+ (define markers (make-random-snp-markers 10 0.1 0.9))
+ (define intervals (local-trees (simulate markers 100 :rho 400)))
+ (map tree-height intervals)</example>
+  <description>
+    <p>
+     Returns the height of the local tree of an interval.
      The argument to the function can be either a local interval, as returned
      by the intervals function, or a local tree, as returned by the local-trees
      function.
@@ -307,6 +326,11 @@
       The following additional keyword arguments are available:
     </p>
     <ul>
+      <li><b>keep-empty-intervals:</b> Turns off an optimisation that 
+          removes intervals not containing markers from the ARG simulation.
+          This option is useful when the simulation is concerned with ARG
+          properties rather than just the resulting sequences.
+      </li>
       <li><b>random-seed:</b> an integer used as random seed for the
           simulation.  In most cases, this argument will not be used, but
           it is useful for regression testing of scheme modules for CoaSim.
@@ -418,71 +442,90 @@
 
 
 
-
-
-
- <module name="(coasim markers)">
+ <module name="(coasim SNP haplotypes)">
   <brief>
-    This module contains functions manipulating sorted lists of markers.
+    This module contains functions for manipulating SNP haplotypes.
   </brief>
 
-   <method name='sort-markers'>
-    <brief>Sort a list of markers.</brief>
-    <prototype>(sort-markers marker-list)</prototype>
-    <example>(sort-markers marker-list)</example>
+   <method name='split-in-cases-controls'>
+    <brief>Split a list of haplotypes into cases and controls.</brief>
+    <prototype>(split-in-cases-controls haplotypes trait-idx)</prototype>
+    <example> (define haplotypes (simulate-sequences markers 100))
+ (define cases-and-controls (split-in-cases-controls haplotypes trait-idx))
+ (define cases    (car  cases-and-controls))
+ (define controls (cadr cases-and-controls))</example>
     <description>
      <p>
-      Sort a list of markers with relation to their position.
+      Split a dataset into cases and controls, based on the value at
+      trait-idx.   The following keyword arguments can be used to control
+      the split:
      </p>
+     <ul>
+       <li><b>mutant-prob:</b> The probability that a mutant (allele 1) is 
+           considered a case.  By default this is 1.
+       </li>
+       <li><b>wild-type-prob:</b> The probability that a wild-type (allele 0) 
+           is considered a case.  By default this is 0.
+       </li>
+     </ul>
     </description>
    </method>
-   <method name='insert-sorted-idx'>
-    <brief>Inserts a marker in a sorted list of markers..</brief>
-    <prototype>(insert-sorted-idx marker-list marker)</prototype>
-    <example> (define snp-markers (make-random-snp-markers 10 0.1 0.9))
- (define disease-marker (car (make-random-trait-markers 1 0.18 0.22)))
- (define markers-and-index (insert-sorted-idx snp-markers disease-marker))</example>
+ </module>
+
+
+ <module name="(coasim SNP genotypes)">
+  <brief>
+    This module contains functions for manipulating SNP (unphased) genotypes.
+  </brief>
+
+   <method name='haplotypes->genotypes'>
+    <brief>Translate a list of SNP haplotypes into a list of SNP genotypes.</brief>
+    <prototype> (haplotypes->genotypes haplotype-list)</prototype>
+    <example> (use-modules (coasim rand) (coasim SNP genotypes))
+ (define haplotypes (simulate-sequences (make-random-snp-markers 4 0 1) 8))
+ (display haplotypes)(newline)
+ (define genotypes (haplotypes->genotypes haplotypes))
+ (display genotypes)(newline) </example>
     <description>
      <p>
-      This function inserts a marker into a sorted list of markers and
-      return a list who's first element is the resulting list and who's
-      second element is the index the marker got in the new list.
-     </p>
-    </description>
-   </method>
-   <method name='insert-sorted'>
-    <brief>Inserts a marker in a sorted list of markers.</brief>
-    <prototype>(insert-sorted sorted-marker-list marker)</prototype>
-    <example>(insert-sorted sorted-marker-list marker)</example>
-    <description>
-     <p>
-      This function inserts a marker into a sorted list of markers and
-      return the resulting list.
-     </p>
-    </description>
-   </method>
-   <method name='merge-markers'>
-    <brief>Merge two or more lists of sorted markers.</brief>
-    <prototype>(merge-markers . list-of-marker-lists)</prototype>
-    <example>(merge-markers marker-list-1 marker-list-2 marker-list-3)</example>
-    <description>
-     <p>
-      Merge two or more lists of sorted markers.
+      Translate a list containing an even number of SNP haplotypes
+      into a list of SNP genotypes.  The haplotypes are paired and the
+      alleles are translated such that homozygote 00 becomes 0, homozygote
+      11 becomes 1, and heterozygotes become 2.
      </p>
     </description>
    </method>
    <method name='split-in-cases-controls'>
-    <brief>Split a list of sequences into cases and controls.</brief>
-    <prototype>(split-in-cases-controls sequences trait-idx is-case?)</prototype>
-    <example>(use-modules (coasim markers))
-    (let ((is-case? (lambda (h) (= 1 (list-ref h trait-idx)))))
-        (split-in-cases-controls seqs trait-idx is-case?)))</example>
+    <brief>Split a list of genotypes into cases and controls.</brief>
+    <prototype>(split-in-cases-controls genotypes trait-idx)</prototype>
+    <example> (define haplotypes (simulate-sequences markers 100))
+ (define genotypes (haplotypes->genotypes haplotypes))
+ (define cases-and-controls (split-in-cases-controls genotypes trait-idx
+                                                     :disease-model 'recessive))
+ (define cases    (car  cases-and-controls))
+ (define controls (cadr cases-and-controls))</example>
     <description>
      <p>
       Split a dataset into cases and controls, based on the value at
-      trait-idx.  If the value at that index satisfy the is-case? predicate,
-      the sequence is considered a case, otherwise a control.
+      trait-idx.   The following keyword arguments can be used to control
+      the split:
      </p>
+     <ul>
+       <li><b>homozygote-0-prob:</b> The probability that genotype 0 (or 00)
+           is considered a case.  By default this is 0.
+       </li>
+       <li><b>homozygote-1-prob:</b> The probability that genotype 1 (or 11)
+           is considered a case.  By default this is 1.
+       </li>
+       <li><b>heterozygote-prob:</b> The probability that genotype 2 (01 or 10)
+           is considered a case.  By default this is 0.5.
+       </li>
+       <li><b>disase-model:</b> Should be either 'recessive or 'dominant;
+           if 'dominant genotypes 1 (11) and 2 (01 or 10) are considered cases,
+           if 'recessive only genotypes 1 (11) are considered cases.
+           only 
+       </li>
+     </ul>
     </description>
    </method>
  </module>
@@ -616,95 +659,6 @@
  </module>
 
 
- <module name="(coasim SNP genotypes)">
-  <brief>
-    This module contains functions for manipulating SNP (unphased) genotypes.
-  </brief>
-
-   <method name='haplotypes->genotypes'>
-    <brief>Translate a list of SNP haplotypes into a list of SNP genotypes.</brief>
-    <prototype> (haplotypes->genotypes haplotype-list)</prototype>
-    <example> (use-modules (coasim rand) (coasim SNP genotypes))
- (define haplotypes (simulate-sequences (make-random-snp-markers 4 0 1) 8))
- (display haplotypes)(newline)
- (define genotypes (haplotypes->genotypes haplotypes))
- (display genotypes)(newline) </example>
-    <description>
-     <p>
-      Translate a list containing an even number of SNP haplotypes
-      into a list of SNP genotypes.  The haplotypes are paired and the
-      alleles are translated such that homozygote 00 becomes 0, homozygote
-      11 becomes 1, and heterozygotes become 2.
-     </p>
-    </description>
-   </method>
-   <method name='split-in-cases-controls'>
-    <brief>Split a list of genotypes into cases and controls.</brief>
-    <prototype>(split-in-cases-controls genotypes trait-idx)</prototype>
-    <example> (define haplotypes (simulate-sequences markers 100))
- (define genotypes (haplotypes->genotypes haplotypes))
- (define cases-and-controls (split-in-cases-controls genotypes trait-idx
-                                                     :disease-model 'recessive))
- (define cases    (car  cases-and-controls))
- (define controls (cadr cases-and-controls))</example>
-    <description>
-     <p>
-      Split a dataset into cases and controls, based on the value at
-      trait-idx.   The following keyword arguments can be used to control
-      the split:
-     </p>
-     <ul>
-       <li><b>homozygote-0-prob:</b> The probability that genotype 0 (or 00)
-           is considered a case.  By default this is 0.
-       </li>
-       <li><b>homozygote-1-prob:</b> The probability that genotype 1 (or 11)
-           is considered a case.  By default this is 1.
-       </li>
-       <li><b>heterozygote-prob:</b> The probability that genotype 2 (01 or 10)
-           is considered a case.  By default this is 0.5.
-       </li>
-       <li><b>disase-model:</b> Should be either 'recessive or 'dominant;
-           if 'dominant genotypes 1 (11) and 2 (01 or 10) are considered cases,
-           if 'recessive only genotypes 1 (11) are considered cases.
-           only 
-       </li>
-     </ul>
-    </description>
-   </method>
- </module>
-
-
- <module name="(coasim SNP haplotypes)">
-  <brief>
-    This module contains functions for manipulating SNP haplotypes.
-  </brief>
-
-   <method name='split-in-cases-controls'>
-    <brief>Split a list of haplotypes into cases and controls.</brief>
-    <prototype>(split-in-cases-controls haplotypes trait-idx)</prototype>
-    <example> (define haplotypes (simulate-sequences markers 100))
- (define cases-and-controls (split-in-cases-controls haplotypes trait-idx))
- (define cases    (car  cases-and-controls))
- (define controls (cadr cases-and-controls))</example>
-    <description>
-     <p>
-      Split a dataset into cases and controls, based on the value at
-      trait-idx.   The following keyword arguments can be used to control
-      the split:
-     </p>
-     <ul>
-       <li><b>mutant-prob:</b> The probability that a mutant (allele 1) is 
-           considered a case.  By default this is 1.
-       </li>
-       <li><b>wild-type-prob:</b> The probability that a wild-type (allele 0) 
-           is considered a case.  By default this is 0.
-       </li>
-     </ul>
-    </description>
-   </method>
- </module>
-
-
  <module name="(coasim rand)">
   <brief>
     This module contains functions making random marker configurations.
@@ -750,6 +704,73 @@
   </description>
  </method>
 
+ </module>
+
+
+ <module name="(coasim markers)">
+  <brief>
+    This module contains functions manipulating sorted lists of markers.
+  </brief>
+
+   <method name='sort-markers'>
+    <brief>Sort a list of markers.</brief>
+    <prototype>(sort-markers marker-list)</prototype>
+    <example>(sort-markers marker-list)</example>
+    <description>
+     <p>
+      Sort a list of markers with relation to their position.
+     </p>
+    </description>
+   </method>
+   <method name='insert-sorted-idx'>
+    <brief>Inserts a marker in a sorted list of markers..</brief>
+    <prototype>(insert-sorted-idx marker-list marker)</prototype>
+    <example> (define snp-markers (make-random-snp-markers 10 0.1 0.9))
+ (define disease-marker (car (make-random-trait-markers 1 0.18 0.22)))
+ (define markers-and-index (insert-sorted-idx snp-markers disease-marker))</example>
+    <description>
+     <p>
+      This function inserts a marker into a sorted list of markers and
+      return a list who's first element is the resulting list and who's
+      second element is the index the marker got in the new list.
+     </p>
+    </description>
+   </method>
+   <method name='insert-sorted'>
+    <brief>Inserts a marker in a sorted list of markers.</brief>
+    <prototype>(insert-sorted sorted-marker-list marker)</prototype>
+    <example>(insert-sorted sorted-marker-list marker)</example>
+    <description>
+     <p>
+      This function inserts a marker into a sorted list of markers and
+      return the resulting list.
+     </p>
+    </description>
+   </method>
+   <method name='merge-markers'>
+    <brief>Merge two or more lists of sorted markers.</brief>
+    <prototype>(merge-markers . list-of-marker-lists)</prototype>
+    <example>(merge-markers marker-list-1 marker-list-2 marker-list-3)</example>
+    <description>
+     <p>
+      Merge two or more lists of sorted markers.
+     </p>
+    </description>
+   </method>
+   <method name='split-in-cases-controls'>
+    <brief>Split a list of sequences into cases and controls.</brief>
+    <prototype>(split-in-cases-controls sequences trait-idx is-case?)</prototype>
+    <example>(use-modules (coasim markers))
+    (let ((is-case? (lambda (h) (= 1 (list-ref h trait-idx)))))
+        (split-in-cases-controls seqs trait-idx is-case?)))</example>
+    <description>
+     <p>
+      Split a dataset into cases and controls, based on the value at
+      trait-idx.  If the value at that index satisfy the is-case? predicate,
+      the sequence is considered a case, otherwise a control.
+     </p>
+    </description>
+   </method>
  </module>
 
 

@@ -407,7 +407,7 @@ CoalescentNode *ARG::coalescence(double time, Node *left, Node *right)
     std::vector<Interval> retired;
     Intervals non_retired;
     Intervals merged = left->intervals() | right->intervals();
-    merged = filter_contains_marker(merged, i_conf);
+    if (!i_keep_empty) merged = filter_contains_marker(merged, i_conf);
 
 #if 0
     std::cout << "coalescence -- left: " << left->intervals() << std::endl;
@@ -463,9 +463,9 @@ ARG::recomb_node_pair_t ARG::recombination(double time, Node *child,
 	throw null_event();
 
     Intervals left  = child->intervals().copy(0.0,cross_over_point);
-    left  = filter_contains_marker(left, i_conf);
+    if (!i_keep_empty) left  = filter_contains_marker(left, i_conf);
     Intervals right = child->intervals().copy(cross_over_point,1.0);
-    right = filter_contains_marker(right, i_conf);
+    if (!i_keep_empty) right = filter_contains_marker(right, i_conf);
 
 #if 0
     std::cout << "recombination -- child: " << child->intervals() << std::endl;
@@ -501,11 +501,11 @@ ARG::gene_conv_node_pair_t ARG::gene_conversion(double time, Node *child,
 
     Intervals left  = child->intervals().copy(0.0, conversion_start)
 	+ child->intervals().copy(conversion_end, 1.0);
-    left  = filter_contains_marker(left, i_conf);
+    if (!i_keep_empty) left  = filter_contains_marker(left, i_conf);
 
     Intervals right =
 	child->intervals().copy(conversion_start, conversion_end);
-    right = filter_contains_marker(right, i_conf);
+    if (!i_keep_empty) right = filter_contains_marker(right, i_conf);
 
 
 #if 0

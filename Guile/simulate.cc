@@ -299,6 +299,11 @@ void ProfileMonitor::builder_termination(unsigned int no_nodes,
       The following additional keyword arguments are available:
     </p>
     <ul>
+      <li><b>keep-empty-intervals:</b> Turns off an optimisation that 
+          removes intervals not containing markers from the ARG simulation.
+          This option is useful when the simulation is concerned with ARG
+          properties rather than just the resulting sequences.
+      </li>
       <li><b>random-seed:</b> an integer used as random seed for the
           simulation.  In most cases, this argument will not be used, but
           it is useful for regression testing of scheme modules for CoaSim.
@@ -386,14 +391,24 @@ void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
 }
 
 static SCM
-simulate(SCM s_markers, SCM s_no_leaves,
-	 SCM s_rho, SCM s_gamma, SCM s_Q, SCM s_beta,
-	 SCM coa_cb, SCM rc_cb, SCM gc_cb, SCM s_random_seed)
+simulate(SCM s_markers,		// 1
+	 SCM s_no_leaves,	// 2
+	 SCM s_sim_parameters,	// 3
+	 SCM coa_cb, 		// 4
+	 SCM rc_cb, 		// 5
+	 SCM gc_cb, 		// 6
+	 SCM s_keep_empty,	// 7
+	 SCM s_random_seed)	// 8
 {
     using namespace std;
 
     SCM_ASSERT(SCM_NFALSEP(scm_list_p(s_markers)),
 	       s_markers, SCM_ARG1, "simulate");
+
+    SCM s_rho   = SCM_CAR(s_sim_parameters);
+    SCM s_gamma = SCM_CADR(s_sim_parameters);
+    SCM s_Q     = SCM_CADDR(s_sim_parameters);
+    SCM s_beta  = SCM_CADDDR(s_sim_parameters);
 
     double rho   = scm_num2dbl(s_rho,   "simulate");
     double Q     = scm_num2dbl(s_Q,     "simulate");
@@ -410,7 +425,7 @@ simulate(SCM s_markers, SCM s_no_leaves,
 		       SCM_SMOB_PREDICATE(guile::snp_marker_tag, marker_smob)
 		       or
 		       SCM_SMOB_PREDICATE(guile::ms_marker_tag, marker_smob),
-		       marker_smob, SCM_ARG2, "simulate");
+		       marker_smob, SCM_ARG1, "simulate");
 
 	    core::Marker *marker = (core::Marker*) SCM_SMOB_DATA(marker_smob);
 	    markers.push_back(marker);
@@ -425,26 +440,27 @@ simulate(SCM s_markers, SCM s_no_leaves,
     if (coa_cb != SCM_EOL)
 	{
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(coa_cb)),
-		       coa_cb, SCM_ARG7, "c-simulate");
+		       coa_cb, SCM_ARG4, "c-simulate");
 	    cb.set_coa_cb(coa_cb);
 	    has_cb = true;
 	}
     if (rc_cb != SCM_EOL)
 	{
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(rc_cb)),
-		       rc_cb, 8, "c-simulate");
+		       rc_cb, 5, "c-simulate");
 	    cb.set_rc_cb(rc_cb);
 	    has_cb = true;
 	}
     if (gc_cb != SCM_EOL)
 	{
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(gc_cb)),
-		       gc_cb, 9, "c-simulate");
+		       gc_cb, 6, "c-simulate");
 	    cb.set_gc_cb(gc_cb);
 	    has_cb = true;
 	}
 
-    unsigned int seed = scm_num2int(s_random_seed, 10, "simulate");
+    bool keep_empty = SCM_NFALSEP(s_keep_empty);
+    unsigned int seed = scm_num2int(s_random_seed, 8, "c-simulate");
 
     try {
 	auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
@@ -456,6 +472,7 @@ simulate(SCM s_markers, SCM s_no_leaves,
 	auto_ptr<core::ARG> arg(core::Simulator::simulate(*conf, 
 							  monitor.get(),
 							  has_cb ? &cb : 0,
+							  keep_empty,
 							  seed));
 
 	void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
@@ -662,7 +679,7 @@ guile::install_simulate()
     guile::arg_tag = scm_make_smob_type("arg", sizeof(ARGData));
     scm_set_smob_free(guile::arg_tag, free_arg);
 
-    scm_c_define_gsubr("c-simulate", 10, 0, 0, 
+    scm_c_define_gsubr("c-simulate", 8, 0, 0, 
 		       (scm_unused_struct*(*)())simulate);
     scm_c_eval_string("(use-modules (ice-9 optargs))"
 		      "(define (simulate ms n . args)"
@@ -673,12 +690,14 @@ guile::install_simulate()
 		      "                         (coalescence-callback '())"
 		      "                         (recombination-callback '())"
 		      "                         (geneconversion-callback '())"
+		      "                         (keep-empty-intervals #f)"
 		      "                         (random-seed 0))"
 		      "		(c-simulate ms n"
-		      "                     rho gamma Q beta"
+		      "                     (list rho gamma Q beta)"
 		      "                     coalescence-callback"
 		      "                     recombination-callback"
 		      "                     geneconversion-callback"
+		      "                     keep-empty-intervals"
 		      "                     random-seed)))");
 
 

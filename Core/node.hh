@@ -142,7 +142,10 @@ namespace core {
 
 
 	// -- Initialization and book-keeping -----------------------------------
-	ARG(const Configuration &conf) : i_conf(conf), i_no_leaves(0) {}
+	ARG(const Configuration &conf, bool keep_empty_intervals = false)
+	    : i_conf(conf), i_keep_empty(keep_empty_intervals),
+	      i_no_leaves(0)
+	{}
 
 	// Cleanup.  Destroying the ARG also deletes all nodes in it, so
 	// don't keep any pointers to them around after this deletion.
@@ -192,6 +195,7 @@ namespace core {
 	ARG &operator = (const ARG&);
 
 	const Configuration &i_conf;
+	bool i_keep_empty;
 	size_t i_no_leaves;
 
 	// pools of nodes -- FIXME: can be handled more efficiently...

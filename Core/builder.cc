@@ -81,11 +81,12 @@ namespace
 
 
 ARG * Builder::build(SimulationMonitor *mon,
-		     BuilderMonitor    *callbacks) const
+		     BuilderMonitor    *callbacks,
+		     bool keep_empty_intervals) const
 {
     using namespace Distribution_functions;
 
-    std::auto_ptr<ARG> arg(new ARG(i_conf));
+    std::auto_ptr<ARG> arg(new ARG(i_conf, keep_empty_intervals));
     TopNodeSet top_nodes;
 
     // initialize
