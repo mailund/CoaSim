@@ -1,6 +1,6 @@
 
-#ifndef TRAIT_OR_SNP_TABLE_HH_INCLUDED
-#define TRAIT_OR_SNP_TABLE_HH_INCLUDED
+#ifndef MS_TABLE_HH_INCLUDED
+#define MS_TABLE_HH_INCLUDED
 
 #ifndef POSITION_CHECKER_HH_INCLUDED
 # include "position_checker.hh"
@@ -11,12 +11,12 @@
 # define QTABLE_H_INCLUDED
 #endif
 
-class TraitOrSNPTable : public ::QTable {
+class MSTable : public ::QTable {
     Q_OBJECT
 
 public:
-    TraitOrSNPTable(QWidget *parent = 0, const char *name = 0);
-    ~TraitOrSNPTable();
+    MSTable(QWidget *parent = 0, const char *name = 0);
+    ~MSTable();
 
     // set checker -- steals the reference
     void setPositionChecker(PositionChecker *c) { checker = c; }

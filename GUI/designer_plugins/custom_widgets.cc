@@ -5,6 +5,9 @@
 #ifndef TRAIT_OR_SNP_TABLE_HH_INCLUDED
 # include "trait_or_snp_table.hh"
 #endif
+#ifndef MS_TABLE_HH_INCLUDED
+# include "ms_table.hh"
+#endif
 
 #ifndef QWIDGETPLUGIN_H_INCLUDED
 # include <qwidgetplugin.h>
@@ -37,6 +40,7 @@ CustomWidgetPlugin::keys() const
     QStringList list;
     list << "FloatSpinBox";
     list << "TraitOrSNPTable";
+    list << "MSTable";
     return list;
 }
 
@@ -46,6 +50,7 @@ CustomWidgetPlugin::create(const QString &key,
 {
     if ( key == "FloatSpinBox" )    return new FloatSpinBox( parent, name );
     if ( key == "TraitOrSNPTable" ) return new TraitOrSNPTable( parent, name );
+    if ( key == "MSTable" )         return new MSTable( parent, name );
     return 0;
 }
 
@@ -54,6 +59,7 @@ CustomWidgetPlugin::includeFile(const QString& feature) const
 {
     if ( feature == "FloatSpinBox" )    return "float_spin_box.hh";
     if ( feature == "TraitOrSNPTable" ) return "trait_or_snp_table.hh";
+    if ( feature == "MSTable" )         return "ms_table.hh";
     return QString::null;
 }
 
@@ -79,6 +85,8 @@ CustomWidgetPlugin::toolTip( const QString& feature ) const
 	return "Spin box for floats";
     if ( feature == "TraitOrSNPTable" ) 
 	return "Table for specifying trait or SNP markers";
+    if ( feature == "MSTable" ) 
+	return "Table for specifying micro-satellite markers";
     return QString::null;
 }
 
@@ -89,6 +97,8 @@ CustomWidgetPlugin::whatsThis(const QString& feature) const
 	return "A spin box widget for floats";
     if ( feature == "TraitOrSNPTable" ) 
 	return "Table for specifying trait or SNP markers";
+    if ( feature == "MSTable" ) 
+	return "Table for specifying micro-satellite markers";
     return QString::null;
 }
 

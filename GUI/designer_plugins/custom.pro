@@ -13,13 +13,18 @@ isEmpty(target.path):target.path=$$QT_PREFIX/plugins
 
 INSTALLS += target
 
+#INCLUDEPATH += ../.ui/
 INCLUDEPATH += ../custom_widgets
+
 HEADERS  += ../custom_widgets/float_spin_box.hh
+HEADERS  += ../custom_widgets/position_checker.hh
 HEADERS  += ../custom_widgets/trait_or_snp_table.hh
+HEADERS  += ../custom_widgets/ms_table.hh
+
 SOURCES  += ../custom_widgets/float_spin_box.cc 
 SOURCES  += ../custom_widgets/trait_or_snp_table.cc 
+SOURCES  += ../custom_widgets/ms_table.cc 
 SOURCES  += custom_widgets.cc
-
 
 unix {
   UI_DIR = .ui

@@ -26,9 +26,11 @@ INCLUDEPATH += ../
 
 HEADERS	+= custom_widgets/float_spin_box.hh
 HEADERS	+= custom_widgets/trait_or_snp_table.hh
+HEADERS	+= custom_widgets/ms_table.hh
 
 SOURCES	+= custom_widgets/float_spin_box.cc
 SOURCES	+= custom_widgets/trait_or_snp_table.cc
+SOURCES	+= custom_widgets/ms_table.cc
 
 
 

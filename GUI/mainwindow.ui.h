@@ -12,6 +12,7 @@
 
 #include "simulationdialog.h"
 #include "simulationparametersdialog.h"
+
 #include <qmessagebox.h>
 
 void MainWindow::init()
@@ -29,6 +30,31 @@ void MainWindow::init()
     // and the same for buttons -- setting them to the larger SNP button
     addTraitButton->setMinimumSize(addSNPButton->sizeHint());
     addMSButton->setMinimumSize(addSNPButton->sizeHint());
+
+    // doing this manually since there is a bug in uic
+    // <URL:http://lists.trolltech.com/qt-interest/2003-02/thread00173-0.html>
+
+    traitMarkerTable->horizontalHeader()->setLabel(0, tr("Position"));
+    traitMarkerTable->horizontalHeader()->setLabel(1, tr("High Freq."));
+    traitMarkerTable->horizontalHeader()->setLabel(2, tr("Low Freq."));
+
+    SNPMarkerTable->horizontalHeader()->setLabel(0, tr("Position"));
+    SNPMarkerTable->horizontalHeader()->setLabel(1, tr("High Freq."));
+    SNPMarkerTable->horizontalHeader()->setLabel(2, tr("Low Freq."));
+
+    MSMarkerTable->horizontalHeader()->setLabel(0, tr("Position"));
+    MSMarkerTable->horizontalHeader()->setLabel(1, tr("Alphabet Size"));
+    MSMarkerTable->horizontalHeader()->setLabel(2, tr("Mutation Rate"));
+
+    struct PositionCheckerHook : PositionChecker {
+	MainWindow *main_window;
+	PositionCheckerHook(MainWindow *mw) : main_window(mw) {}
+	bool check(int pos) { return main_window->checkMarkerPosition(pos); }
+    };
+
+    traitMarkerTable->setPositionChecker(new PositionCheckerHook(this));
+    SNPMarkerTable->setPositionChecker(new PositionCheckerHook(this));
+    MSMarkerTable->setPositionChecker(new PositionCheckerHook(this));
 }
 
 void MainWindow::fileExit()
@@ -74,14 +100,14 @@ static bool checkTable(int pos, QTable *table, QString markerType)
     
     int noRows = table->numRows();
     for (int i = 0; i < noRows; ++i) { 
-	int rowPos = table->text(i,0).mid(2).toInt();
-	if (rowPos == pos)  {
-	    QMessageBox::warning(0, QObject::tr("Position Error"),
-				 QString(QObject::tr("The chosen position is already occupied by a %1 marker.")).arg(markerType),
-				 "OK");
-	    return false;
-	} 
-	if (rowPos > pos) return true; // safe since the table is sorted
+ int rowPos = table->text(i,0).mid(2).toInt();
+ if (rowPos == pos)  {
+     QMessageBox::warning(0, QObject::tr("Position Error"),
+     QString(QObject::tr("The chosen position is already occupied by a %1 marker.")).arg(markerType),
+     "OK");
+     return false;
+ } 
+ if (rowPos > pos) return true; // safe since the table is sorted
     }
     return true;
 }

@@ -38,7 +38,7 @@
                 </property>
                 <widget class="QTabWidget">
                     <property name="name">
-                        <cstring>tabWidget2</cstring>
+                        <cstring>traitMarkers</cstring>
                     </property>
                     <widget class="QWidget">
                         <property name="name">
@@ -51,7 +51,7 @@
                             <property name="name">
                                 <cstring>unnamed</cstring>
                             </property>
-                            <widget class="QTable">
+                            <widget class="TraitOrSNPTable">
                                 <column>
                                     <property name="text">
                                         <string>Position</string>
@@ -233,29 +233,20 @@
                             <property name="name">
                                 <cstring>unnamed</cstring>
                             </property>
-                            <widget class="QTable">
+                            <widget class="TraitOrSNPTable">
                                 <column>
                                     <property name="text">
                                         <string>Position</string>
-                                    </property>
-                                    <property name="pixmap">
-                                        <pixmap></pixmap>
                                     </property>
                                 </column>
                                 <column>
                                     <property name="text">
                                         <string>High Freq.</string>
                                     </property>
-                                    <property name="pixmap">
-                                        <pixmap></pixmap>
-                                    </property>
                                 </column>
                                 <column>
                                     <property name="text">
                                         <string>Low Freq.</string>
-                                    </property>
-                                    <property name="pixmap">
-                                        <pixmap></pixmap>
                                     </property>
                                 </column>
                                 <property name="name">
@@ -422,9 +413,9 @@
                         </attribute>
                         <vbox>
                             <property name="name">
-                                <cstring>unnamed_2</cstring>
+                                <cstring>unnamed</cstring>
                             </property>
-                            <widget class="QTable">
+                            <widget class="MSTable">
                                 <column>
                                     <property name="text">
                                         <string>Position</string>
@@ -437,11 +428,14 @@
                                 </column>
                                 <column>
                                     <property name="text">
-                                        <string>Mutation rate</string>
+                                        <string>Mutation Rate &lt;i&gt;(mu)&lt;/i&gt;</string>
                                     </property>
                                 </column>
                                 <property name="name">
                                     <cstring>MSMarkerTable</cstring>
+                                </property>
+                                <property name="resizePolicy">
+                                    <enum>AutoOne</enum>
                                 </property>
                                 <property name="numRows">
                                     <number>0</number>
@@ -856,7 +850,7 @@
     </connection>
 </connections>
 <tabstops>
-    <tabstop>tabWidget2</tabstop>
+    <tabstop>traitMarkers</tabstop>
     <tabstop>traitPosition</tabstop>
     <tabstop>traitLowFreq</tabstop>
     <tabstop>traitHighFreq</tabstop>
@@ -865,7 +859,6 @@
     <tabstop>SNPLowFreq</tabstop>
     <tabstop>SNPHighFreq</tabstop>
     <tabstop>addSNPButton</tabstop>
-    <tabstop>MSMarkerTable</tabstop>
     <tabstop>MSPosition</tabstop>
     <tabstop>MSAlphabetSize</tabstop>
     <tabstop>MStheta</tabstop>
@@ -897,17 +890,20 @@
 <functions>
     <function access="private" specifier="non virtual">init()</function>
     <function access="private" specifier="non virtual" returnType="int">updateNextPosition( int pos )</function>
-    <function access="private" specifier="non virtual" returnType="bool">checkMarkerPosition( int pos )</function>
+    <function specifier="non virtual" returnType="bool">checkMarkerPosition( int pos )</function>
 </functions>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
+    <includehint>trait_or_snp_table.hh</includehint>
     <includehint>float_spin_box.hh</includehint>
     <includehint>float_spin_box.hh</includehint>
     <includehint>float_spin_box.hh</includehint>
+    <includehint>trait_or_snp_table.hh</includehint>
     <includehint>float_spin_box.hh</includehint>
     <includehint>float_spin_box.hh</includehint>
     <includehint>float_spin_box.hh</includehint>
+    <includehint>ms_table.hh</includehint>
     <includehint>float_spin_box.hh</includehint>
     <includehint>float_spin_box.hh</includehint>
     <includehint>float_spin_box.hh</includehint>

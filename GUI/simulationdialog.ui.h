@@ -18,6 +18,8 @@
 #include "simulation_monitor.hh"
 
 #include <float_spin_box.hh>
+#include <trait_or_snp_table.hh>
+
 #include <qspinbox.h>
 #include <qtable.h>
 #include <qmessagebox.h>
