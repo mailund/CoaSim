@@ -1,7 +1,7 @@
 TEMPLATE	= app
 LANGUAGE	= C++
 
-CONFIG	+= qt warn_on release exceptions
+CONFIG	+= qt warn_on release exceptions debug_on
 
 unix:LIBS	+= -L../Core -lcoasim
 
@@ -17,7 +17,9 @@ FORMS	= simulationdialog.ui \
 	simulationparametersdialog.ui
 
 IMAGES	= images/coasim-icon.png \
-	images/CoaSim-splash.png
+	images/CoaSim-splash.png \
+	images/bioinformatics-exit-icon.png \
+	images/bioinformatics-run-icon.png
 
 HEADERS	+= simulation_monitor.hh 
 

@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>508</width>
-            <height>529</height>
+            <height>559</height>
         </rect>
     </property>
     <property name="caption">
@@ -696,6 +696,17 @@
     <separator/>
 </menubar>
 <toolbars>
+    <toolbar dock="2">
+        <property name="name">
+            <cstring>Toolbar</cstring>
+        </property>
+        <property name="label">
+            <string>Toolbar</string>
+        </property>
+        <action name="fileExitAction"/>
+        <separator/>
+        <action name="simSimulateAction"/>
+    </toolbar>
 </toolbars>
 <actions>
     <action>
@@ -703,13 +714,16 @@
             <cstring>fileExitAction</cstring>
         </property>
         <property name="iconSet">
-            <iconset></iconset>
+            <iconset>bioinformatics-exit-icon.png</iconset>
         </property>
         <property name="text">
             <string>Exit</string>
         </property>
         <property name="menuText">
             <string>E&amp;xit</string>
+        </property>
+        <property name="accel">
+            <string>Ctrl+Q</string>
         </property>
     </action>
     <action>
@@ -733,14 +747,20 @@
         <property name="name">
             <cstring>simSimulateAction</cstring>
         </property>
+        <property name="iconSet">
+            <iconset>bioinformatics-run-icon.png</iconset>
+        </property>
         <property name="text">
-            <string>&amp;Simulate...</string>
+            <string>&amp;Run simulation...</string>
         </property>
         <property name="menuText">
-            <string>&amp;Simulate...</string>
+            <string>&amp;Run simulation...</string>
         </property>
         <property name="toolTip">
             <string>Run simulation</string>
+        </property>
+        <property name="accel">
+            <string>Ctrl+R</string>
         </property>
     </action>
     <action>
@@ -755,6 +775,25 @@
         </property>
         <property name="toolTip">
             <string>Set simulation parameters</string>
+        </property>
+    </action>
+    <actiongroup>
+        <property name="name">
+            <cstring>ActionGroup</cstring>
+        </property>
+        <property name="text">
+            <string>ActionGroup</string>
+        </property>
+        <property name="usesDropDown">
+            <bool>false</bool>
+        </property>
+    </actiongroup>
+    <action>
+        <property name="name">
+            <cstring>Action</cstring>
+        </property>
+        <property name="text">
+            <string>Unnamed</string>
         </property>
     </action>
 </actions>

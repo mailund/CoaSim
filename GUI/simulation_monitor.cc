@@ -40,7 +40,11 @@ void Monitor::run()
 {
     // FIXME: run this in separate thread!
     core::ARG *arg = core::Simulator::simulate(*i_conf, this);
-    if (!arg) /* aborted */ i_feedback->close();
+    if (!arg) /* aborted */ 
+	{
+	    i_feedback->close();
+	    return;
+	}
 
     SimResultsDialog res(i_feedback);
 
@@ -57,7 +61,6 @@ void Monitor::run()
 					.arg(arg->leaves()[h]->state(m)));
 
 
-    // FIXME: fill out table...
     res.exec();
     delete arg;
 }

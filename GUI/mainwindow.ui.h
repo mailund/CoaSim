@@ -154,6 +154,16 @@ void MainWindow::nextPosChanged( int pos )
 
 void MainWindow::runSimulation()
 {
+    if (traitMarkerTable->numRows() == 0
+	and SNPMarkerTable->numRows() == 0
+	and MSMarkerTable->numRows() == 0)
+	{
+	    QMessageBox::warning(this, tr("No Markers!"),
+				 tr("At least one marker must be "
+				    "specified to run a simulation."));
+	    return;
+	}
+
     SimulationDialog *simulation = 
 	new SimulationDialog(this, "Simulate", false, WDestructiveClose);
     simulation->show();

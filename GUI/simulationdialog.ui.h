@@ -20,6 +20,7 @@
 #include <baps_float_spin_box.hh>
 #include <qspinbox.h>
 #include <qtable.h>
+#include <qmessagebox.h>
 
 #include <iostream>
 
