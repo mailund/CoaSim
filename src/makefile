@@ -9,19 +9,26 @@ source = coasim.cc \
          reporter.hh dist_funcs.hh descender.hh
 
 interval_test_objects = interval_test.o interval.o
+configuration_test_objects = configuration.o configuration_test.o
 node_test_objects = node_test.o node_t.o interval.o test_dist_funcs.o
 
-coasim : $(objects)
-	$(CXX) $(CXXFLAGS) -o coasim $(objects)
+#coasim : $(objects)
+#	$(CXX) $(CXXFLAGS) -o coasim $(objects)
 
 test: test_programs
 	if ! ./interval_test; then echo "FAILURE: interval_test failed!"; fi
-	if ! ./node_test;     then echo "FAILURE: node_test failed!"; fi
+	if ! ./configuration_test; then \
+             echo "FAILURE: configuration_test failed!"; \
+        fi
+	if ! ./node_test; then echo "FAILURE: node_test failed!"; fi
 
-test_programs: interval_test node_test
+test_programs: interval_test configuration_test node_test
 
 interval_test: $(interval_test_objects)
 	$(CXX) $(CXXFLAGS) -o interval_test $(interval_test_objects)
+
+configuration_test: $(configuration_test_objects)
+	$(CXX) $(CXXFLAGS) -o configuration_test $(configuration_test_objects)
 
 node_test: $(node_test_objects)
 	$(CXX) $(CXXFLAGS) -o node_test $(node_test_objects)

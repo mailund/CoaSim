@@ -1,10 +1,65 @@
 #ifndef NODE_HH
 #define NODE_HH
-#include "dist_funcs.hh"
-#include <vector>
-#include <valarray>
-#include "interval.hh"
 
+#include "interval.hh"
+#include "configuration.hh"
+
+#include <stdexcept>
+#include <algorithm>
+#include <vector>
+
+class ARG
+{
+public:
+
+  /* Abstract class for ARG nodes. */
+  class Node 
+  {
+  public:
+    Node(double time) : _time(time) {}
+    Node(double time, const Intervals &i) : _time(time), _intervals(i) {}
+    virtual ~Node() {};
+
+    const Intervals &intervals() const { return _intervals; }
+
+  private:
+    double    _time;
+    Intervals _intervals;
+  };
+
+  // Exception thrown if a node is created with a 0-child
+  class null_child : public std::exception {};
+
+
+  // Initialization and book-keeping
+  ARG(const Configuration &conf) : _conf(conf) {}
+
+  // Cleanup.  Destroying the ARG also deletes all nodes in it, so
+  // don't keep any pointers to them around after this deletion.
+  ~ARG();
+
+
+  // Factory methods for building the ARG
+  Node *leaf()                                            throw();
+  Node *coalescence(double time, Node *left, Node *right) throw(null_child);
+  // these methods return a pair of new nodes, if two nodes were
+  // actually created, or the child node (as the first element in
+  // pair, the second being 0), if one of the nodes created would
+  // otherwise be immediately retired
+  typedef std::pair<Node*,Node*> node_pair_t;
+  node_pair_t recombination(double time, Node *child)     throw(null_child);
+  node_pair_t gene_conversion(double time, Node *child)   throw(null_child);
+
+
+private:
+  const Configuration &_conf;  
+
+  // pools of nodes -- FIXME: can be handled more efficiently...
+  std::vector<Node*> _node_pool;
+};
+
+
+#if 0
 class Coalescent_node;
 class Genconversion_node;
 class Recombination_node;
@@ -299,5 +354,7 @@ private:
   static std::vector<Genconversion_node*> geneconversion_nodes;
   static int next_node;
 };
+#endif // 0
+
 
 #endif

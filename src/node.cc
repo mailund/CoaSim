@@ -1,8 +1,117 @@
+#include "node.hh"
+#include "dist_funcs.hh"
+
 #include <sstream>
 #include<string>
-#include "node.hh"
 #include <valarray>
 
+
+namespace {
+
+  class LeafNode : public ARG::Node
+  {
+    friend Node *ARG::leaf();
+    LeafNode() : Node(0.0) {}
+  };
+
+
+  // WARNING: None of the following classes checks whether they are
+  // initialized with a null-child, but will crash if that is the
+  // case.  They should only be created with the corresponding factory
+  // method anyway, and it checks for it, so *DON'T* create these
+  // objects in any other way!
+
+  class CoalescentNode : public ARG::Node
+  {
+    friend Node *ARG::coalescence(double,Node*,Node*);
+    CoalescentNode(double time, Node *left, Node *right, const Intervals &is)
+      : Node(time,is), _left(left), _right(right)
+    {}
+    Node *const _left;
+    Node *const _right;
+  };
+  
+  class RecombinationNode : public ARG::Node
+  {
+    friend ARG::node_pair_t ARG::recombination(double,Node*);
+    RecombinationNode(double time, Node *child, const Intervals &is)
+      : Node(time,is), _child(child)
+    {}
+    Node *const _child;
+  };
+
+  class GeneConversionNode : public ARG::Node
+  {
+    friend ARG::node_pair_t ARG::gene_conversion(double,Node*);
+    GeneConversionNode(double time, Node *child, const Intervals &is)
+      : Node(time,is), _child(child)
+    {}
+    Node *const _child;
+  };
+}
+
+
+ARG::~ARG()
+{
+  std::vector<Node*>::iterator itr;
+  for (itr = _node_pool.begin(); itr != _node_pool.end(); ++itr)
+    delete *itr;
+}
+
+ARG::Node *ARG::leaf() throw()
+{
+  LeafNode *n = new LeafNode();
+  _node_pool.push_back(n);
+  return n;
+}
+
+ARG::Node *ARG::coalescence(double time, Node *left, Node *right)
+  throw(null_child)
+{
+  if (left == 0 or right == 0) throw null_child();
+  CoalescentNode *n =
+    new CoalescentNode(time,left,right,left->intervals()|right->intervals());
+  _node_pool.push_back(n);
+  return n;
+}
+
+ARG::node_pair_t ARG::recombination(double time, Node *child)
+  throw(null_child)
+{
+  if (child == 0) throw null_child();
+
+  double cross_over_point = Distribution_functions::uniform();
+  if (cross_over_point <= child->intervals().first_point())
+    return std::make_pair<Node*,Node*>(child,0);
+  if (child->intervals().last_point() <= cross_over_point)
+    return std::make_pair<Node*,Node*>(child,0);
+
+  Intervals left  = child->intervals().copy(0,cross_over_point);
+  Intervals right = child->intervals().copy(cross_over_point,1);
+
+  RecombinationNode *n1 = new RecombinationNode(time,child,left);
+  RecombinationNode *n2 = new RecombinationNode(time,child,right);
+  _node_pool.push_back(n1); _node_pool.push_back(n2);
+
+  return std::make_pair(n1,n2);
+}
+
+ARG::node_pair_t ARG::gene_conversion(double time, Node *child)
+  throw(null_child)
+{
+  if (child == 0) throw null_child();
+  return std::make_pair<Node*,Node*>(child,0);
+#if 0 // FIXME
+  GeneConversionNode *n = new GeneConversionNode(time,child);
+  _gene_conversion_node_pool.push_back(n);
+  return n;
+#endif
+}
+
+
+
+
+#if 0
 std::vector< std::vector<int> > Node::_value_set(0);
 std::vector<double> Node::_pos(0);
 
@@ -665,3 +774,4 @@ void Genconversion_node::evolve(int site, double mu)
   }      
 };
 
+#endif
