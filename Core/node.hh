@@ -207,7 +207,9 @@ namespace core {
     class LeafNode : public Node
     {
 	friend LeafNode *ARG::leaf();
-	LeafNode(const Configuration &conf) : Node(conf,0.0) {}
+	LeafNode(const Configuration &conf, unsigned int id) 
+	    : Node(conf,0.0), i_id(id)
+	{}
 
 	virtual double surface_at_point(double point) const
 	    throw(std::out_of_range);
@@ -218,6 +220,8 @@ namespace core {
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
 	virtual void node_to_xml(std::ostream &os) const;
 	virtual void mutation_to_xml(std::ostream &os) const;
+
+	unsigned int i_id;
     };
 
 

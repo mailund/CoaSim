@@ -83,7 +83,7 @@ core::LeafNode::print_tree_at_point(std::ostream &os, double point,
 {
     if (point < 0 or 1.0 <= point) 
 	throw std::out_of_range("Point out of range [0,1).");
-    os << "\"\"";
+    os << '"' << i_id << '"';
     if (print_edge) os << " : " << edge_length;
 }
 
@@ -369,21 +369,8 @@ ARG::~ARG()
 
 LeafNode *ARG::leaf() throw()
 {
-    LeafNode *n = new LeafNode(i_conf);
-
-#if 0 //OPTIMIZATION_1
-    for (unsigned int i = 0; i < i_conf.no_markers(); ++i)
-	{
-	    double marker_pos = i_conf.position(i);
-	    double start = std::max(0.0, marker_pos - 1e-5);
-	    double stop  = std::min(1.0, marker_pos + 1e-5);
-	    n->_intervals.add(start,stop,1);
-	}
-#else
-    // the leaves covers the entire interval [0,1)
+    LeafNode *n = new LeafNode(i_conf, i_no_leaves);
     n->i_intervals.add(0.0,1.0,1);
-#endif
-
     i_leaf_pool.push_back(n);
     ++i_no_leaves;
 
