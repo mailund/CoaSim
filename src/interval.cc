@@ -40,7 +40,7 @@ Intervals* Intervals::add_interval(Intervals* i_val)
 };
 
 Intervals* Intervals::operator+(Intervals in)
-  // this operator adds to intervals where all Interval on the one Intervals comes before all Interval on the second Intervals 
+  // this operator adds two intervals where all Interval on the one Intervals comes before all Interval on the second Intervals 
 { 
   Intervals* r = new Intervals();
   
@@ -78,14 +78,11 @@ Intervals* Intervals::operator+(Intervals in)
 
 bool Intervals::contains_point(double pos)
 {
-  bool r = false;
-  for (int i=0; i<size(); i++){
-    if ((_intervals[i]->start()<=pos)&&(_intervals[i]->end()>pos)){
-      r = true;
-      break;
-    }
-  }
-  return r;
+  std::vector< Interval* >::const_iterator i;
+  for (i = _intervals.begin(); i != _intervals.end(); ++i)
+    if (((*i)->start()<=pos) &&((*i)->end()>pos))
+      return true;
+  return false;
 }  
 
 
