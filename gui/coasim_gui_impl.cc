@@ -55,6 +55,11 @@
 # define CMATH_INCLUDED
 #endif
 
+#ifndef SYS_TIME_H_INCLUDED
+# include <sys/time.h>
+# define SYS_TIME_H_INCLUDED
+#endif
+
 // global var defined in coasim.cc -- needed to process events while
 // simulating
 extern QApplication *coasim_main_app;
@@ -163,6 +168,10 @@ void CoasimGuiImpl::simulate()
     while (coasim_main_app->hasPendingEvents())
       coasim_main_app->processEvents();
 
+
+    struct timeval tv; struct timezone tz;
+    gettimeofday(&tv,&tz);
+    std::srand(tv.tv_usec);
     ARG *arg = Simulator::simulate(conf);
 
     if (!arg)

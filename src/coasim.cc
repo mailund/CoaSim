@@ -23,8 +23,14 @@
 # define FSTREAM_INCLUDED
 #endif
 
-#include <time.h>
-#include <popt.h>
+#ifndef SYS_TIME_H_INCLUDED
+# include <sys/time.h>
+# define SYS_TIME_H_INCLUDED
+#endif
+#ifndef POPT_H_INCLUDED
+# include <popt.h>
+# define POPT_H_INCLUDED
+#endif
 
 using namespace std;
 
@@ -335,7 +341,9 @@ int main(int argc, const char *argv[])
 
 
   // set rand seed
-  std::srand(time(0));
+  struct timeval tv; struct timezone tz;
+  gettimeofday(&tv,&tz);
+  std::srand(tv.tv_usec);
 
   try {
     std::ofstream out(options::output_file);
