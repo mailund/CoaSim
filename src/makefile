@@ -1,5 +1,5 @@
 CXX = c++
-CXXFLAGS = -Wall -g -lpopt #-O3 -lpopt
+CXXFLAGS = -Wall -O3 -lpopt
 
 # locations for installation
 bin_dir = /usr/bin/
