@@ -55,11 +55,11 @@ namespace
 		double time1 = log(1.0+conf.growth()
 				   *expdev(nodes_left,(nodes_left-1)/2)
 				   *exp(-conf.growth()*current_time))/conf.growth();
-		double time2 = expdev(nodes_left,conf.G()+conf.rho()/2);
+		double time2 = expdev(nodes_left,conf.G()/2+conf.rho()/2);
 		return std::min(time1,time2);
 	    }
 	else
-	    return expdev(nodes_left,(nodes_left-1)/2.+conf.G()+conf.rho()/2);
+	    return expdev(nodes_left,(nodes_left-1)/2+conf.G()/2+conf.rho()/2);
     }
 }
 
@@ -95,7 +95,7 @@ ARG * Builder::build(SimulationMonitor *mon) const
 	    unsigned int k = top_nodes.size();
 	    time += get_time_interval(i_conf,time,k);
 
-	    int event = uniform((k-1)/2.,i_conf.G(), i_conf.rho()/2);
+	    int event = uniform((k-1)/2.,i_conf.G()/2, i_conf.rho()/2);
 
 	    ++no_iterations;
 
