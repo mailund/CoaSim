@@ -40,6 +40,7 @@ void Monitor::run()
 {
     // FIXME: run this in separate thread!
     core::ARG *arg = core::Simulator::simulate(*i_conf, this);
+    i_completed = true;
     if (!arg) /* aborted */ 
 	{
 	    i_feedback->close();

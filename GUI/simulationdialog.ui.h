@@ -19,10 +19,12 @@
 
 #include <float_spin_box.hh>
 #include <trait_or_snp_table.hh>
+#include <ms_table.hh>
 
 #include <qspinbox.h>
 #include <qtable.h>
 #include <qmessagebox.h>
+#include <qevent.h>
 
 #include <iostream>
 
@@ -93,6 +95,17 @@ void SimulationDialog::init()
 
     show();
     simMonitor->run();
+}
+
+void SimulationDialog::closeEvent(QCloseEvent *event)
+{
+    if (simMonitor->completed()) 
+	event->accept();
+    else 
+	{
+	    event->ignore();
+	    abortSimulation();
+	}
 }
 
 void SimulationDialog::destroy()

@@ -12,6 +12,7 @@ namespace core {
 class Monitor : public core::SimulationMonitor, 
 		public QObject /* to get tr() */ {
     bool i_aborting;
+    bool i_completed;
 
     int i_no_leaves;
 
@@ -24,7 +25,7 @@ class Monitor : public core::SimulationMonitor,
 
 public:
     Monitor(SimulationDialog *feedback_dialog, core::Configuration *conf) 
-	: i_aborting(false), i_no_leaves(0), 
+	: i_aborting(false), i_completed(false), i_no_leaves(0), 
 	  i_feedback(feedback_dialog), i_conf(conf)
     {}
     virtual ~Monitor();
@@ -32,7 +33,8 @@ public:
     void run();
 
     void abort() { i_aborting = true; }
-    bool aborting() const { return i_aborting; }
+    bool aborting()  const { return i_aborting; }
+    bool completed() const { return i_completed; }
 
     virtual void start_arg_building(unsigned int no_leaves);
     virtual void builder_update(unsigned int no_nodes,

@@ -526,6 +526,7 @@
 </slots>
 <functions>
     <function access="private" specifier="non virtual">init()</function>
+    <function access="protected">closeEvent( QCloseEvent * event )</function>
     <function access="private" specifier="non virtual">destroy()</function>
 </functions>
 <layoutdefaults spacing="6" margin="11"/>
