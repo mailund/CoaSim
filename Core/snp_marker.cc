@@ -17,21 +17,22 @@
 # include "node.hh"
 #endif
 
+using namespace core;
 
 Marker *
-SNPMarker::copy() const
+core::SNPMarker::copy() const
 {
     return new SNPMarker(*this);
 }
 
 bool
-SNPMarker::run_first() const
+core::SNPMarker::run_first() const
 {
     return false;
 }
 
 int
-SNPMarker::default_value() const
+core::SNPMarker::default_value() const
 {
     return 0;
 }
@@ -92,8 +93,9 @@ namespace
 static inline void swap(unsigned int &i, unsigned int &j)
 { unsigned int tmp = i; i = j; j = tmp; }
 
-Mutator *SNPMarker::create_mutator(const Configuration   &conf,
-				   const RetiredInterval &ri) const
+Mutator *
+core::SNPMarker::create_mutator(const Configuration   &conf,
+				const RetiredInterval &ri) const
 {
     unsigned int low_leaf_count
 	= static_cast<unsigned int>(ceil(i_low_freq*conf.no_leaves()));
@@ -109,7 +111,7 @@ Mutator *SNPMarker::create_mutator(const Configuration   &conf,
 }
 
 void 
-SNPMarker::to_text(std::ostream &os) const
+core::SNPMarker::to_text(std::ostream &os) const
 {
     os << "snp";
 }

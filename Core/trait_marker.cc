@@ -17,21 +17,22 @@
 # include "node.hh"
 #endif
 
+using namespace core;
 
 Marker *
-TraitMarker::copy() const
+core::TraitMarker::copy() const
 {
     return new TraitMarker(*this);
 }
 
 bool
-TraitMarker::run_first() const
+core::TraitMarker::run_first() const
 {
     return false;
 }
 
 int
-TraitMarker::default_value() const
+core::TraitMarker::default_value() const
 {
     return 0;
 }
@@ -108,7 +109,7 @@ Mutator *TraitMarker::create_mutator(const Configuration   &conf,
 }
 
 void 
-TraitMarker::to_text(std::ostream &os) const
+core::TraitMarker::to_text(std::ostream &os) const
 {
     os << "trait";
 }

@@ -15,20 +15,22 @@
 #endif
 
 
+using namespace core;
+
 Marker *
-MicroSatelliteMarker::copy() const
+core::MicroSatelliteMarker::copy() const
 {
     return new MicroSatelliteMarker(*this);
 }
 
 bool
-MicroSatelliteMarker::run_first() const
+core::MicroSatelliteMarker::run_first() const
 {
     return false;
 }
 
 int
-MicroSatelliteMarker::default_value() const 
+core::MicroSatelliteMarker::default_value() const 
 {
     if (size() == 0) throw std::out_of_range("No value set");
     return i_values.front(); 
@@ -74,15 +76,16 @@ namespace
   }
 }
 
-Mutator *MicroSatelliteMarker::create_mutator(const Configuration   &conf,
-					      const RetiredInterval &ri) const
+Mutator *
+core::MicroSatelliteMarker::create_mutator(const Configuration   &conf,
+					   const RetiredInterval &ri) const
 {
 
   return new MicroSatelliteMutator(*this);
 }
 
 void 
-MicroSatelliteMarker::to_text(std::ostream &os) const
+core::MicroSatelliteMarker::to_text(std::ostream &os) const
 {
     os << "ms";
 }

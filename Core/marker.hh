@@ -21,6 +21,8 @@
 # define CASSERT_INCLUDED
 #endif
 
+namespace core {
+
 class Configuration;
 class RetiredInterval;
 class Node;
@@ -91,6 +93,8 @@ inline int Marker::value(size_t index) const throw (std::out_of_range)
 
 inline std::ostream &operator << (std::ostream &os, const Marker &m)
 { m.to_text(os); return os; }
+
+}
 
 
 #endif

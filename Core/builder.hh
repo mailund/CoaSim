@@ -12,21 +12,23 @@
 # include "node.hh"
 #endif
 
+namespace core {
 
-class Builder
-{
-public:
-    Builder(const Configuration &conf) : i_conf(conf) {};
-    ~Builder() {};
+    class Builder
+    {
+    public:
+	Builder(const Configuration &conf) : i_conf(conf) {};
+	~Builder() {};
 
-    // Builds an ARG.  The ARG is dynamically allocated and must be
-    // deleted after use.
-    ARG *build() const;
+	// Builds an ARG.  The ARG is dynamically allocated and must be
+	// deleted after use.
+	ARG *build() const;
 
-private:
-    const Configuration &i_conf;
-};
+    private:
+	const Configuration &i_conf;
+    };
 
 
+}
 
 #endif

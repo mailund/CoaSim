@@ -14,11 +14,13 @@
 #ifndef NODE_HH_INCLUDED
 # include "node.hh"
 #endif
-#ifndef ALL_MARKERS_HH_INCLUDED
+#ifndef CORE__ALL_MARKERS_HH_INCLUDED
 # include "all_markers.hh"
 #endif
 
 #include "testing.hh"
+
+using namespace core;
 
 /*
  * WARNING: THIS PROGRAM IS NOT REALLY TESTING DESCENDER -- WE NEED TO

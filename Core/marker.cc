@@ -7,12 +7,12 @@
 
 #include "marker.hh"
 
-Marker::Marker(const Marker &other)
+core::Marker::Marker(const Marker &other)
     : i_position(other.i_position), i_values(other.i_values)
 {
 }
 
-Marker::~Marker() 
+core::Marker::~Marker() 
 {
 }
 

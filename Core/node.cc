@@ -43,7 +43,10 @@
 # define CSTDLIB_INCLUDED
 #endif
 
-void Node::haplotype_to_xml(std::ostream &os) const
+using namespace core;
+
+void
+core::Node::haplotype_to_xml(std::ostream &os) const
 {
     os << "    <haplotype id=\"h_" << this << "\"> " << std::endl;
     for (unsigned int i = 0; i < i_states.size(); ++i){
@@ -54,7 +57,8 @@ void Node::haplotype_to_xml(std::ostream &os) const
     os << "    </haplotype>" << std::endl;
 }
 
-void Node::initialize_marker(unsigned int idx, const Marker &m)
+void
+core::Node::initialize_marker(unsigned int idx, const Marker &m)
 {
     if (i_states.size() <= idx) 
 	throw std::out_of_range("marker index out of range");

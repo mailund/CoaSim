@@ -19,6 +19,8 @@
 # define FSTREAM_INCLUDED
 #endif
 
+using namespace core;
+
 int main(int argc, const char *argv[])
 {
     HANDLE_TEST_OPTIONS;

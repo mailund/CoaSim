@@ -7,7 +7,7 @@
 
 #include "configuration.hh"
 
-Configuration::~Configuration() 
+core::Configuration::~Configuration() 
 {
     for (int i = 0; i < no_markers(); ++i)
 	{

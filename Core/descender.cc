@@ -17,12 +17,14 @@
 # include "monitor.hh"
 #endif
 
+using namespace core;
+
 
 // FIXME: the priority system right now has two possible priorities --
 // this could of course be generalized if at some point it is needed.
 // It would require a re-write of this, though.
 
-void Descender::evolve(ARG &arg) const
+void core::Descender::evolve(ARG &arg) const
 {
     SimulationMonitor *mon = i_conf.monitor();
 

@@ -14,6 +14,8 @@
 # include "monitor.hh"
 #endif
 
+using namespace core;
+
 namespace
 {
     class TopNodeSet {

@@ -17,6 +17,8 @@
 # include "snp_marker.hh"
 #endif
 
+using namespace core;
+
 
 int main(int argc, const char *argv[])
 {

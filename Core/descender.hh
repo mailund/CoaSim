@@ -12,22 +12,26 @@
 # include "configuration.hh"
 #endif
 
-class ARG;
+namespace core {
 
-class Descender
-{
-public:
-    Descender(const Configuration &conf) : i_conf(conf) {}
-    ~Descender() {}
+    class ARG;
 
-    // assign evolution to the ARG as specified by the configuration.
-    // If the traits cannot be assigned according to specification, the
-    // method returns `false' which means that a new ARG should be build
-    // and processed.  If everything goes well, evolve returns `true'.
-    void evolve(ARG &arg) const;
+    class Descender
+    {
+    public:
+	Descender(const Configuration &conf) : i_conf(conf) {}
+	~Descender() {}
 
-private:
-    const Configuration &i_conf;
-};
+	// assign evolution to the ARG as specified by the configuration.
+	// If the traits cannot be assigned according to specification, the
+	// method returns `false' which means that a new ARG should be build
+	// and processed.  If everything goes well, evolve returns `true'.
+	void evolve(ARG &arg) const;
+
+    private:
+	const Configuration &i_conf;
+    };
+
+}
 
 #endif

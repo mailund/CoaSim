@@ -12,6 +12,9 @@
 #include "configuration.hh"
 #include "all_markers.hh"
 
+using namespace core;
+
+
 /*
  * WARNING: THIS PROGRAM IS NOT REALLY TESTING SIMULATOR -- WE NEED TO
  * DO THAT STATISTICALLY SOMEHOW -- THE PROGRAM SIMPLY TRIES TO RUN

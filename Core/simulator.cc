@@ -20,32 +20,35 @@
 # include "monitor.hh"
 #endif
 
-ARG *Simulator::simulate(const Configuration &conf)
+using namespace core;
+
+ARG *
+core::Simulator::simulate(const Configuration &conf)
 {
-  Builder builder(conf);
-  Descender descender(conf);
-  ARG *arg = 0;
-  SimulationMonitor *mon = conf.monitor();
+    Builder builder(conf);
+    Descender descender(conf);
+    ARG *arg = 0;
+    SimulationMonitor *mon = conf.monitor();
 
-  try {
-
-  retry:
     try {
-      if (mon) mon->start_arg_building(conf.no_leaves());
-      arg = builder.build();
-      if (mon) mon->start_mutating();
-      descender.evolve(*arg);
-    } catch (Mutator::retry_arg&) {
-      if (mon) mon->retry_arg_building();
-      delete arg; arg = 0;
-      goto retry;
+
+    retry:
+	try {
+	    if (mon) mon->start_arg_building(conf.no_leaves());
+	    arg = builder.build();
+	    if (mon) mon->start_mutating();
+	    descender.evolve(*arg);
+	} catch (Mutator::retry_arg&) {
+	    if (mon) mon->retry_arg_building();
+	    delete arg; arg = 0;
+	    goto retry;
+	}
+
+	if (mon) mon->simulation_terminated();
+
+    } catch(SimulationMonitor::AbortSimulation&) {
+	if (arg) delete arg; arg = 0;
     }
 
-    if (mon) mon->simulation_terminated();
-
-  } catch(SimulationMonitor::AbortSimulation&) {
-    if (arg) delete arg; arg = 0;
-  }
-
-  return arg;
+    return arg;
 }

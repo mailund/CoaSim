@@ -7,9 +7,11 @@
 
 
 #include "testing.hh"
-#ifndef ALL_MARKERS_HH_INCLUDED
+#ifndef CORE__ALL_MARKERS_HH_INCLUDED
 # include "all_markers.hh"
 #endif
+
+using namespace core;
 
 int main(int argc, const char *argv[])
 {

@@ -13,14 +13,14 @@
 #ifndef NODE_HH_INCLUDED
 # include "node.hh"
 #endif
-#ifndef ALL_MARKERS_HH_INCLUDED
+#ifndef CORE__ALL_MARKERS_HH_INCLUDED
 # include "all_markers.hh"
 #endif
 #ifndef TEST_DIST_FUNCS_HH_INCLUDED
 # include "test_dist_funcs.hh"
 #endif
 
-
+using namespace core;
 
 int main(int argc, const char *argv[])
 {

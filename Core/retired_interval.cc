@@ -17,14 +17,17 @@
 # include "marker.hh"
 #endif
 
+using namespace core;
 
-void RetiredInterval::calc_surface() const
+void
+core::RetiredInterval::calc_surface() const
 { 
   i_surface = i_top_node->surface_at_point(start()); 
 }
 
-void RetiredInterval::mutate(const Configuration &conf,
-			     unsigned int marker_index)  const
+void
+core::RetiredInterval::mutate(const Configuration &conf,
+			      unsigned int marker_index)  const
 {
   const Marker &marker = conf.marker(marker_index);
   i_top_node->initialize_marker(marker_index, marker);
@@ -33,7 +36,8 @@ void RetiredInterval::mutate(const Configuration &conf,
 }
 
 
-void RetiredInterval::to_xml(std::ostream &os) const
+void
+core::RetiredInterval::to_xml(std::ostream &os) const
 {
   os << "  <interval_node id=\"i_" << this << "\">" << std::endl
      << "    <child ref=\"i_" << top_node() << "\"/>" << std::endl

@@ -12,32 +12,35 @@
 # include "marker.hh"
 #endif
 
-class MicroSatelliteMarker : public Marker
-{
-public:
-    MicroSatelliteMarker(double position, double mu) 
-	: Marker(position), i_mu(mu) 
-    {}
-    virtual Marker *copy() const;
-    virtual bool run_first() const;
+namespace core {
 
-    virtual int default_value() const;
-
-    virtual void add_value(int value) throw(illegal_value)
+    class MicroSatelliteMarker : public Marker
     {
-	if (value < 0) throw illegal_value();
-	i_values.push_back(value);
-    }
+    public:
+	MicroSatelliteMarker(double position, double mu) 
+	    : Marker(position), i_mu(mu) 
+	{}
+	virtual Marker *copy() const;
+	virtual bool run_first() const;
 
-    virtual Mutator *create_mutator(const Configuration &conf,
-				    const RetiredInterval &ri) const;
-    double mu() const { return i_mu; }
+	virtual int default_value() const;
 
-    virtual void to_text(std::ostream &os) const;
+	virtual void add_value(int value) throw(illegal_value)
+	{
+	    if (value < 0) throw illegal_value();
+	    i_values.push_back(value);
+	}
 
-private:
-    double i_mu; // mutation parameter
-};
+	virtual Mutator *create_mutator(const Configuration &conf,
+					const RetiredInterval &ri) const;
+	double mu() const { return i_mu; }
 
+	virtual void to_text(std::ostream &os) const;
+
+    private:
+	double i_mu; // mutation parameter
+    };
+
+}
 
 #endif

@@ -5,8 +5,8 @@
  *  Copyright (C) 2004 by Bioinformatics ApS
  */
 
-#ifndef ALL_MARKERS_HH_INCLUDED
-#define ALL_MARKERS_HH_INCLUDED
+#ifndef CORE__ALL_MARKERS_HH_INCLUDED
+#define CORE__ALL_MARKERS_HH_INCLUDED
 
 #include "trait_marker.hh"
 #include "snp_marker.hh"
