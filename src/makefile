@@ -1,10 +1,24 @@
 CXX = c++
 CXXFLAGS = -Wall -O3 -lpopt
 
-coasim_objects = simulator.o node.o interval.o retired_interval.o\
-		 configuration.o builder.o descender.o \
+# locations for installation
+bin_dir = /usr/bin/
+include_dir = /usr/include/coasim
+lib_dir = /usr/lib/
+dtd_dir = /usr/share/coasim/
+
+include_headers = configuration.hh \
+	all_markers.hh markers.hh \
+	trait_marker.hh snp_marker.hh micro_satellite_marker.hh \
+	node.hh interval.hh retired_interval.hh \
+	simulator.hh
+
+coasim_a_objects = simulator.o node.o interval.o retired_interval.o\
+	 	 configuration.o builder.o descender.o \
 		 snp_marker.o micro_satellite_marker.o trait_marker.o \
-		 rc-parser.o coasim.o
+		 rc-parser.o
+
+coasim_objects = coasim.o libcoasim.a
 
 interval_test_objects = interval_test.o interval.o
 all_markers_test_objects = all_markers_test.o snp_marker.o micro_satellite_marker.o trait_marker.o retired_interval.o interval.o node.o
@@ -37,8 +51,11 @@ test_programs = interval_test rc-parser-test all_markers_test configuration_test
 
 all: coasim test profiler
 
-coasim : $(coasim_objects)
-	$(CXX) $(CXXFLAGS) -o coasim $(coasim_objects)
+coasim : $(coasim_objects) 
+	$(CXX) $(CXXFLAGS) -o coasim $(coasim_objects) 
+
+libcoasim.a: $(coasim_a_objects)
+	ar rcs libcoasim.a $(coasim_a_objects)
 
 test: $(test_programs)
 	if ! ./interval_test; then echo "FAILURE: interval_test failed!"; fi
@@ -54,6 +71,14 @@ test: $(test_programs)
 	if ! ./descender_test; then echo "FAILURE: descender_test failed!"; fi
 	if ! ./simulator_test; then echo "FAILURE: simulator_test failed!"; fi
 	if ! ./rc-parser-test; then echo "FAILURE: rc-parser-test failed!"; fi
+
+install: coasim libcoasim.a
+	cp coasim $(bin_dir)
+	cp libcoasim.a $(lib_dir)
+	mkdir $(dtd_dir)
+	cp coasim.dtd $(dtd_dir)
+	mkdir $(include_dir)
+	cp $(include_headers) $(include_dir)
 
 profiler: $(profiler_objects)
 	$(CXX) $(CXXFLAGS) -o profiler $(profiler_objects)
@@ -103,6 +128,7 @@ configuration_test.o: configuration_test.cc configuration.hh configuration.cc
 
 
 node.o: node.hh node.cc dist_funcs.hh interval.hh marker.hh retired_interval.hh
+	$(CXX) $(CXXFLAGS) -DDTD_DIR=\"$(dtd_dir)\" -c -o node.o node.cc
 node_test.o: node_test.cc node.hh node.cc testing.hh interval.hh configuration.hh
 	$(CXX) $(CXXFLAGS) -DTESTING -c -o node_test.o node_test.cc
 
