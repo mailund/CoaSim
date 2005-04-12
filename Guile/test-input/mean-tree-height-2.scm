@@ -5,13 +5,15 @@
 ;;;                             <URL:http://bioinformatics.dk>
 
 ;;; Example of simulating several coalescence trees and calculating
-;;; their mean branch-length
+;;; their mean height
 
 (use-modules ((coasim batch) :select (tabulate)))
 (let* ((no-iterations 10000)
-       (branch-lengths
+       (tree-heights
 	(tabulate no-iterations
-		  (let* ((arg (simulate '() 10 :keep-empty-intervals #t))
+		  (let* ((arg (simulate '() 10
+					:beta 10
+					:keep-empty-intervals #t))
 			 (tree (car (local-trees arg))))
-		    (total-branch-length tree)))))
-  (display (/ (apply + branch-lengths) no-iterations))(newline))
+		    (tree-height tree)))))
+  (display (/ (apply + tree-heights) no-iterations))(newline))

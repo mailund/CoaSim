@@ -581,7 +581,7 @@ the probability of the other two genotypes being cases to $0$.
 
 
 
-\section{Simulating Coalescent Trees and the ARG}
+\section{Simulating the ARG and (Local) Coalescent Trees}
 \label{sec:simul-coal-trees}
 
 Until now we have only considered simulating sequences, but CoaSim
@@ -594,12 +594,19 @@ function doing exactly that:
   (sequences (apply simulate params)))
 \end{code}
 It builds the ARG by calling the \texttt{simulate} function (by
-applying it to the arguments passed to it) and then extracts the
-sequences from the leaves in the ARG using the function
-\texttt{sequences}.  The general function to use---for obtaining other
-simulation results than the sequences---is \texttt{simulate}; a call
-to \texttt{simulate} will return an ARG from which various results can
-be extracted.
+applying\footnote{The \texttt{apply} function is a way of
+  calling a function with a list of parameters, contained in an actual
+  list rather than provided directly to the function.  Thus
+  \texttt{(apply f '(a b c))} is equivalent to \texttt{(f a b c)}.} it
+to the arguments passed to it) and then extracts the sequences from
+the leaves in the ARG using the function \texttt{sequences}.  The
+general function to use---for obtaining other simulation results than
+the sequences---is \texttt{simulate}; a call to \texttt{simulate} will
+return an ARG from which various results can be extracted.  Since the
+function \texttt{simulate-sequences} is just a wrapper that calls
+\texttt{simulate} with the parameters it get, naturally
+\texttt{simulate} takes the same simulation parameters as
+\texttt{simulate-sequences}.
 
 There is one slight complication though: since simulating sequences is
 by far the most common use of CoaSim, it has been optimised for this.
@@ -622,83 +629,279 @@ markers and only wish to simulate ARGs---but is not needed for e.g.\
 simulating the local coalescent trees at the specified markers.
 
 
-\subsection{Simulating Trees}
-\label{sec:simulating-trees}
-
-\textbf{FIXME:}
-\begin{itemize}
-\item Simulating trees and writing them to files
-\item Extracting statistics about the trees 
-\item Extracting statistics about the trees for different simulation
-  parameters
-\end{itemize}
-
-
 \subsection{Simulating the ARG}
 \label{sec:simulating-arg}
 
-
-\textbf{FIXME:}
+As a simple example, we can try simulating an ARG and then extract
+some statistics from it.  Currently, there are three functions for
+extracting statistics:
 \begin{itemize}
-\item Generalising to statistics about the ARG
+\item \texttt{no-coalescence-events} --- returns the number of
+  coalescence events that occurred in simulating the ARG.
+\item \texttt{no-gene-conversions} --- returns the number of gene
+  conversions that occurred in simulating the ARG.
+\item \texttt{no-recombinations} --- returns the number of
+  recombinations that occurred in simulating the ARG.
 \end{itemize}
+
+Using these could look like this:
+\begin{code}
+(use-modules ((ice-9 format) :select (format)))
+(let ((ARG (simulate '() 10
+                     :rho 40 :gamma 60 :Q 10
+                     :keep-empty-intervals \#t)))
+  (format #t "#recomb: ~d, #gene conv.: ~d, #coalescent: ~d\(\backslash\)n"
+          (no-recombinations     ARG)
+          (no-gene-conversions   ARG)
+          (no-coalescence-events ARG)))  
+\end{code}
+Here we simulate an ARG and print the number of recombination events,
+gene conversions and coalescence events.  Notice that we do not
+provide any markers to \texttt{simulate}---the marker list is the
+empty list \texttt{'()}---but we instead turn off the empty intervals
+optimisation using \texttt{:keep-empty-intervals}.
+
+We have also introduced one additional new thing in this example: the
+\texttt{format} function.  This function is actually not CoaSim
+specific, but part of the general Guile library module \texttt{(ice-9
+  format)}; it is a convenient way of formatting output, similar to
+\texttt{printf} from C.  The first parameter is a port, if the
+formatted output should be written to that port, \texttt{\#f} if the
+formatted output is to be returned as a string, or \texttt{\#t}---as
+in the example above---if the output should be output to the current
+output port, standard out.  The second argument is a string describing
+the output, and the following are values to be formatted.  The types
+and number of these, and the way of formatting them, is determined by
+the formatting string.  For learning more about \texttt{format}, we
+refer to the Guile documentation.
+
+As another example, we can try to extract the local intervals of the
+ARG, that is, the intervals of the ARG not broken up by a
+recombination event.  To get the list of these intervals, we use the
+function \texttt{intervals}, as below:
+\begin{code}
+(let* ((ARG (simulate '() 10 :rho 40 :keep-empty-intervals #t))
+       (inter (intervals ARG))
+       ...)
+    ...)
+\end{code}
+Again, we need to turn off the empty intervals optimisation, since
+otherwise we would only get the intervals containing markers; in this
+case no interval will contain a marker since we have provided no
+markers to the \texttt{simulate} function.
+
+From the list of intervals, we could, for instance, calculate the
+average interval length.  To do this we use functions
+\texttt{interval-start} and \texttt{interval-end} to get the start
+point and end point of the interval, respectively, and the obtain the
+length by subtracting the start point from the end point
+\begin{code}
+(let* ((ARG (simulate '() 10 :rho 40 :keep-empty-intervals #t))
+       (inter (intervals ARG))
+       \underline{(len (lambda (i) (- (interval-end i) (interval-start i))))}
+       \underline{(interval-lengths (map len inter))}
+       ...)
+    ...)
+\end{code}
+add the resulting lengths---here by applying function \texttt{+} to
+the length list---and then dividing by the number of intervals:
+\begin{code}
+(let* ((ARG (simulate '() 10 :rho 40 :keep-empty-intervals #t))
+       (inter (intervals ARG))
+       (len (lambda (i) (- (interval-end i) (interval-start i))))
+       (interval-lengths (map len inter))
+       \underline{(mean (/ (apply + interval-lengths) (length interval-lengths))))}
+  (display mean)(newline))
+\end{code}
+
+
+\subsection{Simulating Trees}
+\label{sec:simulating-trees}
+
+Using functions \texttt{interval->tree} and \texttt{tree->interval},
+we can switch back and forth between local intervals and the
+coalescence tree for that interval.  So to get all the local
+coalescence trees in the ARG, we can map \texttt{interval->tree} over
+the list of intervals, or alternatively use the function
+\texttt{local-trees} which does exactly this:
+\begin{code}
+(define (local-trees ARG) (map interval->tree (intervals ARG)))
+\end{code}
+
+To simulate a single coalescence tree, we can use code like this:
+\begin{code}
+(let* ((ARG (simulate '() 10 :keep-empty-intervals #t))
+       (tree (car (local-trees ARG))))
+  (display tree))
+\end{code}
+We simulate the ARG and then extract the list of local trees.  This
+will only contain a single tree, since we are simulating without
+recombination---we have not set the \texttt{:rho} parameter, which
+means that it defaults to $0$---and we take this single tree out of
+the list and display it.  Displaying a tree this way will print out
+the tree in Newick format.
+
+If we add recombination to the simulation, we could also be interested
+in knowing the extend of the interval for which the tree is the
+genealogy.  We can get this interval together with the tree like this:
+\begin{code}
+(let* ((m (snp-marker 0.5 0 1))
+       (ARG (simulate (list m) 10 :rho 40))
+       (i (car (intervals ARG)))
+       (t (interval->tree i)))
+  (display (interval-start i))(display "-")
+  (display (interval-end i))(display ": ")
+  (display t))
+\end{code}
+Here we use a single marker, at the centre of the genomic region---a
+SNP marker that will accept any minor allele frequency ($0.0$--$1.0$), which
+essentially means that we do not care about the alleles at the marker;
+it is the local tree for this marker, and the interval for this tree,
+that we extract from the simulation.
+
+We simulate \texttt{with} the empty intervals optimisation, which
+guarantees that only intervals containing markers will be returned by
+the \texttt{intervals} function---in this example it guarantees that
+\texttt{intervals} only return the one interval we are interested
+in---extract the interval and the corresponding local tree---using the
+\texttt{interval->tree} function---and then display the extracted
+information.
+
+Using the function \texttt{tree-height} we can get the hight of the
+tree, and for example compute the average height along the genomic
+sequence:
+\begin{code}
+(let* ((ARG (simulate '() 10 :rho 40 :beta 10 :keep-empty-intervals #t))
+       (trees (local-trees ARG))
+       (tree-heights (map tree-height trees))
+       (mean (/ (apply + tree-heights) (length tree-heights))))
+  (display mean)(newline))
+\end{code}
+or the mean height over a number of simulations
+\begin{code}
+(use-modules ((coasim batch) :select (tabulate)))
+(let* ((no-iterations 10000)
+       (tree-heights
+        (tabulate no-iterations
+                  (let* ((ARG (simulate '() 10
+                                        :beta 10
+                                        :keep-empty-intervals #t))
+                         (tree (car (local-trees ARG))))
+                    (tree-height tree)))))
+  (display (/ (apply + tree-heights) no-iterations))(newline))
+\end{code}
+
+In the last example we use the \texttt{tabulate} function described
+earlier to run a number of iterations and collect the result in a
+list.  We simulate with exponential growth ($\beta=10$); without
+growth we have a closed form for the mean tree
+height---$E(H_n)=2\left(1-\frac{1}{n}\right)$, see \emph{Hein et al.}
+Sect.~1.9---but for $\beta>0$ we it makes sense to use simulations to
+get the expected tree height.  In the first example, we simulated with
+recombination ($\rho=40$) to get a number of intervals; in the second
+example we do not allow recombination ($\rho$ is implicitly $0$) since
+we only extract a single local tree any way.
+
+Using the function \texttt{total-branch-length}, we can get the sum of
+branch lengths of the tree, and we can calculate the mean of those for
+varying $\beta$ just as for tree heights as above.
+
+
+\subsection{Exploring the ARG}
+\label{sec:exploring-arg}
+
+Aside from the functions mentioned above, for extracting information
+about the ARG, it is possible to extract information from the ARG by
+explicitly traversing it and extracting the information through
+custom-made functions.  Since we rarely have to explicitly traverse
+the ARG---most interesting simulation results can be extracted using
+other methods---we will not go into details about this general
+traversal, but just give short pointers to the relevant functions.
+
+The key functions for traversing the ARG are \texttt{root}---which
+returns the root node of a tree, or the \emph{Most Recent Common
+  Ancestor} (MRCA) of an interval---and \texttt{children}---which
+returns a list of the children of a node; this will be two children
+nodes for coalescence nodes, one child node for recombination and
+gene-conversions nodes, and an empty list for leaf nodes.
+
+It is possible to check the type of nodes using the predicates
+\texttt{coalescent-node?}, \texttt{gene-conversion-node?},
+\texttt{leaf-node?}, and \texttt{recombination-node?} and through
+these tread the different nodes differently during a traversal.  Two
+additional functions can be used for extracting information about a
+node:
+\begin{itemize}
+\item \texttt{event-time}---returns the time the node was created (in
+  scaled coalescence time, $2N$), and
+\item \texttt{contains-point?}---predicate that determines if the
+  ancestral material in the node contains a given point.
+\end{itemize}
+
+To accumulate information about \texttt{all} the ARG nodes, it is
+usually more convenient to use the \texttt{fold-nodes} function than
+to explicitly traverse the nodes using \texttt{root} and
+\texttt{children}.  The function \texttt{fold-nodes} takes as
+parameters, in addition to the ARG, a function taking two parameters,
+and an initial value for the accumulation.  The function is called,
+for each node in the ARG, with the node and the value accumulated so
+far, initially the value passed to \texttt{fold-nodes}.  As an
+example, to count the total number of nodes in the ARG, we can use:
+\begin{code}
+(fold-nodes ARG (lambda (n count) (+ count 1)) 0)
+\end{code}
+or to count the total number of coalescence nodes:
+\begin{code}
+(fold-nodes ARG 
+            (lambda (n count) 
+               (if (coalescent-node? n) (+ count 1) count)) 
+            0)
+\end{code}
 
 
 \section{Advanced Usage}
 \label{sec:advanced-usage}
 
+In this section we give a few examples of more advanced usage of
+CoaSim.  This should by no mean be considered an exhaustive list of
+the possibilities for CoaSim simulations, but only give a taste of the
+possibilities that are available when programming scripts for the
+simulator.  Through the functions described in the reference manual,
+CoaSim is highly programmable, and very flexible in the kinds of
+simulations it can run.
+
+
+\subsection{Scaling Parameters}
+\label{sec:scaling-parameters}
+
 \textbf{FIXME:}
 \begin{itemize}
 \item Using tree-simulation to scale e.g. rho and theta for sequence
   simulation
+\end{itemize}
+
+
+\subsection{Rejection Sampling}
+\label{sec:rejection-sampling}
+
+
+\textbf{FIXME:}
+\begin{itemize}
+\item rejection sampling through callbacks
+\end{itemize}
+
+
+\subsection{Writing Custom Markers}
+\label{sec:writ-cust-mark}
+
+
+\textbf{FIXME:}
+\begin{itemize}
 \item Defining your own marker-types using Scheme-callbacks for
   setting mutations.
 \end{itemize}
 
-\begin{code}
-(define (step-ms-marker pos theta)
-  (let* ((msec (cdr (gettimeofday)))
-         (random-state (seed->random-state msec))
 
-         (waiting-time
-          (lambda ()
-            (let ((mean (/ 2 theta)))   ;mean is 1/i where the
-                                        ;intensity i is theta/2
-              (* mean (random:exp random-state)))))
-
-         (mutate-to
-          (lambda (parent-allele)
-              (if (< (random 1.0 random-state) 0.5)
-                  (- parent-allele 1)
-                  (+ parent-allele 1))))
-
-         (mutate
-          (lambda (parent child parent-allele)
-            (let loop ((allele parent-allele)
-                       (time-left (- (event-time parent) (event-time child))))
-              (if (< time-left 0)
-                  allele
-                  (let ((new-allele (mutate-to allele))
-                        (next-time (waiting-time)))
-                    (loop new-allele (- time-left next-time))))))))
-
-    (custom-marker pos 0 mutate)))
-
-
-(let* ((markers (list 
-                 (step-ms-marker 0.0 3)
-                 (step-ms-marker 0.1 3)
-                 (step-ms-marker 0.2 3)
-                 (step-ms-marker 0.3 3) ))
-       (seqs (simulate-sequences markers 5 :rho 400)))
-  (display seqs)(newline))
-\end{code}
-
-\begin{itemize}
-\item Writing new output formats
-\item Using simulation callbacks (plus exceptions for
-  rejection-sampling?)
-\end{itemize}
 
 
 

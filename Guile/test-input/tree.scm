@@ -6,7 +6,6 @@
 
 ;;; Example of simulating a coalescence tree and printing it to stdout.
 
-(let* ((m (snp-marker 0.5 0 1))
-       (arg (simulate (list m) 10))
-       (tree (car (local-trees arg))))
+(let* ((ARG (simulate '() 10 :keep-empty-intervals #t))
+       (tree (car (local-trees ARG))))
   (display tree))

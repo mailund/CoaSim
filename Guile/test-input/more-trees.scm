@@ -8,7 +8,6 @@
 ;;; to stdout.
 
 (use-modules ((coasim batch) :select (repeat)))
-(repeat 10 (let* ((m (snp-marker 0.5 0 1))
-		  (arg (simulate (list m) 10))
+(repeat 10 (let* ((arg (simulate '() 10 :keep-empty-intervals #t))
 		  (tree (car (local-trees arg))))
 	     (display tree)))
