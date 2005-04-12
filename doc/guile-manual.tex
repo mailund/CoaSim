@@ -1,0 +1,724 @@
+\documentclass{manual}
+\usepackage{url}
+
+\title{CoaSim Guile Manual}
+\subtitle{Using the Guile-based CoaSim Simulator}
+\authors{Thomas Mailund}
+\contact{mailund@birc.dk}
+\company{Bioinformatics ApS}
+\toolversion{CoaSim v3.1}
+
+
+
+\begin{document}
+
+
+\section{About This Manual}
+\label{sec:about-this-manual}
+
+CoaSim is a tool for simulating the coalescent process with
+recombination and geneconversion, under either constant population
+size or exponential population growth.  It effectively constructs the
+ancestral recombination graph for a given number of chromosomes and
+uses this to simulate samples of SNP and micro-satellite haplotypes or
+genotypes.
+
+CoaSim comes in two flavours: A graphical user interface version for
+easy use by novice users, and a Guile Scheme
+(\url{http://www.gnu.org/software/guile/}) based version for efficient
+scripting.  This manual is about the Guile Scheme version and will
+describe how to use CoaSim for various simulation purposes.  The
+manual describes a number of common and more exotic simulation setups
+and shows how CoaSim can be scripted to conduct such simulations.  The
+manual has intentionally a bit of a tutorial flavour, as we wish to
+give a feeling of the kind of simulations CoaSim is suited for, and
+how such simulations are set up and executed in CoaSim, rather than
+giving a detailed description of all the functions available in
+CoaSim.  For the later, we refer to the \emph{CoaSim Scheme Bindings}
+reference manual, distributed with CoaSim in
+\url{/usr/local/share/coasim/doc/bindings.html}, or online at
+\url{http://www.birc.dk/Software/CoaSim/refman/index.html}.
+
+Some familiarity with the Scheme programming language and with
+coalescent theory is assumed.  For people not familiar with Scheme, an
+excellent tutorial can be found at
+\url{http://www.ccs.neu.edu/home/dorai/t-y-scheme/t-y-scheme.html},
+and for people not familiar with coalescent theory, the text book
+\begin{quote}
+  \textbf{Gene Genealogies, Variation and Evolution}\\
+  \textit{A Primer in Coalescent Theory},\\
+  Jotun Hein, Mikkel H.\ Schierup, and Carsten Wiuf,\\
+  Oxford University Press, ISBN 0-19-852996-1  
+\end{quote}
+is recommended.
+
+We also assume that you have successfully installed CoaSim, if not we
+refer to the \emph{Getting Started with CoaSim} manual.
+
+
+\subsection{Running CoaSim}
+\label{sec:running-coasim}
+
+The Guile-Scheme based CoaSim tool is run from the command line as:
+\begin{code}
+> coasim_guile file-1.scm file-2.scm ... file-n.scm
+\end{code}
+where each file is a scheme script; CoaSim will execute these script
+files in turn, remembering the state between them, a feature that is
+sometimes useful for setting up a set parameters in one file, and then
+running simulations in following files.  In most cases, though, a
+single file will suffice for running one or more simulations.  In the
+rest of this manual we will assume that you know how to execute
+scripts with CoaSim in this way, and concentrate on how to write the
+appropriate scripts.
+
+\section{Simple Sequence Simulations}
+\label{sec:simple-sequ-simul}
+
+We start out with the most common usage of CoaSim: simulating sequence
+data.  All simulations in CoaSim result in an \emph{Ancestral
+  Recombination Graph} (ARG), but in most cases the ARG is not the
+desired end-result, rather, the sequences found at the leaves of the
+ARG are.  To make the common case easy, CoaSim provides the function
+\texttt{simulate-sequences}, that simulates an ARG and then
+automatically extracts the sequences from the leaf-nodes.
+
+
+\subsection{Simulating and Saving Sequences}
+\label{sec:simul-saving-sequ}
+
+A simple sequence simulation script could look like this:
+\begin{code}
+(use-modules (coasim rand))
+(let* ((markers (make-random-snp-markers 10 0 1))
+       (seqs (simulate-sequences markers 10)))
+  (display seqs)(newline))
+\end{code}
+
+The first line
+\begin{code}
+(use-modules ((coasim rand))
+\end{code}
+includes the \texttt{(coasim rand)} module, which is used for
+generating random markers (markers on random positions, in this case).
+The random markers are then used in the next line of the script.  The
+\verb?(let* ...)? construction is just a way of creating a block of
+scheme code, that let us define variables.  The variables we define in
+the code above are \texttt{markers}---containing 10 random SNP markers
+with allowed mutant-frequencies between $0$ and $1$, created using the
+\texttt{make-random-snp-markers} function---and \texttt{seqs}---the
+simulated sequences.  There are 10 sequences, the second argument to
+\texttt{simulate-sequences}, and each sequence contain an allele for
+each marker in \texttt{markers}.
+
+The sequences, as returned by \texttt{simulate-sequences}, are
+represented as a list of lists of alleles.  This is a format that is
+very easy to manipulate by Scheme, but not as useful for most other
+programs, so printing the sequences in this format, as we do with the
+\texttt{display} call above, is not that useful.  To print the
+sequences in a more traditional form of a sequence per line, with the
+sequences printed as space-separated numbers, we can use the
+\texttt{(coasim io)} module like this:
+\begin{code}
+(use-modules (coasim rand) (coasim io))
+(let* ((markers (make-random-snp-markers 10 0 1))
+       (seqs (simulate-sequences markers 10)))
+  (call-with-output-file "positions.txt" (marker-positions-printer markers))
+  (call-with-output-file "sequences.txt" (sequences-printer seqs)))
+\end{code}
+Here, the positions are written to the file \texttt{positions.txt} and
+the sequences to the file \texttt{sequences.txt}.  The
+\texttt{call-with-output-file} function is a way of opening a file for
+writing; it opens a file port, then calls it second argument with this
+port, and then closes the port afterwards.  The
+\texttt{marker-positions-printer} and \texttt{sequences-printer} take
+care of writing the output.  They create functions that fits with the
+interface of \texttt{call-with-output-file}, and that writes the
+positions and sequences, respectively, to the port opened by
+the call to \texttt{call-with-output-file}.
+
+
+\subsection{Simulation Parameters}
+\label{sec:simul-param}
+
+As called above, \texttt{simulate-sequences} simulate a basic
+coalescent tree over the leaf nodes and then apply mutations on the
+markers.  Recombinations, gene conversions and exponential growths can
+be included by setting the appropriate parameters using keyword
+arguments to \texttt{simulate-sequences}, e.g.\ to simulate with a
+scaled recombination rate $\rho=4Nr=400$ (see \emph{Hein et al.}\ 
+Sect.~5.5)---which for an effective population size of $N=10,000$
+means that the region from $0$ to $1$ simulated correspond roughly to
+$1cM$---you would need to call
+\begin{code}
+(simulate-sequences markers no-sequences \underline{:rho 400})
+\end{code}
+
+Similarly, to enable gene-conversions with rate $\gamma=4Ng$ and
+intensity $Q=qL$ (see \emph{Hein et al.}\ Sect.~5.10), use the
+keywords \texttt{:gamma} and \texttt{:Q} as in
+\begin{code}
+(simulate-sequences markers no-sequences \underline{:gamma 250 :Q 100})
+\end{code}
+and to use an exponential growth factor, $\beta=2Nb$, (see \emph{Hein
+  et al.}\ Sect.~4.3), use the keyword \texttt{:beta} as in
+\begin{code}
+(simulate-sequences markers no-sequences \underline{:beta 100})
+\end{code}
+
+These parameters can be combined, so e.g.\ simulating sequences with both
+exponential growth and recombination can be done using the updated
+script:
+\begin{code}
+(use-modules (coasim rand))
+(let* ((markers (make-random-snp-markers 10 0 1))
+       (seqs (simulate-sequences markers 10 \underline{:rho 400 :beta 100})))
+  (display seqs)(newline))
+\end{code}
+
+
+\subsection{Markers}
+\label{sec:markers}
+
+The first argument to the \texttt{simulate-sequences} function is a
+list of markers.  All markers are positioned in the interval $0$--$1$
+and to simulate different genetic distances you will have to scale the
+simulation parameters above.  The list of markers passed to
+\texttt{simulate-sequences} must be sorted with relation to the
+position.  This is guaranteed to be the case when the list is created
+using one of the random-marker functions from the \texttt{(coasim
+  rand)} module, as in the case of \texttt{make-random-snp-markers}
+above, but can otherwise be ensured by sorting the markers with the
+\texttt{sort-markers} function from the \texttt{(coasim markers)}
+module.
+
+The markers determine how the sequences will be simulated, in the
+sense that they position the polymorphism along the genomic region
+being simulated---the relative distance between markers affects e.g.\ 
+the probability of recombinations occurring between two markers---and
+determine the model of mutations for the polymorphic sites.
+
+So far, we have only used randomly distributed SNP markers, but we
+need not only use SNP markers, nor need we stick to randomly
+positioned markers.  CoaSim supports three types of markers, that
+differs in how mutations are placed on the ARG.  The
+built-in\footnote{Later in this manual we will see how to build our
+  own custom marker types.} marker types are:
+\begin{description}
+\item[Trait markers] are binary polymorphisms (think presence or
+  absence of a trait) with a simple mutation model: after simulating
+  the ARG, a mutation is placed uniformly at random on the tree local
+  to the marker position, nodes below the mutation will have the
+  mutant allele while all others will have the wild-type allele.  A
+  range of accepted mutant-frequencies can be specified and a simple
+  rejection-sampling scheme is used to ensure it: if, after placing
+  the mutation, the number of mutant leaves are not within the range,
+  the ARG is rejected and the simulation restarted.
+  
+\item[SNP markers] resemble trait markers in that they are binary
+  polymorphisms, and use the same mutation model as the trait-markers.
+  The differer from the trait-markers in how the mutant-frequency is
+  ensured: If, after the mutation has been placed, the number of
+  mutant leaves does not fall within the accepted range, the mutation
+  is re-placed, but the ARG is \texttt{not} rejected and
+  re-simulated.  This places a bias on the markers, but one that
+  resembles the ascertainment bias seen in association studies, where
+  SNPs are chosen to have frequencies in certain ranges.
+  
+\item[Micro-satellite markers] are $k$-ary polymorphisms with a
+  different mutation model than the other two.  For micro-satellite
+  markers, each edge in the local tree at the marker is considered in
+  turn, and based on a mutation rate and the length of the edge either
+  a mutation is placed on the edge or it is not.  If it is, a randomly
+  chosen allele from $0$ to $k-1$ is placed on the child node; if no
+  mutation is placed, the child node gets a copy of the allele at the
+  parent node.
+\end{description}
+
+A trait marker can be created using the function
+\texttt{trait-marker}:
+\begin{code}
+(trait-marker position low-mutation-freq high-mutation-freq)
+\end{code}
+so e.g.\
+\begin{code}
+(trait-marker 0.5 0.18 0.22)
+\end{code}
+would place a trait marker at position $0.5$ with accepted
+mutant-frequencies in the range $0.18$--$0.22$.  Quite similarly, SNP
+markers can be created with the function \texttt{snp-marker}
+\begin{code}
+(snp-marker position low-mutation-freq high-mutation-freq)
+\end{code}
+while micro-satellite markers can be created with the function
+\texttt{ms-marker}
+\begin{code}
+(ms-marker position \(\theta\) \(k\))
+\end{code}
+where $\theta$ is the scaled mutation rate $\theta=4N\mu$ and $k$ the
+number of alleles permitted at the marker (i.e.\ the alleles on that
+marker are numbered from $0$ to $k-1$ and each mutant allele is drawn
+uniformly from this set).
+
+Using these three functions we can explicitly create a list of markers
+for a simulation:
+\begin{code}
+(let* ((markers (list (snp-marker   0.1  0.2  0.8)
+                      (snp-marker   0.2  0.1  0.9)
+                      (trait-marker 0.5  0.18 0.22)
+                      (snp-marker   0.7  0.2  0.8)
+                      (ms-marker    0.8  1.5  10)))
+       (seqs (simulate-sequences markers 10 :rho 400)))
+  (display seqs)(newline))
+\end{code}
+
+Here we create three SNP markers, on positions $0.1$, $0.2$ and $0.7$,
+with mutation frequencies in the range $0.2$--$0.8$ for position
+$0.1$ and $0.7$ and in the range $0.1$--$0.9$ for position $0.2$; a
+single trait marker at position $0.5$, with mutation range
+$0.18$--$0.22$, and a single micro-satellite marker at position $0.8$,
+with mutation rate $1.5$ and with a pool of $10$ alleles.
+
+Explicitly creating the markers in this way can be cumbersome, so
+CoaSim provides functions for randomly generating markers, as we have
+already seen, in the module \texttt{(coasim rand)}.  The three
+functions:
+\begin{code}
+(make-random-trait-marker \(n\) low-freq high-freq)
+(make-random-snp-marker   \(n\) low-freq high-freq)
+(make-random-ms-marker    \(n\) \(\theta\) \(k\))
+\end{code}
+of which we have already used the second several times, creates $n$
+markers, randomly positioned, of the respective marker types.
+
+A list of markers created with these functions is guaranteed to be
+sorted, but if you choose to combine several lists you must make sure
+that the resulting list is sorted.  This can be done either by calling
+\texttt{sort-markers} from the module \texttt{(coasim markers)} on the
+combined list, or by combining the lists using the function
+\texttt{merge-markers}, also from \texttt{(coasim markers)}, e.g.\
+\begin{code}
+(use-modules (coasim rand) (coasim markers))
+(let* ((snp-markers   (make-random-snp-markers   10 0.1 0.9))
+       (trait-markers (make-random-trait-markers  2 0.2 0.4))
+       (unsorted-markers (append snp-markers trait-markers)))
+  (sort-markers unsorted-markers))
+\end{code}
+creates a list, \texttt{unsorted-markers}, by appending two marker-lists
+and then sort the markers using \texttt{sort-markers}, and is
+equivalent to 
+\begin{code}
+(use-modules (coasim rand) (coasim markers))
+(let* ((snp-markers   (make-random-snp-markers   10 0.1 0.9))
+       (trait-markers (make-random-trait-markers  2 0.2 0.4)))
+  (merge-markers snp-markers trait-markers))
+\end{code}
+that simply merges the two sorted lists.  Notice, however, that while
+\texttt{sort-markers} will work on any list of markers,
+\texttt{merge-markers} will only work on already sorted lists.
+
+Another variation, that is sometimes useful, is to insert a marker at
+the right position in a sorted list such that the resulting list is
+sorted.  This can be done with the function \texttt{insert-sorted},
+also from \texttt{(coasim markers)}:
+\begin{code}
+(insert-sorted sorted-marker-list marker)
+\end{code}
+the result is a list with all markers from \texttt{sorted-marker} and
+the new marker, sorted.  As an example of this, consider the script:
+\begin{code}
+(use-modules (coasim rand) (coasim markers))
+(let* ((snp-markers    (make-random-snp-markers   10 0.1 0.9))
+       (disease-marker (trait-marker 0.5 0.2 0.4))
+       (markers (insert-sorted snp-markers disease-marker))
+       (seqs (simulate-sequences markers 10)))
+  (display seqs)(newline))
+\end{code}
+Here we create $10$ randomly positioned SNP markers and a single trait
+marker (here assumed to be a disease susceptibility gene) and place it
+in the middle of the interval.  We then join the SNP markers with the
+trait marker using \texttt{insert-sorted} and simulate 10 sequences
+from these markers.
+
+
+\subsection{Cases and Controls}
+\label{sec:cases-controls}
+
+Enough about markers, we will now return to the simulation of
+sequences.  A common setting is simulating a set of sequences and then
+split them into cases and controls based on a trait mutation.  We have
+already seen how to create a trait marker, together with other
+markers, and simulate a set of sequences over these markers; we have
+not, however, considered how to split the sequences into cases and
+controls, based on the allele on the trait marker.
+
+The simplest way to do this is using the
+\texttt{split-in-cases-controls} function from module \texttt{(coasim
+  SNP haplotypes)}.
+\begin{code}
+(split-in-cases-controls sequence trait-idx)
+\end{code}
+which splits the sequence based on the alleles at an indexed marker.
+Despite the module name, it is not actually restricted to sequences of
+SNP haplotypes, but it does assume that the marker at index
+\texttt{trait-idx} is a binary marker with $1$ denoting mutants and
+$0$ wild-types.  Here, \texttt{trait-idx} is the index of the marker
+to split on, indexing from $0$, in \texttt{sequences}.  The function
+returns a list of two lists, the first being the mutants the second
+the wild-types.  Both lists have the marker at \texttt{trait-idx}
+removed, i.e.\ the contain one less marker than the input sequence.
+
+As an example, consider the following script:
+\begin{code}
+(use-modules (srfi srfi-1)) ; get the list-index function
+(use-modules (coasim rand) (coasim markers) (coasim SNP haplotypes))
+(let* ((snp-markers    (make-random-snp-markers 10 0.1 0.9))
+       (disease-marker (trait-marker 0.5 0.2 0.4))
+       (markers (insert-sorted snp-markers disease-marker))
+       (disease-idx (list-index (lambda (m) (= 0.5 (position m))) markers))
+       (seqs (simulate-sequences markers 10))
+       (cases-controls (split-in-cases-controls seqs disease-idx))
+       (cases (car cases-controls))
+       (controls (cadr cases-controls)))
+  (display cases)(newline)(newline)
+  (display controls)(newline)(newline))
+\end{code}
+Here we build a set of randomly placed SNP markers and a single trait
+marker at the middle of the region, as earlier, and combine them using
+\texttt{insert-sorted}.
+\begin{code}
+(use-modules (coasim rand) (coasim markers) (coasim SNP haplotypes))
+(let* ((snp-markers    (make-random-snp-markers 10 0.1 0.9))
+       (disease-marker (trait-marker 0.5 0.2 0.4))
+       (markers (insert-sorted snp-markers disease-marker))
+       ...)
+  ...)
+\end{code}
+Since we need the index of the disease-marker, to be able to split the
+sequences, we look that up using the \texttt{list-index} function from
+the module \texttt{(srfi srfi-1)}:
+\begin{code}
+(use-modules (coasim rand) (coasim markers) (coasim SNP haplotypes))
+(let* (...
+       (disease-idx (list-index (lambda (m) (= 0.5 (position m))) markers))
+       ...)
+  ...)
+\end{code}
+and given this, we can simulate the sequences, split in cases and
+controls using \texttt{split-in-cases-controls} and get the cases as
+the first element in the resulting list (or in Scheme the \texttt{car}
+of the list) and the controls as the second element (in Scheme, the
+\texttt{cadr} of the list):
+\begin{code}
+(use-modules (coasim rand) (coasim markers) (coasim SNP haplotypes))
+(let* (...
+       (seqs (simulate-sequences markers 10))
+       (cases-controls (split-in-cases-controls seqs disease-idx))
+       (cases (car cases-controls))
+       (controls (cadr cases-controls)))
+  ...)
+\end{code}
+
+As an alternative to explicitly looking up the position of the trait
+marker, you can also insert it into the SNP markers using the function
+\texttt{insert-sorted-idx} from \texttt{(coasim markers)}; this
+function works as \texttt{insert-sorted} but returns a list whose
+\texttt{car} is the list of sorted markers, and whose \texttt{cadr} is
+the index the new marker was inserted at.  We show the use of this in
+the following script, where we also place the disease marker at a
+random position and use the \texttt{(coasim io)} functions to write
+the marker positions and the cases and controls sequences to files.
+Changes from the previous script are underlined.
+\begin{code}
+(use-modules \underline{(coasim io)} (coasim rand)
+             (coasim markers) (coasim SNP haplotypes))
+(let* ((snp-markers    (make-random-snp-markers   10 0.1 0.9))
+       (disease-marker \underline{(car (make-random-trait-markers 1 0.2 0.4))})
+       \underline{(m-and-idx (insert-sorted-idx snp-markers disease-marker))}
+       \underline{(markers (car m-and-idx))}
+       \underline{(disease-idx (cadr m-and-idx))}
+       (seqs (simulate-sequences markers 10))
+       (cases-controls (split-in-cases-controls seqs disease-idx))
+       (cases (car cases-controls))
+       (controls (cadr cases-controls)))
+  \underline{(call-with-output-file "snp-positions.txt"}
+  \underline{  (marker-positions-printer snp-markers))}
+  \underline{(call-with-output-file "trait-position.txt" }
+  \underline{  (marker-positions-printer (list disease-marker)))}
+  \underline{(call-with-output-file "cases.txt"    (sequences-printer cases))}
+  \underline{(call-with-output-file "controls.txt" (sequences-printer controls))})
+\end{code}
+
+Splitting the sequences into cases and controls based solely on the
+allele at a trait marker is not always appropriate; when e.g.\ 
+simulating a disease that is not completely penetrant, such as many
+common diseases, we might wish to only select mutants with a certain
+probability.  Similarly, when a disease is affected by environmental
+factors as well as genetic factors, we might select wild-type
+sequences as cases with a certain probability.  Both situations can be
+handled with \texttt{split-in-cases-controls} using the key-word
+parameters \texttt{:mutant-prob} and \texttt{:wild-type-prob}, that
+sets the probability of a mutant or wild-type, respectively, is
+selected as a case.  To select about $20\%$ of mutants and only
+$1\%$ of wild-types, for example, you would use:
+\begin{code}
+(split-in-cases-controls seqs disease-idx
+                         \underline{:mutant-prob 0.2 :wild-type-prob 0.01})
+\end{code}
+
+
+\subsection{Running Multiple Simulations}
+\label{sec:runn-mult-simul}
+
+So far, we have only considered scripts for running a single
+simulation, but running several simulations is not much more
+complicated than running a single simulation.  Consider this variation
+on the very first script we saw, with changes underlined:
+\begin{code}
+(use-modules \underline{(coasim batch)} (coasim rand))
+\underline{(repeat 10}
+   (let* ((markers (make-random-snp-markers 10 0 1))
+          (seqs (simulate-sequences markers 10)))
+     (display seqs)(newline))\underline{)}
+\end{code}
+
+In this version, we load the module \texttt{(coasim batch)} which
+gives us access to the function \texttt{repeat} that let us run a
+script a fixed number of times, in this case $10$.
+
+When we are just printing the results of a simulation, as above, the
+\texttt{repeat} function is simple and easy to use, but if we want to
+save the results in various files we want to be able to use different
+files for each simulation.  One way of doing this is to have a counter
+that is incremented with each iteration, and use this counter to
+create new file names for each simulation.  Using the function
+\texttt{repeat-with-index}, also from \texttt{(coasim batch)}, this
+could look like:
+\begin{code}
+(use-modules (coasim rand) (coasim io) (coasim batch))
+(repeat-with-index (i 1 10)
+   (let* ((markers (make-random-snp-markers 10 0 1))
+          (seqs (simulate-sequences markers 10))
+          (pos-file (string-append "positions." (number->string i) ".txt"))
+          (seq-file (string-append "sequences." (number->string i) ".txt")))
+     (call-with-output-file pos-file (marker-positions-printer markers))
+     (call-with-output-file seq-file (sequences-printer seqs))))
+\end{code}
+Here the variable \texttt{i} iterates from $1$ to $10$, and for each
+value a list of markers and sequences are generated and written to
+files \texttt{positions.}$i$\texttt{.txt} and
+\texttt{sequences.}$i$\texttt{.txt}, respectively.
+
+We will return to \texttt{(coasim batch)} again later in this manual,
+for constructing more complex scripts, but for now we will once again
+consider running a single simulation per script.
+
+
+\subsection{Unphased Genotype Sequences}
+\label{sec:unph-genotype-sequ}
+
+CoaSim simulates haplotype sequences, but we can combine these to
+genotype data by pairing sequences.  For SNP data, this can be done
+using the function \texttt{haplotypes->genotypes} from module
+\texttt{(coasim SNP genotypes)}:
+\begin{code}
+(use-modules (coasim rand) (coasim SNP genotypes))
+(let* ((haplotypes
+          (simulate-sequences (make-random-snp-markers 2 0.1 0.2) 100))
+       (genotypes \underline{(haplotypes->genotypes haplotypes)}))
+  (display genotypes)(newline))
+\end{code}
+
+Using \texttt{haplotypes->genotypes}, an even number of haplotype
+sequences are translated into genotype sequences by combining
+sequences two and two, translating pairs of alleles by mapping
+$00\mapsto 0$, $11\mapsto 1$, $01\mapsto 2$, and $10\mapsto 2$.
+
+Genotype sequences can also be split in cases and controls using the
+function \texttt{split-in-cases-controls}, this time from the module
+\texttt{(coasim SNP genotypes)} rather than \texttt{(coasim SNP haplotypes)}:
+\begin{code}
+(use-modules (coasim rand) (coasim SNP genotypes))
+(let* ((haplotypes
+          (simulate-sequences (make-random-snp-markers 2 0.1 0.2) 100))
+       (genotypes (haplotypes->genotypes haplotypes))
+       \underline{(cases-controls (split-in-cases-controls genotypes 1))}
+       (cases (car cases-controls))
+       (controls (cadr cases-controls)))
+  (display cases)(newline)
+  (display controls)(newline)
+  (newline))
+\end{code}
+
+By default, \texttt{split-in-cases-controls} selects homozygote
+mutant sequences as cases, homozygote wild-type sequences as controls,
+and heterozygote as cases with probability $0.5$ and controls with
+probability $0.5$.  This default can be changed using keyword
+arguments \texttt{:homozygote-0-prob}, \texttt{:homozygote-1-prob},
+and \texttt{:heterozygote-prob}, e.g.\ to select as cases homozygote
+mutants with probability $0.5$, heterozygotes with probability $0.1$
+and homozygote wild-types with probability $0.01$, we would use:
+\begin{code}
+(split-in-cases-controls genotypes idx \underline{:homozygote-1-prob 0.5}
+                                       \underline{:heterozygote-prob 0.1}
+                                       \underline{:homozygote-0-prob 0.01})
+\end{code}
+
+As a short-cut for setting common probabilities, we can use the
+keyword argument \texttt{:disease-model}.  Setting the disease model
+to \texttt{'dominant}:
+\begin{code}
+(split-in-cases-controls genotypes \underline{:disease-model} '\underline{dominant})
+\end{code}
+will set the probability for both homozygote mutants and heterozygotes
+being cases to $1$ and the probability for homozygote wild-types being
+cases to $0$, while setting the disease model to \texttt{'recessive}
+\begin{code}
+(split-in-cases-controls genotypes \underline{:disease-model} '\underline{recessive})
+\end{code}
+will set the probability of homozygote mutants being cases to $1$ and
+the probability of the other two genotypes being cases to $0$.
+
+
+
+\section{Simulating Coalescent Trees and the ARG}
+\label{sec:simul-coal-trees}
+
+Until now we have only considered simulating sequences, but CoaSim
+actually simulates a full ARG when it is simulating the sequences, and
+it is possible to access it and extract information about it.  In
+fact, the \texttt{simulate-sequences} function is actually a wrapper
+function doing exactly that:
+\begin{code}
+(define (simulate-sequences . params)
+  (sequences (apply simulate params)))
+\end{code}
+It builds the ARG by calling the \texttt{simulate} function (by
+applying it to the arguments passed to it) and then extracts the
+sequences from the leaves in the ARG using the function
+\texttt{sequences}.  The general function to use---for obtaining other
+simulation results than the sequences---is \texttt{simulate}; a call
+to \texttt{simulate} will return an ARG from which various results can
+be extracted.
+
+There is one slight complication though: since simulating sequences is
+by far the most common use of CoaSim, it has been optimised for this.
+This optimisation includes discarding the history of ancestral
+material intervals not containing any of the markers specified in the
+simulation parameters.  This reduces the memory usage considerably,
+and speeds up the simulations a bit, but also means that the complete
+ARG is not available after the simulation is completed.  In many cases
+this is not a problem, but if the full ARG is needed after the
+simulation the optimisation can be turned off by using the keyword
+argument \texttt{:keep-empty-intervals} set to \texttt{\#t}:
+
+\begin{code}
+(define ARG (simulate \emph{parameters} :keep-empty-intervals \#t))
+\end{code}
+
+This is usually recommended when you wish to explore the genealogy
+between the specified markers---or when you are not interested in
+markers and only wish to simulate ARGs---but is not needed for e.g.\
+simulating the local coalescent trees at the specified markers.
+
+
+\subsection{Simulating Trees}
+\label{sec:simulating-trees}
+
+\textbf{FIXME:}
+\begin{itemize}
+\item Simulating trees and writing them to files
+\item Extracting statistics about the trees 
+\item Extracting statistics about the trees for different simulation
+  parameters
+\end{itemize}
+
+
+\subsection{Simulating the ARG}
+\label{sec:simulating-arg}
+
+
+\textbf{FIXME:}
+\begin{itemize}
+\item Generalising to statistics about the ARG
+\end{itemize}
+
+
+\section{Advanced Usage}
+\label{sec:advanced-usage}
+
+\textbf{FIXME:}
+\begin{itemize}
+\item Using tree-simulation to scale e.g. rho and theta for sequence
+  simulation
+\item Defining your own marker-types using Scheme-callbacks for
+  setting mutations.
+\end{itemize}
+
+\begin{code}
+(define (step-ms-marker pos theta)
+  (let* ((msec (cdr (gettimeofday)))
+         (random-state (seed->random-state msec))
+
+         (waiting-time
+          (lambda ()
+            (let ((mean (/ 2 theta)))   ;mean is 1/i where the
+                                        ;intensity i is theta/2
+              (* mean (random:exp random-state)))))
+
+         (mutate-to
+          (lambda (parent-allele)
+              (if (< (random 1.0 random-state) 0.5)
+                  (- parent-allele 1)
+                  (+ parent-allele 1))))
+
+         (mutate
+          (lambda (parent child parent-allele)
+            (let loop ((allele parent-allele)
+                       (time-left (- (event-time parent) (event-time child))))
+              (if (< time-left 0)
+                  allele
+                  (let ((new-allele (mutate-to allele))
+                        (next-time (waiting-time)))
+                    (loop new-allele (- time-left next-time))))))))
+
+    (custom-marker pos 0 mutate)))
+
+
+(let* ((markers (list 
+                 (step-ms-marker 0.0 3)
+                 (step-ms-marker 0.1 3)
+                 (step-ms-marker 0.2 3)
+                 (step-ms-marker 0.3 3) ))
+       (seqs (simulate-sequences markers 5 :rho 400)))
+  (display seqs)(newline))
+\end{code}
+
+\begin{itemize}
+\item Writing new output formats
+\item Using simulation callbacks (plus exceptions for
+  rejection-sampling?)
+\end{itemize}
+
+
+
+\section{Customising CoaSim}
+\label{sec:customising-coasim}
+
+\textbf{FIXME:}
+\begin{itemize}
+\item start-up file \url{~/.coasim/startup.scm}
+\item writing your own modules (in \url{~/.coasim/}) --- example:
+  custom marker type.
+\end{itemize}
+
+
+
+
+\end{document}
+
+%% Local Variables: ***
+%% TeX-command-default:"LaTeX PDF" ***
+%% End: ***
+
+% LocalWords:   CoaSim geneconversion haplotype haplotypes SNP
