@@ -396,30 +396,36 @@ position(SCM marker_smob)
   <prototype>(custom-marker position ancestral-value mutation-function)</prototype>
   <example>(define (step-ms-marker pos theta)
   (let* ((msec (cdr (gettimeofday)))
-	 (random-state (seed->random-state msec))
+         (random-state (seed->random-state msec))
 
-	 (waiting-time
-	  (lambda ()
-	    (let ((mean (/ 2 theta))) ; mean is 1/i where the intensity i is theta/2
-	      (* mean (random:exp random-state)))))
+         (waiting-time
+          ;; waiting time for next mutation
+          (lambda ()
+            (let ((mean (/ 2 theta)));mean is 1/i where the
+                                     ;intensity i is theta/2
+              (* mean (random:exp random-state)))))
 
-	 (mutate-to
-	  (lambda (parent-allele)
-	      (if (&lt; (random 1.0 random-state) 0.5)
-		  (- parent-allele 1)
-		  (+ parent-allele 1))))
+         (mutate-to
+          ;; randomly mutating up or down
+          (lambda (parent-allele)
+            (if (&lt; (random 1.0 random-state) 0.5)
+                (- parent-allele 1)
+                (+ parent-allele 1))))
 
-	 (mutate
-	  (lambda (parent child parent-allele)
-	    (let loop ((allele parent-allele)
-		       (time-left (- (event-time parent) (event-time child))))
-	      (if (&lt; time-left 0)
-		  allele
-		  (let ((new-allele (mutate-to allele))
-			(next-time (waiting-time)))
-		    (loop new-allele (- time-left next-time))))))))
+         (mutate
+          ;; mutation function to use in the custom marker
+          (lambda (parent child parent-allele)
+            (let loop ((allele parent-allele)
+                       (time-left 
+                        (- (- (event-time parent) (event-time child))
+                           (waiting-time))))
+              (if (&lt; time-left 0)
+                  allele
+                  (let ((new-allele (mutate-to allele))
+                        (next-time (waiting-time)))
+                    (loop new-allele (- time-left next-time))))))))
 
-    (custom-marker pos 0 mutate)))</example>
+    (custom-marker pos 0 mutate))) </example>
   <description>
     <p>
       Creates a custom marker at position `position', with an
