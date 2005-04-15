@@ -399,21 +399,17 @@ position(SCM marker_smob)
          (random-state (seed->random-state msec))
 
          (waiting-time
-          ;; waiting time for next mutation
           (lambda ()
-            (let ((mean (/ 2 theta)));mean is 1/i where the
-                                     ;intensity i is theta/2
+            (let ((mean (/ 2 theta)));mean is 1/i where the intensity i is theta/2
               (* mean (random:exp random-state)))))
 
          (mutate-to
-          ;; randomly mutating up or down
           (lambda (parent-allele)
             (if (&lt; (random 1.0 random-state) 0.5)
                 (- parent-allele 1)
                 (+ parent-allele 1))))
 
          (mutate
-          ;; mutation function to use in the custom marker
           (lambda (parent child parent-allele)
             (let loop ((allele parent-allele)
                        (time-left 
