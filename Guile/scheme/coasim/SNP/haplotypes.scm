@@ -36,7 +36,14 @@
     <description>
      <p>
       Split a dataset into cases and controls, based on the value at
-      trait-idx.   The following keyword arguments can be used to control
+      trait-idx.   
+     <p>
+      By default the alleles at the trait marker is removed from the resulting
+      lists; an optional parameter, :remove-trait, if set to #f, will prevent
+      removal of the trait marker.
+     </p>
+     <p>
+      The following keyword arguments can be used to control
       the split:
      </p>
      <ul>
@@ -46,21 +53,25 @@
        <li><b>wild-type-prob:</b> The probability that a wild-type (allele 0) 
            is considered a case.  By default this is 0.
        </li>
+       <li><b>remove-trait:</b> If #t the alleles at the trait marker are
+         removed, if #f they are kept.
+       </li>
      </ul>
     </description>
    </method>
    -----</GUILE COMMENT>----------------------------------------- 
    "
   (let-keywords args #f ((mutant-prob 1)
-			 (wild-type-prob 0))
+			 (wild-type-prob 0)
+			 (remove-trait #t))
       (let* ((msec (cdr (gettimeofday)))
 	     (random-state (seed->random-state msec))
 	     (is-case? 
-	      (lambda (h) 
-		(if (= 1 (list-ref h trait-idx))
+	      (lambda (a) 
+		(if (= 1 a)
 		    (< (random 1.0 random-state) mutant-prob)
 		    (< (random 1.0 random-state) wild-type-prob)))))
-	(split haplotypes trait-idx is-case?))))
+	(split haplotypes trait-idx is-case? :remove-trait remove-trait))))
 
 ;; --<GUILE COMMENT>---------------------------------
 ;; </module>

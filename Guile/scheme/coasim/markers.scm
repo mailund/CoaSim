@@ -19,6 +19,7 @@
 
 (define-module (coasim markers) 
   :use-module ((coasim) :select (position))
+  :use-module ((ice-9 optargs) :select (let-keywords))
   :use-module ((srfi srfi-1) :select (take drop)))
 
 (define (cmp-markers m1 m2) (< (position m1) (position m2)))
@@ -114,15 +115,38 @@
 	    (loop (merge merged (car rest) cmp-markers) (cdr rest))))))
 
 
+(define-public (remove-marker seqs idx)
+  "
+   --<GUILE COMMENT>---------------------------------------------
+   <method name='remove-marker'>
+    <brief>Removes the alleles of the marker at `idx' from the sequences.</brief>
+    <prototype>(remove-marker sequences idx)</prototype>
+    <example> (use-modules (coasim markers))
+ (remove-marker seqs trait-idx)))</example>
+    <description>
+     <p>
+      Removes the alleles at `idx' from the sequences; useful for example for
+      removing a trait marker from a dataset.
+     </p>
+    </description>
+   </method>
+   -----</GUILE COMMENT>----------------------------------------- 
+  "
+  (letrec ((strip (lambda (h)
+		    (let ((first (take h idx))
+			  (rest  (drop h (+ 1 idx))))
+		      (append first rest)))))
+    (map strip seqs)))
 
-(define-public (split-in-cases-controls haplotypes trait-idx is-case?)
+
+(define-public (split-in-cases-controls haplotypes trait-idx is-case? . kwargs)
   "
    --<GUILE COMMENT>---------------------------------------------
    <method name='split-in-cases-controls'>
     <brief>Split a list of sequences into cases and controls.</brief>
     <prototype>(split-in-cases-controls sequences trait-idx is-case?)</prototype>
     <example>(use-modules (coasim markers))
-    (let ((is-case? (lambda (h) (= 1 (list-ref h trait-idx)))))
+    (let ((is-case? (lambda (a) (= 1 a))))
         (split-in-cases-controls seqs trait-idx is-case?)))</example>
     <description>
      <p>
@@ -130,25 +154,35 @@
       trait-idx.  If the value at that index satisfy the is-case? predicate,
       the sequence is considered a case, otherwise a control.
      </p>
+     <p>
+      By default the alleles at the trait marker is removed from the resulting
+      lists; an optional parameter, :remove-trait, if set to #f, will prevent
+      removal of the trait marker.
+     </p>
     </description>
    </method>
    -----</GUILE COMMENT>----------------------------------------- 
    "
-  (letrec ((strip-trait (lambda (h)
-			  (let ((first (take h trait-idx))
-				(rest  (drop h (+ 1 trait-idx))))
-			    (append first rest))))
+  (let-keywords 
+   kwargs #f ((remove-trait #t))
+   (letrec ((g (if remove-trait
+		   (lambda (h)
+		     (let ((first (take h trait-idx))
+			   (rest  (drop h (+ 1 trait-idx))))
+		       (append first rest)))
+		   (lambda (h) h)))
+
 	   (f (lambda (lst cases controls)
 		(cond ((null? lst) (list (reverse cases) (reverse controls)))
- 		      ((is-case? (car lst)) 
+ 		      ((is-case? (list-ref (car lst) trait-idx))
 		       (f (cdr lst) 
-			  (cons (strip-trait (car lst)) cases)
+			  (cons (g (car lst)) cases)
 			  controls))
 		      (else
 		       (f (cdr lst) 
 			  cases
-			  (cons (strip-trait (car lst)) controls)))))))
-    (f haplotypes '() '())))
+			  (cons (g (car lst)) controls)))))))
+    (f haplotypes '() '()))))
 
 
 ;; --<GUILE COMMENT>---------------------------------

@@ -80,7 +80,14 @@
     <description>
      <p>
       Split a dataset into cases and controls, based on the value at
-      trait-idx.   The following keyword arguments can be used to control
+      trait-idx.
+     <p>
+      By default the alleles at the trait marker is removed from the resulting
+      lists; an optional parameter, :remove-trait, if set to #f, will prevent
+      removal of the trait marker.
+     </p>
+     <p>
+      The following keyword arguments can be used to control
       the split:
      </p>
      <ul>
@@ -98,6 +105,9 @@
            if 'recessive only genotypes 1 (11) are considered cases.
            only 
        </li>
+       <li><b>remove-trait:</b> If #t the alleles at the trait marker are
+         removed, if #f they are kept.
+       </li>
      </ul>
     </description>
    </method>
@@ -106,13 +116,13 @@
   (let-keywords args #f ((disease-model 'unspecified)
 			 (homozygote-0-prob 0)
 			 (homozygote-1-prob 1)
-			 (heterozygote-prob 0.5))
+			 (heterozygote-prob 0.5)
+			 (remove-trait #t))
       (let* ((msec (cdr (gettimeofday)))
 	     (random-state (seed->random-state msec))
 	     (is-case? 
-	      (lambda (h)
-		(let ((a (list-ref h trait-idx))
-		      (r (random 1.0 random-state)))
+	      (lambda (a)
+		(let ((r (random 1.0 random-state)))
 		  (cond ((= a 0) (< r homozygote-0-prob))
 			((= a 1) (< r homozygote-1-prob))
 			((= a 2) (< r heterozygote-prob))
@@ -128,7 +138,7 @@
 	    (begin (set! homozygote-1-prob 1)
 		   (set! heterozygote-prob 1)))
 
-	(split genotypes trait-idx is-case?))))
+	(split genotypes trait-idx is-case? :remove-trait remove-trait))))
 
 
 ;; --<GUILE COMMENT>---------------------------------
