@@ -3,7 +3,7 @@
 \title{Getting Started with CoaSim}
 \subtitle{An introduction to the simulator CoaSim}
 \authors{Thomas Mailund}
-\contact{mailund@birc.dk}
+\contact{mailund@birc.au.dk}
 \company{Bioinformatics ApS}
 \toolversion{CoaSim v3.1}
 
@@ -130,8 +130,8 @@ The scheme based version is started from the command-line; the
 parameters for the simulation or simulations to be run is described in
 one or more configuration scripts, which are written in the Scheme
 programming language, see the \textit{CoaSim Scheme} manual for
-documentation.  Starting CoaSim with the configuration script
-\verb?simulation.scm?  is done as:
+documentation.  Starting CoaSim with a configuration script
+\verb?simulation.scm?---for example---is done as:
 \begin{code}
 > coasim_guile simulation.scm
 \end{code}
@@ -256,7 +256,7 @@ Controlling the simulations through scheme makes CoaSim a very
 flexible and powerful simulation tool. However, with flexibility
 inevitably is associated some complexity, and while running simple
 simulations through the scheme interface is quite simple, the more
-complex simulation tasks requires a bit of knowledge about the Scheme
+complex simulation tasks require a bit of knowledge about the Scheme
 programming language and the scheme modules supplied with CoaSim.  To
 keep this `getting started' guide short, we do not attempt to explain
 the scheme interface to CoaSim in detail here---for this we refer to
@@ -410,7 +410,7 @@ useful to avoid name-clashing in your scripts.
 
 The next statement calls \texttt{repeat} with two arguments, the
 number of simulations to run, and the code for the simulation; the
-later you will recognise as the same code we used above to simulate a
+latter you will recognise as the same code we used above to simulate a
 single tree.
 
 When conducting a large number of simulations, it is usually not
@@ -496,11 +496,11 @@ function over the $\beta$ values, which means that it applies the
 function on each $\beta$ and collect the results in a list, and it
 then prints this list using \texttt{display}.
 
-In all honesty, calculating the mean branch length in this way is a
-bit inefficient, since we build a list of all simulated values and
-then sum the elements; it would be more efficient to calculate the sum
-during the iterations.  This can also be done, using the \texttt{fold}
-function rather than \texttt{tabulate}:
+Calculating the mean branch length in this way is inefficient, since
+we build a list of all simulated values and then sum the elements; it
+would be more efficient to calculate the sum during the iterations.
+This can also be done, using the \texttt{fold} function rather than
+\texttt{tabulate}:
 
 \begin{code}
 (use-modules ((coasim batch) :select (fold)))

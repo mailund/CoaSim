@@ -4,7 +4,7 @@
 \title{CoaSim Guile Manual}
 \subtitle{Using the Guile-based CoaSim Simulator}
 \authors{Thomas Mailund}
-\contact{mailund@birc.dk}
+\contact{mailund@birc.au.dk}
 \company{Bioinformatics ApS}
 \toolversion{CoaSim v3.1}
 
@@ -108,7 +108,7 @@ the code above are \texttt{markers}---containing 10 random SNP markers
 with allowed mutant-frequencies between $0$ and $1$, created using the
 \texttt{make-random-snp-markers} function---and \texttt{seqs}---the
 simulated sequences.  There are 10 sequences, the second argument to
-\texttt{simulate-sequences}, and each sequence contain an allele for
+\texttt{simulate-sequences}, and each sequence contains an allele for
 each marker in \texttt{markers}.
 
 The sequences, as returned by \texttt{simulate-sequences}, are
@@ -132,8 +132,8 @@ the sequences to the file \texttt{sequences.txt}.  The
 writing; it opens a file port, then calls it second argument with this
 port, and then closes the port afterwards.  The
 \texttt{marker-positions-printer} and \texttt{sequences-printer} take
-care of writing the output.  They create functions that fits with the
-interface of \texttt{call-with-output-file}, and that writes the
+care of writing the output.  They create functions that fit with the
+interface of \texttt{call-with-output-file}, and that write the
 positions and sequences, respectively, to the port opened by
 the call to \texttt{call-with-output-file}.
 
@@ -604,7 +604,7 @@ general function to use---for obtaining other simulation results than
 the sequences---is \texttt{simulate}; a call to \texttt{simulate} will
 return an ARG from which various results can be extracted.  Since the
 function \texttt{simulate-sequences} is just a wrapper that calls
-\texttt{simulate} with the parameters it get, naturally
+\texttt{simulate} with the parameters it gets, 
 \texttt{simulate} takes the same simulation parameters as
 \texttt{simulate-sequences}.
 
@@ -997,7 +997,7 @@ traversing the ARG after the simulation---but also used for aborting a
 running simulation in a rejection sampling setup.
 
 Say we want to simulate $10,000$ coalescent trees simulated under
-recombination rate $\rho=5$, but conditional on no recombination in
+recombination rate $\rho=2$, but conditional on no recombination in
 fact did happen.  We could, of course, simulate ARGs till completion
 and reject ARGs containing recombination nodes, but it is much more
 efficient to abort the simulation once the first recombination occurs.
@@ -1014,7 +1014,7 @@ with another try:
          (try (lambda ()
                 ;; simulate an ARG, but reject the simulation if a
                 ;; recombination occurred
-                (simulate '() 10 :rho 5
+                (simulate '() 10 :rho 2
                           :recombination-callback reject-recomb
                           :keep-empty-intervals   #t)))
          (except (lambda (ex-key . ex-args) #f)))
@@ -1086,7 +1086,7 @@ the initial allele value is always set to 0 and the whole piece of
 code is an implementation of the mutation model.  The \texttt{mutate}
 function uses two helper functions, one for selecting the waiting time
 for the next mutation, and one for, conditional on a mutation
-occurring, for mutating an allele into another.  Waiting times are
+occurring, mutating an allele into another.  Waiting times are
 selected from an exponential distribution, and \texttt{mutate}
 iteratively selects waiting times and apply mutations until the next
 waiting time moves past the length of the edge being processed.
