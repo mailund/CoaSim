@@ -392,20 +392,26 @@ simulate(SCM s_markers,		// 1
     unsigned int seed = scm_num2int(s_random_seed, 8, "c-simulate");
 
     try {
+	using core::Configuration;
+	using core::ARG;
+	
 	auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
-	auto_ptr<core::Configuration> conf(new core::Configuration(no_leaves,
-								   markers.begin(), markers.end(),
-								   rho,
-								   Q, gamma, 
-								   beta));
-	auto_ptr<core::ARG> arg(core::Simulator::simulate(*conf, 
-							  monitor.get(),
-							  has_cb ? &cb : 0,
-							  keep_empty,
-							  seed));
+	auto_ptr<Configuration> conf(new Configuration(no_leaves,
+						       markers.begin(),
+						       markers.end(),
+						       rho,
+						       Q, gamma, 
+						       beta));
+	auto_ptr<ARG> arg(core::Simulator::simulate(*conf, 
+						    monitor.get(),
+						    has_cb ? &cb : 0,
+						    keep_empty,
+						    seed));
 
 	void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
-	ARGData *arg_data = new(mem)ARGData(arg.release(),conf.release(),monitor.release());
+	ARGData *arg_data = new(mem)ARGData(arg.release(),
+					    conf.release(),
+					    monitor.release());
     
 	SCM_RETURN_NEWSMOB(guile::arg_tag, arg_data);
     } catch(core::Configuration::out_of_sequence&) {

@@ -137,6 +137,13 @@ namespace {
 	SchemeMutator(const SchemeMarker &marker) : i_marker(marker) {}
     };
 
+    // FIXME: there is a potential problem here -- when the marker is
+    // copied (which it is when starting a simulation, but only then),
+    // we get a copy that points to the two scheme values, but does
+    // not cooperate with the GC -- this is a problem if a garbage
+    // collection is started after this marker is out of scope but
+    // before the simulation finished; I do not think that can happen
+    // right now, but be aware of it in the future...
     Marker *SchemeMarker::copy() const
     {
 	return new SchemeMarker(*this);
