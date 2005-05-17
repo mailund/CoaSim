@@ -214,7 +214,13 @@ print_scheme_marker (SCM marker_smob, SCM port, scm_print_state *pstate)
 
 
 
-
+static void
+check_position(double position)
+{
+    if (position < 0 or 1 <= position)
+	scm_throw(scm_str2symbol("illegal-position"),
+		  scm_list_1(scm_make_real(position)));
+}
 
 
 /* --<GUILE COMMENT>---------------------------------------------
@@ -239,6 +245,7 @@ static SCM
 trait_marker(SCM s_position, SCM s_low_freq, SCM s_high_freq)
 {
     double position  = scm_num2dbl(s_position,  "trait-marker");
+    check_position(position);
     double low_freq  = scm_num2dbl(s_low_freq,  "trait-marker");
     double high_freq = scm_num2dbl(s_high_freq, "trait-marker");
     void *mem = scm_must_malloc(sizeof(core::TraitMarker), "trait-marker");
@@ -270,6 +277,7 @@ static SCM
 snp_marker(SCM s_position, SCM s_low_freq, SCM s_high_freq)
 {
     double position  = scm_num2dbl(s_position,  "snp-marker");
+    check_position(position);
     double low_freq  = scm_num2dbl(s_low_freq,  "snp-marker");
     double high_freq = scm_num2dbl(s_high_freq, "snp-marker");
     void *mem = scm_must_malloc(sizeof(core::SNPMarker), "snp-marker");
@@ -300,6 +308,7 @@ static SCM
 ms_marker(SCM s_position, SCM s_theta, SCM s_alphabet_size)
 {
     double position      = scm_num2dbl(s_position, "ms-marker");
+    check_position(position);
     double theta         = scm_num2dbl(s_theta,    "ms-marker");
     int    alphabet_size = scm_num2int(s_alphabet_size, SCM_ARG3, "ms-marker");
     void *mem = scm_must_malloc(sizeof(core::MicroSatelliteMarker), 
@@ -307,6 +316,68 @@ ms_marker(SCM s_position, SCM s_theta, SCM s_alphabet_size)
     core::MicroSatelliteMarker *m 
 	= new(mem)core::MicroSatelliteMarker(position, theta, alphabet_size);
     SCM_RETURN_NEWSMOB(guile::ms_marker_tag, m);
+}
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="custom-marker">
+  <brief>Creates a custom marker type</brief>
+  <prototype>(custom-marker position ancestral-value mutation-function)</prototype>
+  <example>(define (step-ms-marker pos theta)
+  (let* ((msec (cdr (gettimeofday)))
+         (random-state (seed->random-state msec))
+
+         (waiting-time
+          (lambda ()
+            (let ((mean (/ 2 theta)));mean is 1/i where the intensity i is theta/2
+              (* mean (random:exp random-state)))))
+
+         (mutate-to
+          (lambda (parent-allele)
+            (if (&lt; (random 1.0 random-state) 0.5)
+                (- parent-allele 1)
+                (+ parent-allele 1))))
+
+         (mutate
+          (lambda (parent child parent-allele)
+            (let loop ((allele parent-allele)
+                       (time-left 
+                        (- (- (event-time parent) (event-time child))
+                           (waiting-time))))
+              (if (&lt; time-left 0)
+                  allele
+                  (let ((new-allele (mutate-to allele))
+                        (next-time (waiting-time)))
+                    (loop new-allele (- time-left next-time))))))))
+
+    (custom-marker pos 0 mutate))) </example>
+  <description>
+    <p>
+      Creates a custom marker at position `position', with an
+      ancestral value given by `ancestral-value' (either an integer or
+      a thunk returning an integer), and a mutation function `mutate',
+      that takes arguments `parent-node' and `child-node' of an edge
+      to mutate, and the allele at the parent of the edge.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+static SCM
+custom_marker(SCM s_position, SCM default_value, SCM mutate)
+{
+    double position  = scm_num2dbl(s_position,  "c-custom-marker");
+    check_position(position);
+
+    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(default_value)),
+	       default_value, SCM_ARG2, "c-custom-marker");
+    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(mutate)),
+	       mutate, SCM_ARG3, "c-custom-marker");
+
+    void *mem = scm_must_malloc(sizeof(SchemeMarker), "c-custom-marker");
+    SchemeMarker *m = new(mem)SchemeMarker(position, default_value, mutate);
+    SCM_RETURN_NEWSMOB(guile::scheme_marker_tag, m);
 }
 
 
@@ -394,67 +465,37 @@ position(SCM marker_smob)
     return scm_make_real(marker->position());
 }
 
-
-
 /* --<GUILE COMMENT>---------------------------------------------
 
-<method name="custom-marker">
-  <brief>Creates a custom marker type</brief>
-  <prototype>(custom-marker position ancestral-value mutation-function)</prototype>
-  <example>(define (step-ms-marker pos theta)
-  (let* ((msec (cdr (gettimeofday)))
-         (random-state (seed->random-state msec))
-
-         (waiting-time
-          (lambda ()
-            (let ((mean (/ 2 theta)));mean is 1/i where the intensity i is theta/2
-              (* mean (random:exp random-state)))))
-
-         (mutate-to
-          (lambda (parent-allele)
-            (if (&lt; (random 1.0 random-state) 0.5)
-                (- parent-allele 1)
-                (+ parent-allele 1))))
-
-         (mutate
-          (lambda (parent child parent-allele)
-            (let loop ((allele parent-allele)
-                       (time-left 
-                        (- (- (event-time parent) (event-time child))
-                           (waiting-time))))
-              (if (&lt; time-left 0)
-                  allele
-                  (let ((new-allele (mutate-to allele))
-                        (next-time (waiting-time)))
-                    (loop new-allele (- time-left next-time))))))))
-
-    (custom-marker pos 0 mutate))) </example>
+<method name="set-position!">
+  <brief>Changes the position of a marker.</brief>
+  <prototype>(set-position! marker new-position)</prototype>
+  <example>(set-position! marker 0.5)</example>
   <description>
     <p>
-      Creates a custom marker at position `position', with an
-      ancestral value given by `ancestral-value' (either an integer or
-      a thunk returning an integer), and a mutation function `mutate',
-      that takes arguments `parent-node' and `child-node' of an edge
-      to mutate, and the allele at the parent of the edge.
+      Changes the position of a marker.  In general, you will not need this
+      function, but it is useful when rescaling the interval to implement, e.g.
+      variable recombination rate.
     </p>
   </description>
 </method>
 
 -----</GUILE COMMENT>-------------------------------------------- */
 static SCM
-custom_marker(SCM s_position, SCM default_value, SCM mutate)
+set_position(SCM marker_smob, SCM new_position)
 {
-    double position  = scm_num2dbl(s_position,  "c-custom-marker");
+    assert_marker(marker_smob, SCM_ARG1, "set-position!");
+    double position  = scm_num2dbl(new_position,  "set-position!");
+    check_position(position);
+    
+    core::Marker *marker = (core::Marker*) SCM_SMOB_DATA(marker_smob);
+    marker->position(position);
 
-    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(default_value)),
-	       default_value, SCM_ARG2, "c-custom-marker");
-    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(mutate)),
-	       mutate, SCM_ARG3, "c-custom-marker");
-
-    void *mem = scm_must_malloc(sizeof(SchemeMarker), "c-custom-marker");
-    SchemeMarker *m = new(mem)SchemeMarker(position, default_value, mutate);
-    SCM_RETURN_NEWSMOB(guile::scheme_marker_tag, m);
+    return SCM_BOOL_F;
 }
+
+
+
 
 
 void
@@ -510,5 +551,7 @@ guile::install_marker()
 		       (scm_unused_struct*(*)())ms_marker_p);
 
     scm_c_define_gsubr("position", 1, 0, 0, (scm_unused_struct*(*)())position);
+    scm_c_define_gsubr("set-position!", 2, 0, 0, 
+		       (scm_unused_struct*(*)())set_position);
 
 }

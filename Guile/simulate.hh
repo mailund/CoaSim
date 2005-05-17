@@ -20,6 +20,9 @@
 #ifndef CORE__MONITOR_HH_INCLUDED
 # include <Core/monitor.hh>
 #endif
+#ifndef CORE__NODE_HH_INCLUDED
+# include <Core/node.hh>
+#endif
 
 #ifndef LIBGUILE_H_INCLUDED
 # include <libguile.h>

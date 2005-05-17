@@ -81,6 +81,7 @@
      <p>
       Split a dataset into cases and controls, based on the value at
       trait-idx.
+     </p>
      <p>
       By default the alleles at the trait marker is removed from the resulting
       lists; an optional parameter, :remove-trait, if set to #f, will prevent

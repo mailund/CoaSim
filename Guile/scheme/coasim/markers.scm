@@ -18,7 +18,7 @@
 ;;; Code:
 
 (define-module (coasim markers) 
-  :use-module ((coasim) :select (position))
+  :use-module ((coasim) :select (position set-position!))
   :use-module ((ice-9 optargs) :select (let-keywords))
   :use-module ((srfi srfi-1) :select (take drop)))
 
@@ -136,17 +136,26 @@
      <p>
       The `recombination-rates' list is translated into a piece-wise linear
       function, where the different regions of the 0-1 interval specified by
-      the distances in the list have different slope, and `positions' are then
-      translated by this function by adding the sum of scaled distances before
-      the region a position is in and multiplying the remainder distance from 
-      the start of the piece to the position by the recombination rate of the
-      piece:
+      the distances in the list have different slope
      </p>
-     <center><em>new_pos = (pos-last_break)*a + b</em></center>
      <p>
-      Where <em>last_break<em> is the beginning of the piece containing 
-      <em>pos</em>, <em>a</em> is the rate of the piece, and <em>b</em> is the
-      sum of distances times rates leading up to this piece.
+       Let <em>l<sub>i</sub></em> be length <em>i</em> in 
+       `recombination-rages', and let <em>bp<sub>i</sub></em> be the sum of
+       the first <em>i</em> lengths: 
+       <em>&#931;<sub>j&lt;i</sub> l<sub>i</sub></em>.  
+       Let <em>a<sub>i</sub></em> be rate
+       <em>i</em> in `recombination-rates', and let <em>b<sub>i</sub></em> be 
+       the sum <em>&#931;<sub>j&lt;i</sub> a<sub>i</sub>*d<sub>i</sub></em>.
+     </p>
+     <p>
+      The positions are then translated by linear functions: 
+      <em>f<sub>i</sub>(x) = a<sub>i</sub>*x + b<sub>i</sub></em>,
+      such that for
+      positions <em>p</em>: <em>bp<sub>i</sub>&lt;p&lt;= bp<sub>i+1</sub></em>
+      <em>p</em> is translated into <em>f<sub>i</sub>(p)</em>.
+     </p>
+     <p>
+      The input positions must be sorted.
      </p>
     </description>
    </method>
@@ -156,6 +165,14 @@
   (let ((distance-sum (apply + (map car recombination-rates))))
     (if (not (= 1.0 distance-sum))
 	(throw 'illegal-distances distance-sum)))
+  (if (null? positions)
+      (throw 'empty-positions-list positions))
+  (let loop ((cur (car positions))
+	     (rest (cdr positions)))
+    (if (null? rest) #f
+	(begin 
+	  (if (> cur (car rest)) (throw 'positions-not-sorted))
+	  (loop (car rest) (cdr rest)))))
 
   (let* (;; distances in the 0-1 interval
 	 (distances (map car recombination-rates))
@@ -206,6 +223,37 @@
     (map back-scale scaled-positions)))
 
 
+(define-public (rescale-markers! markers recombination-rates)
+  "
+   --<GUILE COMMENT>---------------------------------------------
+   <method name='rescale-markers!'>
+    <brief>Rescales marker positions to simulate variable recombination rate.</brief>
+    <prototype>(rescale-markers! markers recombination-rates)</prototype>
+    <example> (use-modules (coasim markers))
+ (define recomb-rates '((0.5 40) (0.25 400) (0.25 40)))
+ (define scaled (rescale-markers! markers recomb-rates))</example>
+    <description>
+     <p>
+      Rescales the positions of the markers in `markers' according to
+     `recombination-rates',
+      a list of pairs where the first element is a lenght (of the 0-1 interval)
+      and the second is the recombination rate over that range.  (The actual
+      value of the rate is not important, only the relative differences
+      between the rates in the list).
+     </p>
+     <p>
+      Similar to the function `rescale-positions', except that for this
+      function the markers are moved according to the rescaling.
+     </p>
+    </description>
+   </method>
+   -----</GUILE COMMENT>----------------------------------------- 
+  "
+  (let* ((unscaled-positions (map position markers))
+	 (scaled-positions   (rescale-positions unscaled-positions
+						recombination-rates)))
+    (for-each set-position! markers scaled-positions)))
+	 
 
 
 (define-public (remove-marker seqs idx)
