@@ -57,6 +57,10 @@ namespace core {
 	struct illegal_value : public std::logic_error {
 	    illegal_value() : std::logic_error("illegal marker value.") {}
 	};
+	// Exception thrown if a marker is given a position outside [0,1).
+	struct illegal_position : public std::logic_error {
+	    illegal_position() : std::logic_error("illeval position") {}
+	};
 
 	// polymorphic copying
 	virtual Marker *copy() const = 0;
@@ -64,6 +68,11 @@ namespace core {
 	virtual ~Marker();
 
 	double position() const { return i_position; }
+	void   position(double position) throw (illegal_position)
+	{ 
+	    if (position < 0 or 1 <= position) throw illegal_position();
+	    i_position = position; 
+	}
 	virtual bool run_first() const = 0;
     
 	virtual int default_value() const = 0;
@@ -76,8 +85,9 @@ namespace core {
 	virtual const char * type() const = 0;
 
     protected:
-	Marker(double position) : i_position(position)
-	{ assert(0 <= position); assert(position < 1); };
+	Marker(double position) throw (illegal_position)
+	    : i_position(position)
+	{ if (position < 0 or 1 <= position) throw illegal_position(); };
 	double i_position;
 	std::vector<int> i_values;
 

@@ -8,11 +8,17 @@
 #ifndef CORE__BUILDER_HH_INCLUDED
 #define CORE__BUILDER_HH_INCLUDED
 
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
+
+
 
 namespace core {
+
+    class CoalescentNode;
+    class RecombinationNode;
+    class GeneConversionNode;
+    class ARG;
+    class Configuration;
+    class SimulationMonitor;
 
     struct BuilderMonitor
     {

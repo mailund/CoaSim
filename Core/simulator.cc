@@ -19,6 +19,10 @@
 #ifndef CORE__MONITOR_HH_INCLUDED
 # include "monitor.hh"
 #endif
+#ifndef CORE__NODE_HH_INCLUDED
+# include "node.hh"
+#endif
+
 #ifndef SYS_TIME_H_INCLUDED
 # include <sys/time.h>
 # define SYS_TIME_H_INCLUDED
