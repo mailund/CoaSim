@@ -2,7 +2,7 @@
  *
  *  CoaSim -- A coalescence process simulator
  *
- *  Copyright (C) 2004 by Bioinformatics ApS
+ *  Copyright (C) 2004, 2005 by Bioinformatics ApS
  */
 
 #ifndef CORE__BUILDER_EVENTS_HH_INCLUDED
@@ -47,7 +47,12 @@ namespace core {
 	    = 0;
     };
 
-    struct CoalescenceEvent : public Event {
+    class CoalescenceEvent : public Event {
+	unsigned int &i_coal_event_counter;
+    public:
+	CoalescenceEvent(unsigned int &event_counter)
+	    : i_coal_event_counter(event_counter)
+	{}
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(State &s, double event_time,
 				    ARG   &arg, BuilderMonitor *callbacks);
@@ -56,25 +61,32 @@ namespace core {
     class CoalescenceEventGrowth : public CoalescenceEvent {
 	double i_beta;
     public:
-	CoalescenceEventGrowth(double beta) : i_beta(beta) {}
+	CoalescenceEventGrowth(unsigned int &event_counter, double beta) 
+	    : CoalescenceEvent(event_counter), i_beta(beta) 
+	{}
 	virtual double event_time  (State &s, double current_time);
     };
 
     class RecombinationEvent : public Event {
+	unsigned int &i_recomb_event_counter;
 	double i_rho;
     public:
-	RecombinationEvent(double rho) : i_rho(rho) {}
+	RecombinationEvent(unsigned int &event_counter, double rho) 
+	    : i_recomb_event_counter(event_counter), i_rho(rho)
+	{}
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(State &s, double event_time,
 				    ARG   &arg, BuilderMonitor *callbacks);
     };
 
     class GeneConversionEvent : public Event {
+	unsigned int &i_gene_conv_event_counter;
 	double i_gamma;
 	double i_Q;
     public:
-	GeneConversionEvent(double gamma, double Q) 
-	    : i_gamma(gamma), i_Q(Q)
+	GeneConversionEvent(unsigned int &event_counter,
+			    double gamma, double Q)
+	    : i_gene_conv_event_counter(event_counter), i_gamma(gamma), i_Q(Q)
 	{}
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(State &s, double event_time,

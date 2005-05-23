@@ -2,7 +2,7 @@
  *
  *  CoaSim -- A coalescence process simulator
  *
- *  Copyright (C) 2004 by Bioinformatics ApS
+ *  Copyright (C) 2004, 2005 by Bioinformatics ApS
  */
 
 #include "builder_events.hh"
@@ -56,6 +56,7 @@ void core::CoalescenceEvent::update_state(State &s, double event_time,
     CoalescentNode *coa_node = arg.coalescence(event_time, child1, child2);
     if (callbacks) callbacks->coalescence_callback(coa_node, nodes_left);
     if (coa_node->intervals().size() > 0) population.push(coa_node);
+    ++i_coal_event_counter;
 }
 
 double core::CoalescenceEventGrowth::event_time(State &s, double current_time)
@@ -96,6 +97,8 @@ RecombinationEvent::update_state(State &s, double event_time,
 	if (callbacks)
 	    callbacks->recombination_callback(pair.first, pair.second,
 					      nodes_left);
+
+	++i_recomb_event_counter;
 
     } catch (ARG::null_event&) {
 	population.push(child);
@@ -144,6 +147,8 @@ GeneConversionEvent::update_state(State &s, double event_time,
 	if (callbacks)
 	    callbacks->gene_conversion_callback(pair.first, pair.second,
 						nodes_left);
+
+	++i_gene_conv_event_counter;
 
     } catch (ARG::null_event&) {
 	population.push(child);
