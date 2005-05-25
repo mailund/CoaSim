@@ -41,11 +41,13 @@ ARG * Builder::build(SimulationMonitor *mon,
     double time = 0.0;
 
     Scheduler scheduler;
+    CoalescenceEvent *coa_event = 0;
     if (i_conf.growth() > 0)
-	scheduler.add_event(new CoalescenceEventGrowth(coal_events,
-						       i_conf.growth()));
+	coa_event = new CoalescenceEventGrowth(coal_events, 
+					       1, i_conf.growth());
     else
-	scheduler.add_event(new CoalescenceEvent(coal_events));
+	coa_event = new CoalescenceEvent(coal_events);
+    scheduler.add_event(coa_event);
 
     if (i_conf.rho() > 0)
 	scheduler.add_event(new RecombinationEvent(recomb_events,
@@ -54,7 +56,10 @@ ARG * Builder::build(SimulationMonitor *mon,
 	scheduler.add_event(new GeneConversionEvent(gene_conv_events,
 						    i_conf.gamma(), 
 						    i_conf.Q()));
-    
+
+    std::vector<Epoch*>::const_iterator i;
+    for (i = i_conf.epochs_begin(); i != i_conf.epochs_end(); ++i)
+	(*i)->add_events(scheduler, *coa_event);
 
     if (mon) mon->builder_update(i_conf.no_leaves(), // no nodes
 				 i_conf.no_leaves(), // no "top" nodes
@@ -67,7 +72,7 @@ ARG * Builder::build(SimulationMonitor *mon,
 	    ++no_iterations;
 	    Scheduler::time_event_t e = scheduler.next_event(state, time);
 	    assert(e.second);
-	    e.second->update_state(state, e.first, *arg, callbacks);
+	    e.second->update_state(scheduler, state, e.first, *arg, callbacks);
 	    time = e.first;
 
 	    if (mon and  (no_iterations % 50000)  == 0 )

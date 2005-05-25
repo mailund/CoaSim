@@ -6,7 +6,7 @@
 \authors{Thomas Mailund}
 \contact{mailund@birc.au.dk}
 \company{Bioinformatics ApS}
-\toolversion{CoaSim v3.1}
+\toolversion{CoaSim v3.2}
 
 
 
@@ -1065,6 +1065,80 @@ or using \texttt{fold} from \texttt{(coasim batch)} again:
   (display (/ sum-of-heights 10000))
   (newline))
 \end{code}
+
+
+\subsection{Variable Recombination Rate}
+\label{sec:vari-recomb-rate}
+
+In all examples so far, we have used a constant recombination rate,
+$\rho$, over the region we simulate.  We can think of this as working
+with a genetic distance rather than physical distance between loci on
+the region; the distance between two markers is linearly proportional
+to the expected recombinations between them.
+
+It is well known that the rate of recombination varies across the
+genome, so if we simulate markers placed on a `physical distance'
+region, we no longer expect a linear relationship between distance and
+recombination.  We can, however, simulate variable recombination rates
+simply by scaling the physical distance into genetic distance and
+simulate with the scaled markers.
+
+If we split the (physical distance) interval $0-1$ into segments, with
+each segment getting a different recombination rate, we can rescale
+the interval $0-1$ by making the length of each segment proportional
+to the original length of the segment times the recombination rate of
+the segment.  Let $l_i$ be the length of segment $i$ and $r_i$ the
+rate of segment $i$, and let $bp_i=\sum_{j<i}l_i$.  Then,
+for any locus $x$: $bp_i \leq x < bp_{i+1}$, we can rescale $x$ to
+\[x' = \frac{r_i\cdot{}(x-bp_i) + \sum_{j<i}l_j\cdot{}r_j}
+            {\sum_{j}l_j\cdot{}r_j}.
+\]
+
+The locus is scaled according to the total scaled range of the
+previous segments, from $0$ to $bp_i$, by adding
+$\sum_{j<i}l_j\cdot{}r_j$, and then the expected recombination in the
+current segment, $r_i\cdot(x-bp_i)$.  The scaled loci should all be
+moved to the interval $0-1$ for CoaSim to be able to handle them, thus
+the final scaling constant, $1/\sum_{j}l_j\cdot{}r_j$.
+
+
+The function \texttt{rescale-markers!} from module \texttt{(coasim
+  markers)} preforms exactly this rescaling.  It takes a list of
+markers and a list of recombination rates covering the interval $0-1$,
+and scales the markers positions.  The list of recombination rates is
+a list of the form 
+\begin{code}
+{((length-1 rate-1) (length-2 rate-2) ... (length-n rate-n))}
+\end{code}
+where the lengths must sum to $1$.  This list
+provides the $l_i$s and $r_i$s above.  The list of markers, which must
+be sorted wrt. their position, provides the $x$s above and are
+rescaled.
+
+For example, to give the third quarter of the interval $0-1$ a
+recombination rate ten times as high as the rest of the interval, we
+could use
+\begin{code}
+(define recomb-rates '((0.5 1) (0.25 10) (0.25 1)))
+(rescale-markers! markers recomb-rates)
+\end{code}
+
+The actual value of the rates in this list is not so important, only
+the relative rates: all loci are scaled down to the interval $0-1$ as
+described above, and the total recombination on this interval is
+determined by the $\rho$ parameter given to the simulate function.
+The actual recombination rate of a segment with length $l$ and rate
+$r$ would be $\rho\cdot\frac{r\cdot{}l}{\sum_jr_j\cdot{}l_j}$, thus
+for the third quarter of $0-1$ to have recombination rate $400$ ($1cM$
+assuming the effective population size is $10,000$) we should simulate
+with $\rho=\frac{400\cdot{}(0.5\cdot{}1+0.25\cdot{}10+0.25\cdot{}1)}
+                {0.25\cdot{}10}=
+520$.  On the other hand, to let the entire interval have
+recombination rate $\rho=400$, the first half would be scaled to rate
+$400\cdot{}\frac{0.5\cdot{}1}{3.5}=57.14$, the third quarter would be
+scaled to rate $400\cdot{}\frac{0.25\cdot{}10}{3.5}=285.71$, and the
+final quarter would be scaled to rate
+$400\cdot{}\frac{0.25\cdot{}1}{3.5}=28.57$.
 
 
 \subsection{Writing Custom Markers}

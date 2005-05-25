@@ -5,6 +5,7 @@ LDFLAGS = -Wl,-rpath,/usr/local/lib
 
 noinst_PROGRAMS =
 noinst_PROGRAMS += marker_test
+noinst_PROGRAMS += epochs_test
 noinst_PROGRAMS += simulate_test
 
 bin_PROGRAMS =
@@ -13,14 +14,22 @@ bin_PROGRAMS += coasim_guile
 
 TESTS =
 TESTS += marker_test.sh
+TESTS += epochs_test.sh
 TESTS += simulate_test.sh
 
 EXTRA_DIST =
 EXTRA_DIST += marker_test.sh marker-test.scm marker-test.expected
 EXTRA_DIST += simulate_test.sh simulate-test.scm simulate-test.expected
 
+
+epochs_test_SOURCES =
+epochs_test_SOURCES += epochs.hh epochs.cc 
+epochs_test_SOURCES += exceptions.hh exceptions.cc
+epochs_test_SOURCES += epochs_test.cc
+
 marker_test_SOURCES =
 marker_test_SOURCES += marker.hh marker.cc 
+marker_test_SOURCES += epochs.hh epochs.cc 
 marker_test_SOURCES += exceptions.hh exceptions.cc
 marker_test_SOURCES += nodes.hh nodes.cc
 marker_test_SOURCES += intervals.hh intervals.cc
@@ -29,6 +38,7 @@ marker_test_SOURCES += marker_test.cc
 
 simulate_test_SOURCES =
 simulate_test_SOURCES += marker.hh marker.cc 
+simulate_test_SOURCES += epochs.hh epochs.cc 
 simulate_test_SOURCES += options.hh options.cc
 simulate_test_SOURCES += nodes.hh nodes.cc
 simulate_test_SOURCES += intervals.hh intervals.cc
@@ -38,6 +48,7 @@ simulate_test_SOURCES += simulate_test.cc
 
 coasim_guile_SOURCES =
 coasim_guile_SOURCES += marker.hh marker.cc 
+coasim_guile_SOURCES += epochs.hh epochs.cc 
 coasim_guile_SOURCES += options.hh options.cc
 coasim_guile_SOURCES += nodes.hh nodes.cc
 coasim_guile_SOURCES += intervals.hh intervals.cc

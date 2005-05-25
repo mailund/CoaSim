@@ -15,5 +15,13 @@ core::Configuration::~Configuration()
 	    delete i_plain_markers[i];
 	}
     delete[] i_first_markers; 
-    delete[] i_plain_markers; 
+    delete[] i_plain_markers;
+
+    std::vector<Epoch*>::iterator i;
+    for (i = i_epochs.begin(); i != i_epochs.end(); ++ i)
+	delete *i;
+}
+
+core::Epoch::~Epoch()
+{
 }

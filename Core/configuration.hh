@@ -28,6 +28,24 @@
 namespace core {
     class SimulationMonitor;
 
+
+    // FIXME: The interface for epochs needs to be rethought before I
+    // add population structure!  Passing the coalescence event
+    // handler isn't the right way to do this -- the sub-populations
+    // should be passed instead, and from those I should get the right
+    // event handlers.
+    class Scheduler;
+    class CoalescenceEvent;
+    struct Epoch {
+	virtual ~Epoch();
+
+	// polymorphic copying
+	virtual Epoch *copy() const = 0;
+
+	virtual void add_events(Scheduler &scheduler,
+				CoalescenceEvent &coa_event) = 0;
+    };
+
     class Configuration
     {
     public:
@@ -51,6 +69,12 @@ namespace core {
 	template <typename InItr>
 	Configuration(unsigned int no_leaves,
 		      InItr begin, InItr end,
+		      double rho, double Q, double gamma, double growth)
+	    throw(out_of_sequence);
+	template <typename MarkerItr, typename EpochItr>
+	Configuration(unsigned int no_leaves,
+		      MarkerItr m_begin, MarkerItr m_end,
+		      EpochItr  e_begin, EpochItr  e_end,
 		      double rho, double Q, double gamma, double growth)
 	    throw(out_of_sequence);
 	~Configuration();
@@ -90,6 +114,10 @@ namespace core {
 	double gamma()  const { return i_gamma; }
 	double growth() const { return i_growth; }
 
+	typedef std::vector<Epoch*>::const_iterator epoch_iterator;
+	epoch_iterator epochs_begin() const { return i_epochs.begin(); }
+	epoch_iterator epochs_end()   const { return i_epochs.end(); }
+
     private:
 	// Disable these
 	Configuration(const Configuration&);
@@ -106,6 +134,7 @@ namespace core {
 	double i_gamma;
 	double i_growth;
 
+	std::vector<Epoch*> i_epochs;
     };
 
 
@@ -134,6 +163,35 @@ namespace core {
 	    if (position(m-1) >= position(m)) throw out_of_sequence();
 
     }
+
+    template <typename MarkerItr, typename EpochItr>
+    Configuration::Configuration(unsigned int no_leaves,
+				 MarkerItr m_begin, MarkerItr m_end,
+				 EpochItr  e_begin, EpochItr  e_end,
+				 double rho, double Q, double gamma, 
+				 double growth)
+	throw(out_of_sequence)
+	: i_no_leaves(no_leaves),
+	  i_rho(rho), i_Q(Q), i_gamma(gamma), i_growth(growth)
+    {
+	i_no_markers = m_end - m_begin;
+    
+	i_first_markers = new const Marker* [i_no_markers];
+	for (int m = 0; m < i_no_markers; ++m) i_first_markers[m] = 0;
+
+	i_plain_markers = new const Marker* [i_no_markers];
+	for (int m = 0; m < i_no_markers; ++m) i_plain_markers[m] = 0;
+
+	for (int m = 0; m < i_no_markers; ++m) 
+	    set_marker(m, *(m_begin++));
+
+	for (int m = 1; m < i_no_markers; ++m)
+	    if (position(m-1) >= position(m)) throw out_of_sequence();
+	
+	for ( ; e_begin != e_end; ++e_begin)
+	    i_epochs.push_back((*e_begin)->copy());
+    }
+
 
     inline double Configuration::position(int index)
 	const throw(std::out_of_range)

@@ -10,6 +10,9 @@
 #ifndef GUILE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
+#ifndef GUILE__EPOCHS_HH_INCLUDED
+# include "epochs.hh"
+#endif
 #ifndef GUILE__OPTIONS_HH_INCLUDED
 # include "options.hh"
 #endif
@@ -28,6 +31,9 @@ using namespace guile;
 
 #ifndef CORE__ALL_MARKERS_HH_INCLUDED
 # include <Core/all_markers.hh>
+#endif
+#ifndef CORE__EPOCHS_HH_INCLUDED
+# include <Core/epochs.hh>
 #endif
 
 
@@ -328,11 +334,10 @@ static SCM
 simulate(SCM s_markers,		// 1
 	 SCM s_no_leaves,	// 2
 	 SCM s_sim_parameters,	// 3
-	 SCM coa_cb, 		// 4
-	 SCM rc_cb, 		// 5
-	 SCM gc_cb, 		// 6
-	 SCM s_keep_empty,	// 7
-	 SCM s_random_seed)	// 8
+	 SCM s_callbacks,       // 4
+	 SCM s_epochs,          // 5
+	 SCM s_keep_empty,	// 6
+	 SCM s_random_seed)	// 7
 {
     using namespace std;
 
@@ -362,7 +367,27 @@ simulate(SCM s_markers,		// 1
 	    itr_markers = SCM_CDR(itr_markers);
 	}
 
+    SCM itr_epochs = s_epochs;
+    vector<core::Epoch*> epochs;
+    while (!SCM_NULLP(itr_epochs))
+	{
+	    SCM epoch_smob = SCM_CAR(itr_epochs);
+	    assert_epoch(epoch_smob, SCM_ARG5, "simulate");
+
+	    core::Epoch *epoch = (core::Epoch*) SCM_SMOB_DATA(epoch_smob);
+	    epochs.push_back(epoch);
+
+	    itr_epochs = SCM_CDR(itr_epochs);
+	}
+
     int no_leaves = scm_num2int(s_no_leaves, SCM_ARG2, "simulate");
+
+    SCM_ASSERT(SCM_NFALSEP(scm_list_p(s_callbacks)),
+	       s_callbacks, SCM_ARG4, "simulate");
+
+    SCM coa_cb = SCM_CAR(s_callbacks);
+    SCM rc_cb  = SCM_CADR(s_callbacks);
+    SCM gc_cb  = SCM_CADDR(s_callbacks);
 
     bool has_cb = false;
     Callbacks cb;
@@ -376,20 +401,20 @@ simulate(SCM s_markers,		// 1
     if (rc_cb != SCM_EOL)
 	{
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(rc_cb)),
-		       rc_cb, 5, "c-simulate");
+		       rc_cb, 4, "c-simulate");
 	    cb.set_rc_cb(rc_cb);
 	    has_cb = true;
 	}
     if (gc_cb != SCM_EOL)
 	{
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(gc_cb)),
-		       gc_cb, 6, "c-simulate");
+		       gc_cb, 4, "c-simulate");
 	    cb.set_gc_cb(gc_cb);
 	    has_cb = true;
 	}
 
     bool keep_empty = SCM_NFALSEP(s_keep_empty);
-    unsigned int seed = scm_num2int(s_random_seed, 8, "c-simulate");
+    unsigned int seed = scm_num2int(s_random_seed, 7, "c-simulate");
 
     try {
 	using core::Configuration;
@@ -616,7 +641,7 @@ guile::install_simulate()
     guile::arg_tag = scm_make_smob_type("arg", sizeof(ARGData));
     scm_set_smob_free(guile::arg_tag, free_arg);
 
-    scm_c_define_gsubr("c-simulate", 8, 0, 0, 
+    scm_c_define_gsubr("c-simulate", 7, 0, 0, 
 		       (scm_unused_struct*(*)())simulate);
     scm_c_eval_string("(use-modules (ice-9 optargs))"
 		      "(define (simulate ms n . args)"
@@ -627,13 +652,15 @@ guile::install_simulate()
 		      "                         (coalescence-callback '())"
 		      "                         (recombination-callback '())"
 		      "                         (geneconversion-callback '())"
+		      "                         (epochs '())"
 		      "                         (keep-empty-intervals #f)"
 		      "                         (random-seed 0))"
 		      "		(c-simulate ms n"
 		      "                     (list rho gamma Q beta)"
-		      "                     coalescence-callback"
-		      "                     recombination-callback"
-		      "                     geneconversion-callback"
+		      "                     (list coalescence-callback"
+		      "                           recombination-callback"
+		      "                           geneconversion-callback)"
+		      "                     epochs"
 		      "                     keep-empty-intervals"
 		      "                     random-seed)))");
 

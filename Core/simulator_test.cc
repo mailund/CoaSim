@@ -7,6 +7,7 @@
 
 #include "testing.hh"
 
+#include "epochs.hh"
 #include "simulator.hh"
 
 #include "configuration.hh"
@@ -16,9 +17,9 @@ using namespace core;
 
 
 /*
- * WARNING: THIS PROGRAM IS NOT REALLY TESTING SIMULATOR -- WE NEED TO
- * DO THAT STATISTICALLY SOMEHOW -- THE PROGRAM SIMPLY TRIES TO RUN
- * THE SIMULATOR (TO SEE THAT IT DOESN'T CRASH).
+ * WARNING: THIS PROGRAM IS NOT REALLY TESTING THE SIMULATOR -- WE
+ * NEED TO DO THAT STATISTICALLY SOMEHOW -- THE PROGRAM SIMPLY TRIES
+ * TO RUN THE SIMULATOR (TO SEE THAT IT DOESN'T CRASH).
  */
 
 
@@ -28,11 +29,11 @@ int main(int argc, const char *argv[])
 
     try {
 
-	const unsigned int no_leaves = 2;
-	const double rho = 1.0;	// 5.0
-	const double Q = 0.0;	// 250.0
-	const double G = 0.0;	// 250.0
-	const double growth = 5.0;
+	const unsigned int no_leaves = 10;
+	const double rho = 1.0;
+	const double Q = 3.0;
+	const double G = 2.0;
+	const double growth = 0.0; //5.0;
 	const double mu = 5.0;
 	std::vector<Marker*> markers;
 	markers.push_back(new SNPMarker(0.0, 0.0,1.0));
@@ -42,9 +43,12 @@ int main(int argc, const char *argv[])
 	markers.push_back(mm);
 	markers.push_back(new SNPMarker(0.67, 0.0,1.0));
 
+	std::vector<Epoch*> epochs;
+	epochs.push_back(new BottleNeck(0.1, 1.0, 2.0));
 
 	Configuration conf(no_leaves,
 			   markers.begin(), markers.end(),
+			   epochs.begin(),  epochs.end(),
 			   rho, Q, G, growth);
 
 	// FIXME: not completely exception safe -- memory leak if
@@ -53,6 +57,11 @@ int main(int argc, const char *argv[])
 	for (i = markers.begin(); i != markers.end(); ++i)
 	    delete *i;
 	markers.resize(0);
+	std::vector<Epoch*>::iterator j;
+	for (j = epochs.begin(); j != epochs.end(); ++j)
+	    delete *j;
+	epochs.resize(0);
+
 	ARG *arg = Simulator::simulate(conf);
 	CHECK(arg != 0);
 

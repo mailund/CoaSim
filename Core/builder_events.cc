@@ -43,10 +43,11 @@ double core::CoalescenceEvent::event_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
     unsigned int nodes_left = s.population().size();
-    return current_time + expdev(nodes_left, double(nodes_left-1)/2);
+    double delta_time = expdev(nodes_left, double(nodes_left-1)/2);
+    return current_time + i_scale_fraction * delta_time;
 }
-void core::CoalescenceEvent::update_state(State &s, double event_time,
-					  ARG   &arg, 
+void core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
+					  double event_time, ARG &arg, 
 					  BuilderMonitor *callbacks)
 {
     Population &population = s.population();
@@ -64,8 +65,25 @@ double core::CoalescenceEventGrowth::event_time(State &s, double current_time)
     using namespace Distribution_functions;
     unsigned int nodes_left = s.population().size();
     double xx = expdev(nodes_left,double(nodes_left-1)/2);
-    double yy = exp(-i_beta*current_time);
-    return current_time + log(1.0+i_beta*xx*yy)/i_beta;
+    double yy = exp(-i_beta*(current_time - i_start_time));
+    double delta_time = log(1.0+i_beta*xx*yy)/i_beta;
+    return current_time + scale_fraction() * delta_time;
+}
+
+double
+BottleNeckEndPoint::event_time(State &s, double current_time)
+{
+    return i_event_time;
+}
+
+void
+BottleNeckEndPoint::update_state(Scheduler &scheduler, State &s,
+				 double event_time, ARG &arg,
+				 BuilderMonitor *callbacks)
+{
+    i_coa_event->scale_fraction(i_scale_fraction);
+    scheduler.delete_event(this);
+    
 }
 
 double
@@ -77,8 +95,9 @@ RecombinationEvent::event_time(State &s, double current_time)
 }
 
 void
-RecombinationEvent::update_state(State &s, double event_time,
-				 ARG   &arg, BuilderMonitor *callbacks)
+RecombinationEvent::update_state(Scheduler &scheduler, State &s,
+				 double event_time, ARG &arg,
+				 BuilderMonitor *callbacks)
 {
     using namespace Distribution_functions;
 
@@ -114,8 +133,9 @@ GeneConversionEvent::event_time(State &s, double current_time)
 }
 
 void
-GeneConversionEvent::update_state(State &s, double event_time,
-				  ARG   &arg, BuilderMonitor *callbacks)
+GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
+				  double event_time, ARG &arg,
+				  BuilderMonitor *callbacks)
 {
     using namespace Distribution_functions;
 
@@ -164,7 +184,7 @@ GeneConversionEvent::update_state(State &s, double event_time,
 
 Scheduler::~Scheduler() 
 {
-    std::vector<Event*>::iterator i;
+    std::list<Event*>::iterator i;
     for (i = i_events.begin(); i != i_events.end(); ++i)
 	delete *i;
 }
@@ -175,7 +195,7 @@ Scheduler::next_event(State &s, double current_time)
 {
     double minimal_time = std::numeric_limits<double>::max();
     Event *minimal_event = 0;
-    std::vector<Event*>::iterator i;
+    std::list<Event*>::iterator i;
     for (i = i_events.begin(); i != i_events.end(); ++i)
 	{
 	    double event_time = (*i)->event_time(s, current_time);
@@ -188,3 +208,11 @@ Scheduler::next_event(State &s, double current_time)
     return time_event_t(minimal_time, minimal_event);
 }
 
+void
+Scheduler::delete_event(Event *event)
+{
+    std::list<Event*>::iterator i;
+    i = find(i_events.begin(), i_events.end(), event);
+    delete *i;
+    i_events.erase(i);
+}

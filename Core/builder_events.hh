@@ -12,12 +12,17 @@
 # include <vector>
 # define VECTOR_INCLUDED
 #endif
+#ifndef LIST_INCLUDED
+# include <list>
+# define LIST_INCLUDED
+#endif
 
 namespace core {
 
     class ARG;
     class Node;
     class BuilderMonitor;
+    class Scheduler;
 
     class Population {
 	std::vector<Node*>i_nodes;
@@ -42,30 +47,71 @@ namespace core {
     struct Event {
 	virtual double event_time  (State &s, double current_time)
 	    = 0;
-	virtual void   update_state(State &s, double event_time,
-				    ARG   &arg, BuilderMonitor *callbacks)
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time, ARG &arg,
+				    BuilderMonitor *callbacks)
 	    = 0;
     };
 
     class CoalescenceEvent : public Event {
 	unsigned int &i_coal_event_counter;
+	double        i_scale_fraction;
+
     public:
-	CoalescenceEvent(unsigned int &event_counter)
-	    : i_coal_event_counter(event_counter)
+	CoalescenceEvent(unsigned int &event_counter,
+			 double scale_fraction = 1)
+	    : i_coal_event_counter(event_counter),
+	      i_scale_fraction(scale_fraction)
 	{}
+
+	double scale_fraction() const
+	{
+	    return i_scale_fraction;
+	}
+	void scale_fraction(double scale_fraction)
+	{
+	    i_scale_fraction = scale_fraction;
+	}
+
 	virtual double event_time  (State &s, double current_time);
-	virtual void   update_state(State &s, double event_time,
-				    ARG   &arg, BuilderMonitor *callbacks);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time, ARG &arg,
+				    BuilderMonitor *callbacks);
     };
 
     class CoalescenceEventGrowth : public CoalescenceEvent {
 	double i_beta;
+	double i_start_time;
     public:
-	CoalescenceEventGrowth(unsigned int &event_counter, double beta) 
-	    : CoalescenceEvent(event_counter), i_beta(beta) 
+	CoalescenceEventGrowth(unsigned int &event_counter,
+			       double scale_fraction = 1,
+			       double beta = 0,
+			       double start_time = 0)
+	    : CoalescenceEvent(event_counter, scale_fraction),
+	      i_beta(beta), i_start_time(start_time)
 	{}
 	virtual double event_time  (State &s, double current_time);
     };
+
+
+    class BottleNeckEndPoint : public Event {
+	CoalescenceEvent *i_coa_event;
+	double i_event_time;
+	double i_scale_fraction;
+    public:
+	BottleNeckEndPoint(CoalescenceEvent *coa_event,
+			   double event_time, double scale_fraction)
+	    : i_coa_event(coa_event),
+	      i_event_time(event_time),
+	      i_scale_fraction(scale_fraction)
+	{}
+
+	virtual double event_time  (State &s, double current_time);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time, ARG &arg,
+				    BuilderMonitor *callbacks);
+    };
+
 
     class RecombinationEvent : public Event {
 	unsigned int &i_recomb_event_counter;
@@ -75,8 +121,9 @@ namespace core {
 	    : i_recomb_event_counter(event_counter), i_rho(rho)
 	{}
 	virtual double event_time  (State &s, double current_time);
-	virtual void   update_state(State &s, double event_time,
-				    ARG   &arg, BuilderMonitor *callbacks);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time, ARG &arg,
+				    BuilderMonitor *callbacks);
     };
 
     class GeneConversionEvent : public Event {
@@ -89,14 +136,15 @@ namespace core {
 	    : i_gene_conv_event_counter(event_counter), i_gamma(gamma), i_Q(Q)
 	{}
 	virtual double event_time  (State &s, double current_time);
-	virtual void   update_state(State &s, double event_time,
-				    ARG   &arg, BuilderMonitor *callbacks);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time, ARG &arg,
+				    BuilderMonitor *callbacks);
     };
     
 
 
     class Scheduler {
-	std::vector<Event*> i_events;
+	std::list<Event*> i_events;
 
     public:
 	~Scheduler();
@@ -104,6 +152,8 @@ namespace core {
 
 	typedef std::pair<double,Event*> time_event_t;
 	time_event_t next_event(State &s, double current_time);
+
+	void delete_event(Event *event);
     };
 
 }

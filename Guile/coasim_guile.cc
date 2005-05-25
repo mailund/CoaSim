@@ -10,6 +10,9 @@
 #ifndef GUILE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
+#ifndef GUILE__EPOCHS_HH_INCLUDED
+# include "epochs.hh"
+#endif
 #ifndef GUILE__OPTIONS_HH_INCLUDED
 # include "options.hh"
 #endif
@@ -136,6 +139,7 @@ read_home_rc_file()
 static void 
 init_scheme_bindings(void *dummy)
 {
+    guile::install_epochs();
     guile::install_marker();
     guile::install_nodes();
     guile::install_intervals();
