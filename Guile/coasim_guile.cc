@@ -139,10 +139,10 @@ read_home_rc_file()
 static void 
 init_scheme_bindings(void *dummy)
 {
-    guile::install_epochs();
     guile::install_marker();
     guile::install_nodes();
     guile::install_intervals();
+    guile::install_epochs();
     guile::install_simulate();
 }
 
@@ -201,7 +201,9 @@ main(int argc, const char *argv[])
 
 	
 	// install bindings -- to both toplevel and module
-	init_scheme_bindings(0);
+	init_scheme_bindings(0); // FIXME: I am not sure this is safe,
+				 // since I install the datatypes
+				 // twice!!!
 	scm_c_define_module("coasim", init_scheme_bindings, 0);
 
 	// run global initialization scripts

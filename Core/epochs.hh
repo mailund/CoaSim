@@ -14,7 +14,6 @@
 # include "configuration.hh"
 #endif
 
-
 namespace core {
 
 

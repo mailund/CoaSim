@@ -424,6 +424,8 @@ simulate(SCM s_markers,		// 1
 	auto_ptr<Configuration> conf(new Configuration(no_leaves,
 						       markers.begin(),
 						       markers.end(),
+						       epochs.begin(),
+						       epochs.end(),
 						       rho,
 						       Q, gamma, 
 						       beta));

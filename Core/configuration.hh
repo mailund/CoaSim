@@ -187,7 +187,7 @@ namespace core {
 
 	for (int m = 1; m < i_no_markers; ++m)
 	    if (position(m-1) >= position(m)) throw out_of_sequence();
-	
+
 	for ( ; e_begin != e_end; ++e_begin)
 	    i_epochs.push_back((*e_begin)->copy());
     }
