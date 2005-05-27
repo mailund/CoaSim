@@ -208,17 +208,51 @@ guile::wrap_node(SCM arg, const core::Node *node)
     return SCM_BOOL_F;
 }
 
+const core::Node *
+guile::unwrap_node(SCM node_smob)
+{
+    const core::Node *core_node;
+    if (SCM_SMOB_PREDICATE(guile::leaf_node_tag, node_smob))
+	{
+	    LeafNode *lnode = (LeafNode*)SCM_SMOB_DATA(node_smob);
+	    core_node = lnode->node;
+	}
+    else if (SCM_SMOB_PREDICATE(guile::coalescent_node_tag, node_smob))
+	{
+	    CoalescentNode *cnode 
+		= (CoalescentNode*)SCM_SMOB_DATA(node_smob);
+	    core_node = cnode->node;
+	}
+    else if (SCM_SMOB_PREDICATE(guile::recombination_node_tag, node_smob))
+	{
+	    RecombinationNode *rnode 
+		= (RecombinationNode*)SCM_SMOB_DATA(node_smob);
+	    core_node = rnode->node;
+	}
+    else if (SCM_SMOB_PREDICATE(guile::gene_conversion_node_tag, node_smob))
+	{
+	    GeneConversionNode *gnode 
+		= (GeneConversionNode*)SCM_SMOB_DATA(node_smob);
+	    core_node = gnode->node;
+	}
+
+    if (!core_node)
+	scm_throw(scm_str2symbol("not-a-node-error"), SCM_EOL);
+
+    return core_node;
+}
+
 namespace {
 
+    
 
-/* --<GUILE COMMENT>---------------------------------------------
-
-<method name="contains-point?">
+/* --<GUILE COMMENT>--------------------------------------------- 
+<method name="ancestral?">
   <brief>Checks if a node contains ancestral material in a given point.</brief>
-  <prototype>(contains-point? node point)</prototype>
+  <prototype>(ancestral? node point)</prototype>
   <example>(define coa-times '()) ; times for coalescent events at point 0.5
 (define (coa-cb n k) 
-  (if (contains-point? 0.5) (set! coa-times (cons (event-time n) coa-times))))
+  (if (ancestral? n 0.5) (set! coa-times (cons (event-time n) coa-times))))
 (simulate markers no-leaves :rho 400 :coalescence-callback coa-cb) </example>
   <description>
     <p>Checks if a node contains ancestral material in a given point.
@@ -228,41 +262,50 @@ namespace {
 
 -----</GUILE COMMENT>-------------------------------------------- */
 
-    SCM contains_point_p(SCM node_smob, SCM s_point)
+    bool c_ancestral_p(const core::Node *node, double point)
     {
-	double point  = scm_num2dbl(s_point,  "contains-point");
-	const core::Node *core_node = 0;
-
-	if (SCM_SMOB_PREDICATE(guile::leaf_node_tag, node_smob))
-	    {
-		LeafNode *lnode = (LeafNode*)SCM_SMOB_DATA(node_smob);
-		core_node = lnode->node;
-	    }
-	else if (SCM_SMOB_PREDICATE(guile::coalescent_node_tag, node_smob))
-	    {
-		CoalescentNode *cnode 
-		    = (CoalescentNode*)SCM_SMOB_DATA(node_smob);
-		core_node = cnode->node;
-	    }
-	else if (SCM_SMOB_PREDICATE(guile::recombination_node_tag, node_smob))
-	    {
-		RecombinationNode *rnode 
-		    = (RecombinationNode*)SCM_SMOB_DATA(node_smob);
-		core_node = rnode->node;
-	    }
-	else if (SCM_SMOB_PREDICATE(guile::gene_conversion_node_tag, node_smob))
-	    {
-		GeneConversionNode *gnode 
-		    = (GeneConversionNode*)SCM_SMOB_DATA(node_smob);
-		core_node = gnode->node;
-	    }
-
-	if (!core_node)
-	    scm_throw(scm_str2symbol("not-a-node-error"), SCM_EOL);
-
-	
-	return SCM_BOOL(core_node->contains_point(point));
+	return node->contains_point(point);
     }
+    SCM ancestral_p(SCM node_smob, SCM s_point)
+    {
+	double point  = scm_num2dbl(s_point,  "ancestral?");
+	const core::Node *node = unwrap_node(node_smob);
+	return SCM_BOOL(c_ancestral_p(node, point));
+    }
+
+/* --<GUILE COMMENT>--------------------------------------------- 
+<method name="trapped?">
+  <brief>Checks if a node contains trapped material in a given point.</brief>
+  <prototype>(trapped? node point)</prototype>
+  <example>(define coa-times '()) ; times for coalescent events at point 0.5
+(define (coa-cb n k) 
+  (if (or (ancestral? n 0.5) (trapped? n 0.5))(set! coa-times (cons (event-time n) coa-times))))
+(simulate markers no-leaves :rho 400 :coalescence-callback coa-cb) </example>
+  <description>
+    <p>Checks if a node contains trapped material in a given point.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM trapped_p(SCM node_smob, SCM s_point)
+    {
+	double point  = scm_num2dbl(s_point,  "trapped?");
+	const core::Node *node = unwrap_node(node_smob);
+
+	if (c_ancestral_p(node, point))
+	    return SCM_BOOL(false); // it is not trapped if it is ancestral
+
+	// it is trapped if it isn't outside the nodes start and stop
+	// ancestral point
+	bool trapped = 
+	    (node->intervals().first_point() <= point) and
+	    (point < node->intervals().last_point());
+	
+	return SCM_BOOL(trapped);
+    }
+
 
 
 
@@ -274,7 +317,7 @@ namespace {
   <example>(define (collect-event-times i)
   (letrec ((collect-et-r
 	    (lambda (root point)
-	      (if (not (contains-point? root point))
+	      (if (not (ancestral? root point))
 		  '()
 		  (cond ((leaf-node? root) 
 			 (list (event-time root)))
@@ -627,8 +670,10 @@ guile::install_nodes()
 
     scm_c_define_gsubr("event-time", 1, 0, 0, 
 		       (scm_unused_struct*(*)())event_time);
-    scm_c_define_gsubr("contains-point?", 2, 0, 0, 
-		       (scm_unused_struct*(*)())contains_point_p);
+    scm_c_define_gsubr("ancestral?", 2, 0, 0, 
+		       (scm_unused_struct*(*)())ancestral_p);
+    scm_c_define_gsubr("trapped?", 2, 0, 0, 
+		       (scm_unused_struct*(*)())trapped_p);
     scm_c_define_gsubr("children", 1, 0, 0, 
 		       (scm_unused_struct*(*)())children);
 

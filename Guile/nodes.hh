@@ -38,7 +38,7 @@ namespace guile {
 				   const core::GeneConversionNode *node);
 
     SCM wrap_node                 (SCM arg, const core::Node *node);
-
+    const core::Node *unwrap_node (SCM node_smob);
 }
 
 #endif
