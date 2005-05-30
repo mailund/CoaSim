@@ -835,14 +835,16 @@ gene-conversions nodes, and an empty list for leaf nodes.
 It is possible to check the type of nodes using the predicates
 \texttt{coalescent-node?}, \texttt{gene-conversion-node?},
 \texttt{leaf-node?}, and \texttt{recombination-node?} and through
-these tread the different nodes differently during a traversal.  Two
+these tread the different nodes differently during a traversal.  Three
 additional functions can be used for extracting information about a
 node:
 \begin{itemize}
 \item \texttt{event-time}---returns the time the node was created (in
   scaled coalescence time, $2N$), and
-\item \texttt{contains-point?}---predicate that determines if the
+\item \texttt{ancestral?}---predicate that determines if the
   ancestral material in the node contains a given point.
+\item \texttt{trapped?}---predicate that determines if the
+  a point is trapped between ancestral material in a node.
 \end{itemize}
 
 To accumulate information about \texttt{all} the ARG nodes, it is

@@ -23,93 +23,140 @@ namespace core {
     class Node;
     class BuilderMonitor;
     class Scheduler;
+    class CoalescenceEvent;
 
     class Population {
+	CoalescenceEvent *i_coal_event;
+	double i_scale_fraction;
 	std::vector<Node*>i_nodes;
     public:
-	Population(ARG &arg, unsigned int initial_population_size);
+	Population(ARG &arg, unsigned int initial_population_size,
+		   CoalescenceEvent *coal_event,
+		   double scale_fraction = 1);
+	
 	void push(Node *n) { i_nodes.push_back(n); }
 	Node *pop();
 	size_t size() const { return i_nodes.size(); }
+
+	double scale_fraction() const { return i_scale_fraction; }
+	CoalescenceEvent *coalescence_event() { return i_coal_event; }
+	void coalescence_event(CoalescenceEvent *e) { i_coal_event = e; }
     };
 
 
     class State {
+	ARG &i_arg;
 	Population i_population;
+	BuilderMonitor *i_callbacks;
+
     public:
-	State(ARG &arg, unsigned int initial_population_size)
-	    : i_population(arg, initial_population_size)
-	{}
-	Population &population() { return i_population; }
+	// FIXME: This initialization is not optimal
+	State(ARG &arg, BuilderMonitor *callbacks,
+	      unsigned int initial_population_size,
+	      unsigned int &coal_counter);
+
+	ARG        &arg()           { return i_arg; }
+	Population &population()    { return i_population; }
+	BuilderMonitor *callbacks() { return i_callbacks; }
     };
 
 
     struct Event {
+	virtual ~Event();
 	virtual double event_time  (State &s, double current_time)
 	    = 0;
 	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time, ARG &arg,
-				    BuilderMonitor *callbacks)
+				    double event_time)
 	    = 0;
     };
 
     class CoalescenceEvent : public Event {
 	unsigned int &i_coal_event_counter;
-	double        i_scale_fraction;
+
 
     public:
-	CoalescenceEvent(unsigned int &event_counter,
-			 double scale_fraction = 1)
-	    : i_coal_event_counter(event_counter),
-	      i_scale_fraction(scale_fraction)
-	{}
-
-	double scale_fraction() const
+	CoalescenceEvent(unsigned int &event_counter)
+	    : i_coal_event_counter(event_counter)
 	{
-	    return i_scale_fraction;
-	}
-	void scale_fraction(double scale_fraction)
-	{
-	    i_scale_fraction = scale_fraction;
 	}
 
+	virtual double waiting_time(State &s, double current_time);
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time, ARG &arg,
-				    BuilderMonitor *callbacks);
+				    double event_time);
     };
 
-    class CoalescenceEventGrowth : public CoalescenceEvent {
+    class CoalescenceEventExtension : public CoalescenceEvent {
+	CoalescenceEvent *i_underlying;
+
+    protected:
+	double basic_waiting_time(State &s, double current_time)
+	{
+	    assert(i_underlying);
+	    return i_underlying->waiting_time(s, current_time);
+	}
+	virtual double waiting_time(State &s, double current_time) = 0;
+
+    public:
+	CoalescenceEventExtension(unsigned int &event_counter)
+	    : CoalescenceEvent(event_counter),
+	      i_underlying(0)
+	{}
+	~CoalescenceEventExtension();
+
+	void push(Scheduler &scheduler, State &s);
+	void pop (Scheduler &scheduler, State &s);
+    };
+    
+    class CoalescenceEventGrowth : public CoalescenceEventExtension {
 	double i_beta;
 	double i_start_time;
+
+	virtual double waiting_time(State &s, double current_time);
     public:
 	CoalescenceEventGrowth(unsigned int &event_counter,
-			       double scale_fraction = 1,
 			       double beta = 0,
 			       double start_time = 0)
-	    : CoalescenceEvent(event_counter, scale_fraction),
+	    : CoalescenceEventExtension(event_counter),
 	      i_beta(beta), i_start_time(start_time)
 	{}
-	virtual double event_time  (State &s, double current_time);
+    };
+
+    class CoalescenceEventBottleneck : public CoalescenceEventExtension {
+	double i_scale_fraction;
+
+	virtual double waiting_time(State &s, double current_time);
+    public:
+	CoalescenceEventBottleneck(unsigned int &event_counter,
+				   double scale_fraction)
+	    : CoalescenceEventExtension(event_counter),
+	      i_scale_fraction(scale_fraction)
+	{}
     };
 
 
-    class BottleNeckEndPoint : public Event {
-	CoalescenceEvent *i_coa_event;
-	double i_event_time;
-	double i_scale_fraction;
+    class EpochStartEvent : public Event {
+	double i_start;
+	CoalescenceEventExtension *i_epoch;
     public:
-	BottleNeckEndPoint(CoalescenceEvent *coa_event,
-			   double event_time, double scale_fraction)
-	    : i_coa_event(coa_event),
-	      i_event_time(event_time),
-	      i_scale_fraction(scale_fraction)
+	EpochStartEvent(double start, CoalescenceEventExtension *epoch)
+	    : i_start(start), i_epoch(epoch)
 	{}
-
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time, ARG &arg,
-				    BuilderMonitor *callbacks);
+				    double event_time);
+    };
+
+    class EpochEndEvent : public Event {
+	double i_end;
+	CoalescenceEventExtension *i_epoch;
+    public:
+	EpochEndEvent(double end, CoalescenceEventExtension *epoch)
+	    : i_end(end), i_epoch(epoch)
+	{}
+	virtual double event_time  (State &s, double current_time);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time);
     };
 
 
@@ -122,8 +169,7 @@ namespace core {
 	{}
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time, ARG &arg,
-				    BuilderMonitor *callbacks);
+				    double event_time);
     };
 
     class GeneConversionEvent : public Event {
@@ -137,8 +183,7 @@ namespace core {
 	{}
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time, ARG &arg,
-				    BuilderMonitor *callbacks);
+				    double event_time);
     };
     
 
@@ -149,11 +194,11 @@ namespace core {
     public:
 	~Scheduler();
 	void add_event(Event *event) { i_events.push_back(event); }
+	void remove_event(Event *event);
 
 	typedef std::pair<double,Event*> time_event_t;
 	time_event_t next_event(State &s, double current_time);
 
-	void delete_event(Event *event);
     };
 
 }

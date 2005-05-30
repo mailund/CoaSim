@@ -30,8 +30,6 @@ ARG * Builder::build(SimulationMonitor *mon,
     using namespace Distribution_functions;
 
     std::auto_ptr<ARG> arg(new ARG(i_conf, keep_empty_intervals));
-    State state(*arg, i_conf.no_leaves());
-    Population &population = state.population();
 
     unsigned long int no_iterations = 0;
     unsigned int coal_events = 0;
@@ -40,15 +38,18 @@ ARG * Builder::build(SimulationMonitor *mon,
 
     double time = 0.0;
 
-    Scheduler scheduler;
-    CoalescenceEvent *coa_event = 0;
-    if (i_conf.growth() > 0)
-	coa_event = new CoalescenceEventGrowth(coal_events, 
-					       1, i_conf.growth());
-    else
-	coa_event = new CoalescenceEvent(coal_events);
-    scheduler.add_event(coa_event);
+    State state(*arg, callbacks, i_conf.no_leaves(), coal_events);
+    Population &population = state.population();
 
+    Scheduler scheduler;
+    scheduler.add_event(population.coalescence_event());
+    if (i_conf.growth() > 0)
+	{
+	    CoalescenceEventExtension *growth_coa_event
+		= new CoalescenceEventGrowth(coal_events, i_conf.growth());
+	    growth_coa_event->push(scheduler, state);
+	}
+	
     if (i_conf.rho() > 0)
 	scheduler.add_event(new RecombinationEvent(recomb_events,
 						   i_conf.rho()));
@@ -57,9 +58,10 @@ ARG * Builder::build(SimulationMonitor *mon,
 						    i_conf.gamma(), 
 						    i_conf.Q()));
 
+    // FIXME: Validation of epochs!!!
     std::vector<Epoch*>::const_iterator i;
     for (i = i_conf.epochs_begin(); i != i_conf.epochs_end(); ++i)
-	(*i)->add_events(scheduler, *coa_event);
+	(*i)->add_events(scheduler, coal_events);
 
     if (mon) mon->builder_update(i_conf.no_leaves(), // no nodes
 				 i_conf.no_leaves(), // no "top" nodes
@@ -72,7 +74,7 @@ ARG * Builder::build(SimulationMonitor *mon,
 	    ++no_iterations;
 	    Scheduler::time_event_t e = scheduler.next_event(state, time);
 	    assert(e.second);
-	    e.second->update_state(scheduler, state, e.first, *arg, callbacks);
+	    e.second->update_state(scheduler, state, e.first);
 	    time = e.first;
 
 	    if (mon and  (no_iterations % 50000)  == 0 )

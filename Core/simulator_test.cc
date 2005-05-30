@@ -33,7 +33,7 @@ int main(int argc, const char *argv[])
 	const double rho = 1.0;
 	const double Q = 3.0;
 	const double G = 2.0;
-	const double growth = 0.0; //5.0;
+	const double growth = 0.1; //5.0;
 	const double mu = 5.0;
 	std::vector<Marker*> markers;
 	markers.push_back(new SNPMarker(0.0, 0.0,1.0));

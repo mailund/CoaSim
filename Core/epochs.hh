@@ -16,14 +16,12 @@
 
 namespace core {
 
-
     class BottleNeck : public Epoch {
 	double i_scale_fraction;
 	double i_start_point;
 	double i_end_point;
     public:
-	BottleNeck(double scale_fraction, 
-		   double start_point, double end_point)
+	BottleNeck(double scale_fraction, double start_point, double end_point)
 	    : i_scale_fraction(scale_fraction),
 	      i_start_point(start_point),
 	      i_end_point(end_point)
@@ -38,7 +36,30 @@ namespace core {
 
 	virtual Epoch *copy() const;
 	virtual void add_events(Scheduler &scheduler,
-				CoalescenceEvent &coa_event);
+				unsigned int &event_counter);
+    };
+
+    class Growth : public Epoch {
+	double i_beta;
+	double i_start_point;
+	double i_end_point;
+    public:
+	Growth(double beta, double start_point, double end_point)
+	    : i_beta(beta),
+	      i_start_point(start_point),
+	      i_end_point(end_point)
+	{
+	    assert(beta > 0);
+	    assert(start_point < end_point);
+	}
+
+	double beta()        const { return i_beta; }
+	double start_point() const { return i_start_point; }
+	double end_point()   const { return i_end_point; }
+
+	virtual Epoch *copy() const;
+	virtual void add_events(Scheduler &scheduler,
+				unsigned int &event_counter);
     };
 }
 

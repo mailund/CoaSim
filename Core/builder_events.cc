@@ -22,7 +22,10 @@
 
 using namespace core;
 
-Population::Population(ARG &arg, unsigned int initial_population_size)
+Population::Population(ARG &arg, unsigned int initial_population_size,
+		       CoalescenceEvent *coal_event,
+		       double scale_fraction)
+    : i_coal_event(coal_event), i_scale_fraction(scale_fraction)
 {
     for (int i = 0; i < initial_population_size; ++i)
 	push(arg.leaf());
@@ -38,18 +41,39 @@ Node *Population::pop()
 }
 
 
+// FIXME: This initialization is not optimal
+State::State(ARG &arg, BuilderMonitor *callbacks,
+	     unsigned int initial_population_size,
+	     unsigned int &coal_counter)
+    : i_arg(arg), 
+      i_population(arg, initial_population_size,
+		   new CoalescenceEvent(coal_counter)),
+      i_callbacks(callbacks)
+{
+}
 
-double core::CoalescenceEvent::event_time(State &s, double current_time)
+
+Event::~Event() {}
+
+double core::CoalescenceEvent::waiting_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
     unsigned int nodes_left = s.population().size();
+    double scale_fraction = s.population().scale_fraction();
     double delta_time = expdev(nodes_left, double(nodes_left-1)/2);
-    return current_time + i_scale_fraction * delta_time;
+    return scale_fraction * delta_time;
 }
-void core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
-					  double event_time, ARG &arg, 
-					  BuilderMonitor *callbacks)
+
+double core::CoalescenceEvent::event_time(State &s, double current_time)
 {
+    return current_time + waiting_time(s, current_time);
+}
+
+void core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
+					  double event_time)
+{
+    ARG &arg = s.arg();
+    BuilderMonitor *callbacks = s.callbacks();
     Population &population = s.population();
     unsigned int nodes_left = population.size();
     Node *child1 = population.pop();
@@ -60,30 +84,78 @@ void core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
     ++i_coal_event_counter;
 }
 
-double core::CoalescenceEventGrowth::event_time(State &s, double current_time)
+CoalescenceEventExtension::~CoalescenceEventExtension()
 {
-    using namespace Distribution_functions;
-    unsigned int nodes_left = s.population().size();
-    double xx = expdev(nodes_left,double(nodes_left-1)/2);
-    double yy = exp(-i_beta*(current_time - i_start_time));
-    double delta_time = log(1.0+i_beta*xx*yy)/i_beta;
-    return current_time + scale_fraction() * delta_time;
-}
-
-double
-BottleNeckEndPoint::event_time(State &s, double current_time)
-{
-    return i_event_time;
+    if (i_underlying) delete i_underlying;
 }
 
 void
-BottleNeckEndPoint::update_state(Scheduler &scheduler, State &s,
-				 double event_time, ARG &arg,
-				 BuilderMonitor *callbacks)
+CoalescenceEventExtension::push(Scheduler &scheduler, State &s)
 {
-    i_coa_event->scale_fraction(i_scale_fraction);
-    scheduler.delete_event(this);
-    
+    assert(i_underlying == 0);
+    Population &p = s.population();
+    i_underlying = p.coalescence_event();
+    p.coalescence_event(this);
+    scheduler.remove_event(i_underlying);
+    scheduler.add_event(this);
+}
+
+void
+CoalescenceEventExtension::pop(Scheduler &scheduler, State &s)
+{
+    assert(i_underlying != 0);
+    Population &p = s.population();
+    p.coalescence_event(i_underlying);
+    scheduler.remove_event(this);
+    scheduler.add_event(i_underlying);
+    i_underlying = 0;
+}
+
+
+double core::CoalescenceEventGrowth::waiting_time(State &s,
+						  double current_time)
+{
+    using namespace Distribution_functions;
+    double t_k_star = basic_waiting_time(s, current_time);
+    double v_k_1 = current_time - i_start_time;
+    return log(1.0+i_beta*t_k_star*exp(-i_beta*v_k_1))/i_beta;
+}
+
+double core::CoalescenceEventBottleneck::waiting_time(State &s, double c_time)
+{
+    return i_scale_fraction * basic_waiting_time(s, c_time);
+}
+
+
+double
+EpochStartEvent::event_time  (State &s, double current_time)
+{
+    return i_start;
+}
+
+void
+EpochStartEvent::update_state(Scheduler &scheduler, State &s,
+			      double event_time)
+{
+    i_epoch->push(scheduler, s);
+    scheduler.remove_event(this);
+    delete this;    
+}
+
+double
+EpochEndEvent::event_time  (State &s, double current_time)
+{
+    return i_end;
+}
+
+void
+EpochEndEvent::update_state(Scheduler &scheduler, State &s,
+			    double event_time)
+{
+    i_epoch->pop(scheduler, s);
+    scheduler.remove_event(this);
+    delete i_epoch;
+    delete this;    
 }
 
 double
@@ -96,10 +168,12 @@ RecombinationEvent::event_time(State &s, double current_time)
 
 void
 RecombinationEvent::update_state(Scheduler &scheduler, State &s,
-				 double event_time, ARG &arg,
-				 BuilderMonitor *callbacks)
+				 double event_time)
 {
     using namespace Distribution_functions;
+
+    ARG &arg = s.arg();
+    BuilderMonitor *callbacks = s.callbacks();
 
     double cross_over_point = uniform();
     Population &population = s.population();
@@ -134,10 +208,12 @@ GeneConversionEvent::event_time(State &s, double current_time)
 
 void
 GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
-				  double event_time, ARG &arg,
-				  BuilderMonitor *callbacks)
+				  double event_time)
 {
     using namespace Distribution_functions;
+
+    ARG &arg = s.arg();
+    BuilderMonitor *callbacks = s.callbacks();
 
     double point = uniform();
     double length = random_sign()*expdev(i_Q);
@@ -194,7 +270,7 @@ Scheduler::time_event_t
 Scheduler::next_event(State &s, double current_time)
 {
     double minimal_time = std::numeric_limits<double>::max();
-    Event *minimal_event = 0;
+    Event *earliest_event = 0;
     std::list<Event*>::iterator i;
     for (i = i_events.begin(); i != i_events.end(); ++i)
 	{
@@ -202,17 +278,16 @@ Scheduler::next_event(State &s, double current_time)
 	    if (event_time < minimal_time)
 		{
 		    minimal_time = event_time;
-		    minimal_event = *i;
+		    earliest_event = *i;
 		}
 	}
-    return time_event_t(minimal_time, minimal_event);
+    return time_event_t(minimal_time, earliest_event);
 }
 
 void
-Scheduler::delete_event(Event *event)
+Scheduler::remove_event(Event *event)
 {
     std::list<Event*>::iterator i;
     i = find(i_events.begin(), i_events.end(), event);
-    delete *i;
     i_events.erase(i);
 }

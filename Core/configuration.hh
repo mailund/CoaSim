@@ -43,7 +43,7 @@ namespace core {
 	virtual Epoch *copy() const = 0;
 
 	virtual void add_events(Scheduler &scheduler,
-				CoalescenceEvent &coa_event) = 0;
+				unsigned int &event_counter) = 0;
     };
 
     class Configuration
