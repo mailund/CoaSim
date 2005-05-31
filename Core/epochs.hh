@@ -80,6 +80,10 @@ namespace core {
 	{
 	}
 
+	unsigned int population1() const { return i_pop_1; }
+	unsigned int population2() const { return i_pop_2; }
+	double       merge_time()  const { return i_merge_time; }
+
 	virtual Epoch *copy() const;
 	virtual void add_events(Scheduler &scheduler,
 				unsigned int &event_counter);

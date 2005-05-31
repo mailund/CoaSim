@@ -68,6 +68,9 @@ namespace core {
 	BuilderMonitor          *callbacks()   { return i_callbacks; }
 
 	size_t total_population_size() const;
+	// returns a random population, where each population is
+	// weighted with its size.
+	Population &random_population();
     };
 
 

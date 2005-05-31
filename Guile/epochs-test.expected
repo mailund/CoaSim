@@ -1,3 +1,4 @@
 (bottleneck 0.1 1.0 2.0)
+(population-merge 0 1 0.98)
 illegal-epoch
 illegal-epoch

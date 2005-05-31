@@ -332,12 +332,13 @@ void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
 
 static SCM
 simulate(SCM s_markers,		// 1
-	 SCM s_no_leaves,	// 2
-	 SCM s_sim_parameters,	// 3
-	 SCM s_callbacks,       // 4
-	 SCM s_epochs,          // 5
-	 SCM s_keep_empty,	// 6
-	 SCM s_random_seed)	// 7
+	 SCM s_pop_size,	// 2
+	 SCM s_pop_f,		// 3
+	 SCM s_sim_parameters,	// 4
+	 SCM s_callbacks,       // 5
+	 SCM s_epochs,          // 6
+	 SCM s_keep_empty,	// 7
+	 SCM s_random_seed)	// 8
 {
     using namespace std;
 
@@ -372,7 +373,7 @@ simulate(SCM s_markers,		// 1
     while (!SCM_NULLP(itr_epochs))
 	{
 	    SCM epoch_smob = SCM_CAR(itr_epochs);
-	    assert_epoch(epoch_smob, SCM_ARG5, "simulate");
+	    assert_epoch(epoch_smob, 6, "simulate");
 
 	    core::Epoch *epoch = (core::Epoch*) SCM_SMOB_DATA(epoch_smob);
 	    epochs.push_back(epoch);
@@ -380,10 +381,30 @@ simulate(SCM s_markers,		// 1
 	    itr_epochs = SCM_CDR(itr_epochs);
 	}
 
-    int no_leaves = scm_num2int(s_no_leaves, SCM_ARG2, "simulate");
+    SCM_ASSERT(SCM_NFALSEP(scm_list_p(s_pop_size)), s_pop_size, 2, "simulate");
+    SCM_ASSERT(SCM_NFALSEP(scm_list_p(s_pop_f)),    s_pop_f,    3, "simulate");
+    std::vector<int> pop_sizes;
+    std::vector<double> pop_fs;
+
+    SCM itr_pop_size = s_pop_size;
+    while (!SCM_NULLP(itr_pop_size))
+	{
+	    SCM s_pop = SCM_CAR(itr_pop_size);
+	    int pop = scm_num2int(s_pop, 2, "simulate");
+	    pop_sizes.push_back(pop);
+	    itr_pop_size = SCM_CDR(itr_pop_size);
+	}
+    SCM itr_pop_f = s_pop_f;
+    while (!SCM_NULLP(itr_pop_f))
+	{
+	    SCM s_pop_f = SCM_CAR(itr_pop_f);
+	    double pop_f = scm_num2dbl(s_pop_f, "simulate");
+	    pop_fs.push_back(pop_f);
+	    itr_pop_f = SCM_CDR(itr_pop_f);
+	}
 
     SCM_ASSERT(SCM_NFALSEP(scm_list_p(s_callbacks)),
-	       s_callbacks, SCM_ARG4, "simulate");
+	       s_callbacks, 5, "simulate");
 
     SCM coa_cb = SCM_CAR(s_callbacks);
     SCM rc_cb  = SCM_CADR(s_callbacks);
@@ -414,14 +435,17 @@ simulate(SCM s_markers,		// 1
 	}
 
     bool keep_empty = SCM_NFALSEP(s_keep_empty);
-    unsigned int seed = scm_num2int(s_random_seed, 7, "c-simulate");
+    unsigned int seed = scm_num2int(s_random_seed, 8, "c-simulate");
 
     try {
 	using core::Configuration;
 	using core::ARG;
 	
 	auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
-	auto_ptr<Configuration> conf(new Configuration(no_leaves,
+	auto_ptr<Configuration> conf(new Configuration(pop_sizes.begin(),
+						       pop_sizes.end(),
+						       pop_fs.begin(),
+						       pop_fs.end(),
 						       markers.begin(),
 						       markers.end(),
 						       epochs.begin(),
@@ -443,10 +467,15 @@ simulate(SCM s_markers,		// 1
 	SCM_RETURN_NEWSMOB(guile::arg_tag, arg_data);
     } catch(core::Configuration::out_of_sequence&) {
 	scm_throw(scm_str2symbol("out-of-sequence"), s_markers);
+    } catch(core::Configuration::non_pos_pop_size&) {
+	scm_throw(scm_str2symbol("non-positive-population-size"), s_pop_size);
+    } catch(core::Configuration::inconsistent_pop_spec&) {
+	scm_throw(scm_str2symbol("inconsistent-population-specification"), 
+		  scm_list_2(s_pop_size, s_pop_f));
     } catch(SchemeException &sex) { // ;-)
 	propagate(sex);
     } catch(exception &ex) {
-	scm_throw(scm_str2symbol("unexcepted-exception"), 
+	scm_throw(scm_str2symbol("unexpected-exception"), 
 		  scm_mem2string(ex.what(),strlen(ex.what())));
     }
 
@@ -643,28 +672,33 @@ guile::install_simulate()
     guile::arg_tag = scm_make_smob_type("arg", sizeof(ARGData));
     scm_set_smob_free(guile::arg_tag, free_arg);
 
-    scm_c_define_gsubr("c-simulate", 7, 0, 0, 
+    scm_c_define_gsubr("c-simulate", 8, 0, 0, 
 		       (scm_unused_struct*(*)())simulate);
     scm_c_eval_string("(use-modules (ice-9 optargs))"
 		      "(define (simulate ms n . args)"
-		      "  (let-keywords args #f ((rho   0)"
-		      "                         (gamma 0)"
-		      "                         (Q     0)"
-		      "                         (beta  0)"
-		      "                         (coalescence-callback '())"
-		      "                         (recombination-callback '())"
-		      "                         (geneconversion-callback '())"
-		      "                         (epochs '())"
-		      "                         (keep-empty-intervals #f)"
-		      "                         (random-seed 0))"
-		      "		(c-simulate ms n"
-		      "                     (list rho gamma Q beta)"
-		      "                     (list coalescence-callback"
-		      "                           recombination-callback"
-		      "                           geneconversion-callback)"
-		      "                     epochs"
-		      "                     keep-empty-intervals"
-		      "                     random-seed)))");
+		      "   (let-keywords args #f ((rho   0)"
+		      "                          (gamma 0)"
+		      "                          (Q     0)"
+		      "                          (beta  0)"
+		      "                          (coalescence-callback '())"
+		      "                          (recombination-callback '())"
+		      "                          (geneconversion-callback '())"
+		      "                          (epochs '())"
+		      "                          (keep-empty-intervals #f)"
+		      "                          (random-seed 0))"
+		      "     (let* ((n (if (list? n) n (list n)))"
+		      "            (f (if (or (null? args)"
+		      "                       (keyword? (car args)))"
+		      "                    1 (car args)))"
+		      "            (f (if (list? f) f (list f))))"
+		      "	  	(c-simulate ms n f"
+		      "                      (list rho gamma Q beta)"
+		      "                      (list coalescence-callback"
+		      "                            recombination-callback"
+		      "                            geneconversion-callback)"
+		      "                      epochs"
+		      "                      keep-empty-intervals"
+		      "                      random-seed))))");
 
 
     scm_c_define_gsubr("sequences", 1, 0, 0, 

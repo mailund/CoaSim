@@ -18,11 +18,13 @@
 namespace guile {
 
     extern scm_t_bits bottleneck_epoch_tag;
+    extern scm_t_bits population_merge_epoch_tag;
     void install_epochs();
 
     inline bool epoch_p(SCM smob)
     {
 	return SCM_SMOB_PREDICATE(bottleneck_epoch_tag, smob)
+	    or SCM_SMOB_PREDICATE(population_merge_epoch_tag, smob)
 	    ;
     }
 

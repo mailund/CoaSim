@@ -48,9 +48,11 @@ int main(int argc, const char *argv[])
 	epochs.push_back(new Growth(0, 10, 1.5, 1.75));
 	epochs.push_back(new PopulationMerge(0, 1, 0.5));
 
-	unsigned int pop_sizes[] = { 2*no_leaves/3,  no_leaves/3 };
+	int    pop_sizes[] = { 2*no_leaves/3,  no_leaves/3 };
+	double pop_fracs[] = { 2.0/3,          1.0/3 };
 	unsigned int no_pops = (sizeof pop_sizes)/(sizeof pop_sizes[0]);
 	Configuration conf(pop_sizes, pop_sizes+no_pops,
+			   pop_fracs, pop_fracs+no_pops,
 			   markers.begin(), markers.end(),
 			   epochs.begin(),  epochs.end(),
 			   rho, Q, G, growth);

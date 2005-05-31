@@ -11,6 +11,9 @@
 #ifndef GUILE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
+#ifndef GUILE__EPOCHS_HH_INCLUDED
+# include "epochs.hh"
+#endif
 #ifndef GUILE__NODES_HH_INCLUDED
 # include "nodes.hh"
 #endif
@@ -25,6 +28,7 @@ real_main(void *dummy_closure, int argc, char *argv[])
     scm_c_eval_string("(read-set! keywords 'prefix)");
 
     guile::install_marker();
+    guile::install_epochs();
     guile::install_nodes();
     guile::install_intervals();
     guile::install_simulate();

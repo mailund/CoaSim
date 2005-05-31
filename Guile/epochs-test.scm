@@ -1,5 +1,6 @@
 
 (display (bottleneck 0.1 1 2))(newline)
+(display (population-merge 0 1 .98))(newline)
 
 (catch 'illegal-epoch
        (lambda () (bottleneck 0.1 2 1))

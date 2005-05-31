@@ -56,6 +56,23 @@ State::total_population_size() const
     return total;
 }
 
+Population&
+State::random_population()
+{
+    using namespace Distribution_functions;
+    int individual = irand(total_population_size());
+    std::vector<Population>::iterator i;
+    size_t total = 0;
+    for (i = i_populations.begin(); i != i_populations.end(); ++i)
+	{
+	    total += i->size();
+	    if (total <= individual)
+		return *i;
+	}
+    assert(false); // we should not reach this point since we must
+		   // select an individual in one of the populations
+}
+
 
 Event::~Event() {}
 
@@ -176,8 +193,8 @@ double
 RecombinationEvent::event_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
-    unsigned int nodes_left = s.populations()[0].size();
-    return current_time + expdev(nodes_left, i_rho/2);
+    unsigned int k = s.total_population_size();
+    return current_time + expdev(k, i_rho/2);
 }
 
 void
@@ -216,8 +233,8 @@ double
 GeneConversionEvent::event_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
-    unsigned int nodes_left = s.populations()[0].size();
-    return current_time + expdev(nodes_left, i_gamma/2);
+    unsigned int k = s.total_population_size();
+    return current_time + expdev(k, i_gamma/2);
 }
 
 void

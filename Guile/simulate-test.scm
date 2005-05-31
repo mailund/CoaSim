@@ -33,6 +33,25 @@
 (map (combine print total-branch-length) (local-trees arg))(newline)
 (newline)
 
+(display (simulate-sequences markers 10    :rho 50 :random-seed 100))(newline)
+(display (simulate-sequences markers 10 1  :rho 50 :random-seed 100))(newline)
+(display (simulate-sequences markers '(10) :rho 50 :random-seed 100))(newline)
+(display (simulate-sequences markers '(10) '(1) :rho 50 :random-seed 100))(newline)
+(display (simulate-sequences markers '(10) 1 :rho 50 :random-seed 100))(newline)
+(display (simulate-sequences markers 10 .1 :rho 50 :random-seed 100))(newline)
+
+(newline)
+(display (simulate-sequences markers '(10 10) '(.2 .9) 
+                             :epochs (list (population-merge 0 1 0.2))
+                             :random-seed 100))
+(newline)
+
+
+(newline)
+(display "now testing validation of incorrect input\n")
+(display "this will print some error messages\n")
+(newline)
+
 (catch 'wrong-number-of-args
        (lambda () (simulate))
        (lambda (key . args) (display key)(newline)))
@@ -55,4 +74,8 @@
   (list (snp-marker 0.1 0.1 0.9) (snp-marker 0.0 0.1 0.9)))
 (catch 'out-of-sequence
        (lambda () (simulate out-of-sequence-markers 10))
+       (lambda (key . args) (display key)(display " ")(display args)(newline)))
+
+(catch 'non-positive-population-size
+       (lambda () (simulate '() -10))
        (lambda (key . args) (display key)(display " ")(display args)(newline)))

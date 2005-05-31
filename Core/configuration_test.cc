@@ -33,14 +33,53 @@ int main(int argc, const char *argv[])
     markers.push_back(new SNPMarker(0.3, 0.0,1.0));
     markers.push_back(new SNPMarker(0.67, 0.0,1.0));
     try {
-	unsigned int pop_sizes[] = { 0 };
+	int pop_sizes[] = { 0 };
+	double pop_fracs[] = { 1 };
 	Epoch *dummy_epoch_itr = 0;
 	Configuration conf(pop_sizes, pop_sizes+1,
+			   pop_fracs, pop_fracs+1,
+			   markers.begin(), markers.end(),
+			   &dummy_epoch_itr, &dummy_epoch_itr,
+			   0.0, 0.0, 0.0, 0.0);
+	ERROR("pop size <= 0");
+    } catch (Configuration::non_pos_pop_size&) {}
+
+    try {
+	int pop_sizes[] = { -1 };
+	double pop_fracs[] = { 1 };
+	Epoch *dummy_epoch_itr = 0;
+	Configuration conf(pop_sizes, pop_sizes+1,
+			   pop_fracs, pop_fracs+1,
+			   markers.begin(), markers.end(),
+			   &dummy_epoch_itr, &dummy_epoch_itr,
+			   0.0, 0.0, 0.0, 0.0);
+	ERROR("pop size <= 0");
+    } catch (Configuration::non_pos_pop_size&) {}
+
+    try {
+	int pop_sizes[] = { 1 };
+	double pop_fracs[] = { 1, 1 };
+	Epoch *dummy_epoch_itr = 0;
+	Configuration conf(pop_sizes, pop_sizes+1,
+			   pop_fracs, pop_fracs+2,
+			   markers.begin(), markers.end(),
+			   &dummy_epoch_itr, &dummy_epoch_itr,
+			   0.0, 0.0, 0.0, 0.0);
+	ERROR("inconsistent pop and frac");
+    } catch (Configuration::inconsistent_pop_spec&) {}
+
+    try {
+	int pop_sizes[] = { 1 };
+	double pop_fracs[] = { 1 };
+	Epoch *dummy_epoch_itr = 0;
+	Configuration conf(pop_sizes, pop_sizes+1,
+			   pop_fracs, pop_fracs+1,
 			   markers.begin(), markers.end(),
 			   &dummy_epoch_itr, &dummy_epoch_itr,
 			   0.0, 0.0, 0.0, 0.0);
 	ERROR("Unsorted positions");
     } catch (Configuration::out_of_sequence&) {}
+
 
     for (i = markers.begin(); i != markers.end(); ++i)
 	delete *i;
@@ -54,11 +93,14 @@ int main(int argc, const char *argv[])
     markers.push_back(new SNPMarker(0.3, 0.0,1.0));
     markers.push_back(new SNPMarker(0.4, 0.0,1.0));
     markers.push_back(new SNPMarker(0.67, 0.0,1.0));
+
     try {
 
-	unsigned int pop_sizes[] = { 0 };
+	int pop_sizes[] = { 1 };
+	double pop_fracs[] = { 1 };
 	Epoch *dummy_epoch_itr = 0;
 	Configuration conf(pop_sizes, pop_sizes+1,
+			   pop_fracs, pop_fracs+1,
 			   markers.begin(), markers.end(),
 			   &dummy_epoch_itr, &dummy_epoch_itr,
 			   0.0, 0.0, 0.0, 0.0);

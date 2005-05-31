@@ -39,7 +39,7 @@ ARG * Builder::build(SimulationMonitor *mon,
     double time = 0.0;
 
     State state(*arg, callbacks,
-		i_conf.pop_sizes().begin(), i_conf.pop_sizes().end(), 
+		i_conf.pop_sizes_begin(), i_conf.pop_sizes_end(), 
 		coal_events);
 
     Scheduler scheduler;
