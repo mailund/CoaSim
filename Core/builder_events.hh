@@ -16,6 +16,10 @@
 # include <list>
 # define LIST_INCLUDED
 #endif
+#ifndef CASSERT_INCLUDED
+# include <cassert>
+# define CASSERT_INCLUDED
+#endif
 
 namespace core {
 
