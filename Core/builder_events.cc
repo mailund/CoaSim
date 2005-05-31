@@ -31,25 +31,29 @@ Population::Population(ARG &arg, unsigned int initial_population_size,
 	push(arg.leaf());
 }
 
-Node *Population::pop()
+Node *Population::pop_random()
 {
     size_t index = Distribution_functions::irand(i_nodes.size());
     std::swap(i_nodes[index], i_nodes.back());
+    return pop_last();
+}
+
+Node *Population::pop_last()
+{
     Node *n = i_nodes.back();
     i_nodes.pop_back();
     return n;
 }
 
 
-// FIXME: This initialization is not optimal
-State::State(ARG &arg, BuilderMonitor *callbacks,
-	     unsigned int initial_population_size,
-	     unsigned int &coal_counter)
-    : i_arg(arg), 
-      i_population(arg, initial_population_size,
-		   new CoalescenceEvent(coal_counter)),
-      i_callbacks(callbacks)
+size_t
+State::total_population_size() const
 {
+    std::vector<Population>::const_iterator i;
+    size_t total = 0;
+    for (i = i_populations.begin(); i != i_populations.end(); ++i)
+	total += i->size();
+    return total;
 }
 
 
@@ -58,8 +62,11 @@ Event::~Event() {}
 double core::CoalescenceEvent::waiting_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
-    unsigned int nodes_left = s.population().size();
-    double scale_fraction = s.population().scale_fraction();
+    Population &p = s.populations()[i_population];
+    unsigned int nodes_left = p.size();
+    if (nodes_left < 2) return std::numeric_limits<double>::max();
+
+    double scale_fraction = p.scale_fraction();
     double delta_time = expdev(nodes_left, double(nodes_left-1)/2);
     return scale_fraction * delta_time;
 }
@@ -74,13 +81,20 @@ void core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
 {
     ARG &arg = s.arg();
     BuilderMonitor *callbacks = s.callbacks();
-    Population &population = s.population();
-    unsigned int nodes_left = population.size();
-    Node *child1 = population.pop();
-    Node *child2 = population.pop();
+    Population &p = s.populations()[i_population];
+    unsigned int nodes_left = p.size();
+
+    assert(nodes_left >= 2);
+
+    Node *child1 = p.pop_random();
+    Node *child2 = p.pop_random();
+
+    assert(child1);
+    assert(child2);
+
     CoalescentNode *coa_node = arg.coalescence(event_time, child1, child2);
     if (callbacks) callbacks->coalescence_callback(coa_node, nodes_left);
-    if (coa_node->intervals().size() > 0) population.push(coa_node);
+    if (coa_node->intervals().size() > 0) p.push(coa_node);
     ++i_coal_event_counter;
 }
 
@@ -93,7 +107,7 @@ void
 CoalescenceEventExtension::push(Scheduler &scheduler, State &s)
 {
     assert(i_underlying == 0);
-    Population &p = s.population();
+    Population &p = s.populations()[i_population];
     i_underlying = p.coalescence_event();
     p.coalescence_event(this);
     scheduler.remove_event(i_underlying);
@@ -104,7 +118,7 @@ void
 CoalescenceEventExtension::pop(Scheduler &scheduler, State &s)
 {
     assert(i_underlying != 0);
-    Population &p = s.population();
+    Population &p = s.populations()[i_population];
     p.coalescence_event(i_underlying);
     scheduler.remove_event(this);
     scheduler.add_event(i_underlying);
@@ -162,7 +176,7 @@ double
 RecombinationEvent::event_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
-    unsigned int nodes_left = s.population().size();
+    unsigned int nodes_left = s.populations()[0].size();
     return current_time + expdev(nodes_left, i_rho/2);
 }
 
@@ -176,9 +190,9 @@ RecombinationEvent::update_state(Scheduler &scheduler, State &s,
     BuilderMonitor *callbacks = s.callbacks();
 
     double cross_over_point = uniform();
-    Population &population = s.population();
-    unsigned int nodes_left = s.population().size();
-    Node *child = population.pop();
+    Population &population = s.populations()[0];
+    unsigned int nodes_left = s.populations()[0].size();
+    Node *child = population.pop_random();
 
     try {
 	ARG::recomb_node_pair_t pair
@@ -202,7 +216,7 @@ double
 GeneConversionEvent::event_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
-    unsigned int nodes_left = s.population().size();
+    unsigned int nodes_left = s.populations()[0].size();
     return current_time + expdev(nodes_left, i_gamma/2);
 }
 
@@ -229,10 +243,10 @@ GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
     // gene conversion outside an active interval.
     if (stop-start <= 0.0) return;
 
-    Population &population = s.population();
-    unsigned int nodes_left = s.population().size();
+    Population &population = s.populations()[0];
+    unsigned int nodes_left = population.size();
 
-    Node *child = population.pop();
+    Node *child = population.pop_random();
     try {
 	ARG::gene_conv_node_pair_t pair = 
 	    arg.gene_conversion(event_time, child, start, stop);
@@ -250,6 +264,33 @@ GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
 	population.push(child);
     }
 
+}
+
+
+
+double
+MergePopulationsEvent::event_time(State &s, double current_time)
+{
+    return i_merge_time;
+}
+
+void
+MergePopulationsEvent::update_state(Scheduler &scheduler, State &s,
+				    double event_time)
+{
+    Population &p1 = s.populations()[i_pop_1];
+    Population &p2 = s.populations()[i_pop_2];
+
+    // move the p2 population to p1
+    while (p2.size() > 0) p1.push(p2.pop_last());
+
+    Event *pop_2_coal = p2.coalescence_event();
+    p2.coalescence_event(0);// null the event
+
+    scheduler.remove_event(pop_2_coal);
+    scheduler.remove_event(this);
+    delete pop_2_coal;
+    delete this;
 }
 
 

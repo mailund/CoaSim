@@ -120,8 +120,11 @@ int main(int argc, const char *argv[])
 	markers.push_back(mm);
 	markers.push_back(new SNPMarker(0.67, 0.0,1.0));
 
-	Configuration conf(2,
+	unsigned int pop_sizes[] = { 2 };
+	Epoch *dummy_epoch_itr = 0;
+	  Configuration conf(pop_sizes, pop_sizes+1,
 			   markers.begin(), markers.end(),
+			   &dummy_epoch_itr, &dummy_epoch_itr,
 			   5.0, 250.0, 250.0, 5.0);
 
 	// FIXME: not completely exception safe -- memory leak if

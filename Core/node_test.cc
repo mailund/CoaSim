@@ -36,8 +36,11 @@ int main(int argc, const char *argv[])
 	markers.push_back(new SNPMarker(0.4, 0.0,1.0));
 	markers.push_back(new SNPMarker(0.67, 0.0,1.0));
 
-	Configuration conf(0,
+	unsigned int pop_sizes[] = { 0 };
+	Epoch *dummy_epoch_itr = 0;
+	Configuration conf(pop_sizes, pop_sizes+1,
 			   markers.begin(), markers.end(),
+			   &dummy_epoch_itr, &dummy_epoch_itr,
 			   0.0, 0.0, 0.0, 0.0);
 
     

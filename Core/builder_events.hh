@@ -34,12 +34,14 @@ namespace core {
 	double i_scale_fraction;
 	std::vector<Node*>i_nodes;
     public:
-	Population(ARG &arg, unsigned int initial_population_size,
+	Population(ARG &arg,
+		   unsigned int initial_population_size,
 		   CoalescenceEvent *coal_event,
 		   double scale_fraction = 1);
 	
 	void push(Node *n) { i_nodes.push_back(n); }
-	Node *pop();
+	Node *pop_random();
+	Node *pop_last();
 	size_t size() const { return i_nodes.size(); }
 
 	double scale_fraction() const { return i_scale_fraction; }
@@ -50,18 +52,22 @@ namespace core {
 
     class State {
 	ARG &i_arg;
-	Population i_population;
+	std::vector<Population> i_populations;
 	BuilderMonitor *i_callbacks;
 
     public:
 	// FIXME: This initialization is not optimal
+	template <typename Itr>
 	State(ARG &arg, BuilderMonitor *callbacks,
-	      unsigned int initial_population_size,
+	      Itr sizes_begin, Itr sizes_end,
 	      unsigned int &coal_counter);
 
-	ARG        &arg()           { return i_arg; }
-	Population &population()    { return i_population; }
-	BuilderMonitor *callbacks() { return i_callbacks; }
+
+	std::vector<Population> &populations() { return i_populations; }
+	ARG                     &arg()         { return i_arg; }
+	BuilderMonitor          *callbacks()   { return i_callbacks; }
+
+	size_t total_population_size() const;
     };
 
 
@@ -75,12 +81,14 @@ namespace core {
     };
 
     class CoalescenceEvent : public Event {
+    protected:
+	unsigned int i_population;
+    private:
 	unsigned int &i_coal_event_counter;
 
-
     public:
-	CoalescenceEvent(unsigned int &event_counter)
-	    : i_coal_event_counter(event_counter)
+	CoalescenceEvent(unsigned int population, unsigned int &event_counter)
+	    : i_population(population), i_coal_event_counter(event_counter)
 	{
 	}
 
@@ -102,8 +110,9 @@ namespace core {
 	virtual double waiting_time(State &s, double current_time) = 0;
 
     public:
-	CoalescenceEventExtension(unsigned int &event_counter)
-	    : CoalescenceEvent(event_counter),
+	CoalescenceEventExtension(unsigned int population,
+				  unsigned int &event_counter)
+	    : CoalescenceEvent(population, event_counter),
 	      i_underlying(0)
 	{}
 	~CoalescenceEventExtension();
@@ -118,10 +127,11 @@ namespace core {
 
 	virtual double waiting_time(State &s, double current_time);
     public:
-	CoalescenceEventGrowth(unsigned int &event_counter,
+	CoalescenceEventGrowth(unsigned int population,
+			       unsigned int &event_counter,
 			       double beta = 0,
 			       double start_time = 0)
-	    : CoalescenceEventExtension(event_counter),
+	    : CoalescenceEventExtension(population, event_counter),
 	      i_beta(beta), i_start_time(start_time)
 	{}
     };
@@ -131,9 +141,10 @@ namespace core {
 
 	virtual double waiting_time(State &s, double current_time);
     public:
-	CoalescenceEventBottleneck(unsigned int &event_counter,
+	CoalescenceEventBottleneck(unsigned int population,
+				   unsigned int &event_counter,
 				   double scale_fraction)
-	    : CoalescenceEventExtension(event_counter),
+	    : CoalescenceEventExtension(population, event_counter),
 	      i_scale_fraction(scale_fraction)
 	{}
     };
@@ -191,6 +202,23 @@ namespace core {
     };
     
 
+    // a merge moves the second population to the first and disables
+    // all events in the second.
+    class MergePopulationsEvent : public Event {
+        unsigned int i_pop_1, i_pop_2;
+	double       i_merge_time;
+    public:
+	MergePopulationsEvent(unsigned int pop_1, unsigned int pop_2,
+			      double merge_time)
+  	    : i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
+	{
+	}
+	
+	virtual double event_time  (State &s, double current_time);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time);
+    };
+
 
     class Scheduler {
 	std::list<Event*> i_events;
@@ -204,6 +232,25 @@ namespace core {
 	time_event_t next_event(State &s, double current_time);
 
     };
+
+
+
+
+
+    // FIXME: This initialization is not optimal
+    template <typename Itr>
+    State::State(ARG &arg, BuilderMonitor *callbacks,
+		 Itr sizes_begin, Itr sizes_end,
+		 unsigned int &coal_counter)
+        : i_arg(arg), i_callbacks(callbacks)
+    {
+      for (int p_no = 0; sizes_begin != sizes_end; ++p_no, ++sizes_begin)
+	  {
+	      Population p(arg, *sizes_begin,
+			   new CoalescenceEvent(p_no, coal_counter));
+	      i_populations.push_back(p);
+	  }
+    }
 
 }
 

@@ -29,7 +29,7 @@ int main(int argc, const char *argv[])
 
     try {
 
-	const unsigned int no_leaves = 10;
+	const unsigned int no_leaves = 15;
 	const double rho = 1.0;
 	const double Q = 3.0;
 	const double G = 2.0;
@@ -44,9 +44,13 @@ int main(int argc, const char *argv[])
 	markers.push_back(new SNPMarker(0.67, 0.0,1.0));
 
 	std::vector<Epoch*> epochs;
-	epochs.push_back(new BottleNeck(0.1, 1.0, 2.0));
+	epochs.push_back(new BottleNeck(0, 0.1, 1.0, 2.0));
+	epochs.push_back(new Growth(0, 10, 1.5, 1.75));
+	epochs.push_back(new PopulationMerge(0, 1, 0.5));
 
-	Configuration conf(no_leaves,
+	unsigned int pop_sizes[] = { 2*no_leaves/3,  no_leaves/3 };
+	unsigned int no_pops = (sizeof pop_sizes)/(sizeof pop_sizes[0]);
+	Configuration conf(pop_sizes, pop_sizes+no_pops,
 			   markers.begin(), markers.end(),
 			   epochs.begin(),  epochs.end(),
 			   rho, Q, G, growth);

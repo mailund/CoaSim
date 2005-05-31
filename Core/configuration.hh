@@ -66,20 +66,23 @@ namespace core {
 	// sequence from begin to end -- an exception is thrown if the
 	// positions are not sorted in increasing order; the build
 	// parameters rho, Q, gamma, and growth.
-	template <typename InItr>
-	Configuration(unsigned int no_leaves,
-		      InItr begin, InItr end,
-		      double rho, double Q, double gamma, double growth)
-	    throw(out_of_sequence);
-	template <typename MarkerItr, typename EpochItr>
-	Configuration(unsigned int no_leaves,
-		      MarkerItr m_begin, MarkerItr m_end,
-		      EpochItr  e_begin, EpochItr  e_end,
+	template <typename PopSizeItr, typename MarkerItr, typename EpochItr>
+	Configuration(PopSizeItr p_begin, PopSizeItr p_end,
+		      MarkerItr  m_begin, MarkerItr  m_end,
+		      EpochItr   e_begin, EpochItr   e_end,
 		      double rho, double Q, double gamma, double growth)
 	    throw(out_of_sequence);
 	~Configuration();
 
-	int no_leaves() const { return i_no_leaves; }
+	const std::vector<unsigned int> &pop_sizes() const
+	{
+	    return i_pop_sizes;
+	}
+	const unsigned int no_leaves() const
+	{
+	    return i_no_leaves;
+	}
+	    
 
 	// Number of markers for the configuration
 	int no_markers() const { return i_no_markers; }
@@ -124,7 +127,8 @@ namespace core {
 	Configuration& operator = (const Configuration&);
 
 	int i_no_markers;
-	int i_no_leaves;
+	unsigned int i_no_leaves;
+	std::vector<unsigned int> i_pop_sizes;
 
 	const Marker** i_first_markers;
 	const Marker** i_plain_markers;
@@ -138,44 +142,24 @@ namespace core {
     };
 
 
-    template <typename InItr>
-    Configuration::Configuration(unsigned int no_leaves,
-				 InItr begin, InItr end,
-				 double rho, 
-				 double Q, double gamma,
-				 double growth)
-	throw(out_of_sequence)
-	: i_no_leaves(no_leaves),
-	  i_rho(rho), i_Q(Q), i_gamma(gamma), i_growth(growth)
-    {
-	i_no_markers = end - begin;
-    
-	i_first_markers = new const Marker* [i_no_markers];
-	for (int m = 0; m < i_no_markers; ++m) i_first_markers[m] = 0;
-
-	i_plain_markers = new const Marker* [i_no_markers];
-	for (int m = 0; m < i_no_markers; ++m) i_plain_markers[m] = 0;
-
-	for (int m = 0; m < i_no_markers; ++m) 
-	    set_marker(m, *(begin++));
-
-	for (int m = 1; m < i_no_markers; ++m)
-	    if (position(m-1) >= position(m)) throw out_of_sequence();
-
-    }
-
-    template <typename MarkerItr, typename EpochItr>
-    Configuration::Configuration(unsigned int no_leaves,
-				 MarkerItr m_begin, MarkerItr m_end,
-				 EpochItr  e_begin, EpochItr  e_end,
+    template <typename PopSizeItr, typename MarkerItr, typename EpochItr>
+    Configuration::Configuration(PopSizeItr p_begin, PopSizeItr p_end,
+				 MarkerItr  m_begin, MarkerItr  m_end,
+				 EpochItr   e_begin, EpochItr   e_end,
 				 double rho, double Q, double gamma, 
 				 double growth)
 	throw(out_of_sequence)
-	: i_no_leaves(no_leaves),
-	  i_rho(rho), i_Q(Q), i_gamma(gamma), i_growth(growth)
+	: i_rho(rho), i_Q(Q), i_gamma(gamma), i_growth(growth)
     {
 	i_no_markers = m_end - m_begin;
-    
+	i_no_leaves = 0;
+
+	for ( ; p_begin != p_end; ++p_begin)
+	    {
+	        i_pop_sizes.push_back(*p_begin);
+	        i_no_leaves += *p_begin;
+	    }
+
 	i_first_markers = new const Marker* [i_no_markers];
 	for (int m = 0; m < i_no_markers; ++m) i_first_markers[m] = 0;
 

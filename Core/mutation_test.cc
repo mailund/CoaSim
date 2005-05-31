@@ -42,8 +42,11 @@ int main(int argc, const char *argv[])
 	markers.push_back(new SNPMarker(0.69, 0.0,0.5));
    
 
-	Configuration conf(2,
+	unsigned int pop_sizes[] = { 2 };
+	Epoch *dummy_epoch_itr = 0;
+	Configuration conf(pop_sizes, pop_sizes+1,
 			   markers.begin(), markers.end(),
+			   &dummy_epoch_itr, &dummy_epoch_itr,
 			   0.0, 0.0, 0.0, 0.0);
 
 	std::vector<Marker*>::iterator i;

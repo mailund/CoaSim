@@ -38,16 +38,24 @@ ARG * Builder::build(SimulationMonitor *mon,
 
     double time = 0.0;
 
-    State state(*arg, callbacks, i_conf.no_leaves(), coal_events);
-    Population &population = state.population();
+    State state(*arg, callbacks,
+		i_conf.pop_sizes().begin(), i_conf.pop_sizes().end(), 
+		coal_events);
 
     Scheduler scheduler;
-    scheduler.add_event(population.coalescence_event());
-    if (i_conf.growth() > 0)
-	{
-	    CoalescenceEventExtension *growth_coa_event
-		= new CoalescenceEventGrowth(coal_events, i_conf.growth());
-	    growth_coa_event->push(scheduler, state);
+    unsigned int pop_no;
+    std::vector<Population>::iterator j; 
+    for (j = state.populations().begin(), pop_no = 0; 
+	 j != state.populations().end(); ++j, ++pop_no)
+        {
+	    scheduler.add_event(j->coalescence_event());
+	    // FIXME: remove global growth...
+	    if (i_conf.growth() > 0)
+	        {
+		    CoalescenceEventExtension *growth_coa_event
+		      = new CoalescenceEventGrowth(pop_no, coal_events, i_conf.growth());
+		    growth_coa_event->push(scheduler, state);
+		}
 	}
 	
     if (i_conf.rho() > 0)
@@ -63,13 +71,13 @@ ARG * Builder::build(SimulationMonitor *mon,
     for (i = i_conf.epochs_begin(); i != i_conf.epochs_end(); ++i)
 	(*i)->add_events(scheduler, coal_events);
 
-    if (mon) mon->builder_update(i_conf.no_leaves(), // no nodes
-				 i_conf.no_leaves(), // no "top" nodes
+    if (mon) mon->builder_update(arg->no_nodes(), // no nodes
+				 arg->no_nodes(), // no "top" nodes
 				 no_iterations, time,
 				 coal_events, gene_conv_events, recomb_events);
 			       
 
-    while (population.size() > 1)
+    while (state.total_population_size() > 1)
 	{
 	    ++no_iterations;
 	    Scheduler::time_event_t e = scheduler.next_event(state, time);
@@ -79,7 +87,7 @@ ARG * Builder::build(SimulationMonitor *mon,
 
 	    if (mon and  (no_iterations % 50000)  == 0 )
 		mon->builder_termination(arg->no_nodes(),
-					 population.size(),
+					 state.total_population_size(),
 					 no_iterations, 
 					 time,
 					 coal_events, 
@@ -88,7 +96,7 @@ ARG * Builder::build(SimulationMonitor *mon,
 	}
 
     if (mon) mon->builder_termination(arg->no_nodes(),
-				      population.size(),
+				      state.total_population_size(),
 				      no_iterations, time,
 				      coal_events, gene_conv_events,
 				      recomb_events);
