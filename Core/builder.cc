@@ -69,6 +69,7 @@ ARG * Builder::build(SimulationMonitor *mon,
     // FIXME: Validation of epochs!!!
     std::vector<Epoch*>::const_iterator i;
     for (i = i_conf.epochs_begin(); i != i_conf.epochs_end(); ++i)
+	// FIXME: passing coal_events for all epochs is a bit dodgy
 	(*i)->add_events(scheduler, coal_events);
 
     if (mon) mon->builder_update(arg->no_nodes(), // no nodes

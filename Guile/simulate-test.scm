@@ -45,6 +45,13 @@
                              :epochs (list (population-merge 0 1 0.2))
                              :random-seed 100))
 (newline)
+(newline)
+(display (simulate-sequences markers '(10 10) '(.2 .9) 
+                             :epochs (list (population-merge 0 1 0.2)
+					   (migration 0 1 0.1 0 0.15)
+					   (migration 1 0 0.2 0 0.15))
+                             :random-seed 100))
+(newline)
 
 
 (newline)

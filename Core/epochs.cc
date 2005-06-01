@@ -17,9 +17,9 @@ core::BottleNeck::add_events(Scheduler &scheduler, unsigned int &event_counter)
 	= new CoalescenceEventBottleneck(i_population,
 					 event_counter,
 					 i_scale_fraction);
-    scheduler.add_event(new EpochStartEvent(i_start_point, event));
+    scheduler.add_event(new CoalEpochStartEvent(i_start_point, event));
     if (i_end_point > 0)
-      scheduler.add_event(new EpochEndEvent(i_end_point, event));
+      scheduler.add_event(new CoalEpochEndEvent(i_end_point, event));
 }
 
 core::Epoch *
@@ -35,9 +35,9 @@ core::Growth::add_events(Scheduler &scheduler, unsigned int &event_counter)
 {
     CoalescenceEventGrowth *event
 	= new CoalescenceEventGrowth(i_population, event_counter, i_beta);
-    scheduler.add_event(new EpochStartEvent(i_start_point, event));
+    scheduler.add_event(new CoalEpochStartEvent(i_start_point, event));
     if (i_end_point > 0)
-      scheduler.add_event(new EpochEndEvent(i_end_point, event));
+      scheduler.add_event(new CoalEpochEndEvent(i_end_point, event));
 }
 
 core::Epoch *
@@ -48,14 +48,32 @@ core::Growth::copy() const
 
 
 void
-core::PopulationMerge::add_events(Scheduler &scheduler, unsigned int &event_counter)
+core::PopulationMerge::add_events(Scheduler &scheduler,
+				  unsigned int &event_counter)
 {
-    scheduler.add_event(new MergePopulationsEvent(i_pop_1, i_pop_2, i_merge_time));
+    scheduler.add_event(new MergePopulationsEvent(i_pop_1, i_pop_2,
+						  i_merge_time));
 }
 
 core::Epoch *
 core::PopulationMerge::copy() const
 {
     return new PopulationMerge(*this);
+}
+
+
+void
+core::Migration::add_events(Scheduler &scheduler, unsigned int &event_counter)
+{
+    MigrationEvent *event
+	= new MigrationEvent(i_source, i_destination, i_migration_rate);
+    scheduler.add_event(new EpochStartEvent(i_start_time, event));
+    scheduler.add_event(new EpochEndEvent  (i_end_time,   event));
+}
+
+core::Epoch *
+core::Migration::copy() const
+{
+    return new Migration(*this);
 }
 

@@ -20,6 +20,10 @@
 # include <cassert>
 # define CASSERT_INCLUDED
 #endif
+#ifndef STDEXCEPT_INCLUDED
+# include <stdexcept>
+# define STDEXCEPT_INCLUDED
+#endif
 
 namespace core {
 
@@ -35,7 +39,7 @@ namespace core {
 	std::vector<Node*>i_nodes;
     public:
 	Population(ARG &arg,
-		   unsigned int initial_population_size,
+		   int initial_population_size,
 		   CoalescenceEvent *coal_event,
 		   double scale_fraction = 1);
 	
@@ -83,16 +87,23 @@ namespace core {
 	    = 0;
     };
 
+    // thrown if a population index is given outside the allowed
+    // values
+    struct illegal_population : std::logic_error {
+	illegal_population() : std::logic_error("Illegal populaiton id") {}
+    };
+
     class CoalescenceEvent : public Event {
     protected:
-	unsigned int i_population;
+	int i_population;
     private:
 	unsigned int &i_coal_event_counter;
 
     public:
-	CoalescenceEvent(unsigned int population, unsigned int &event_counter)
+	CoalescenceEvent(int population, unsigned int &event_counter)
 	    : i_population(population), i_coal_event_counter(event_counter)
 	{
+	    if (population < 0) throw illegal_population();
 	}
 
 	virtual double waiting_time(State &s, double current_time);
@@ -113,8 +124,7 @@ namespace core {
 	virtual double waiting_time(State &s, double current_time) = 0;
 
     public:
-	CoalescenceEventExtension(unsigned int population,
-				  unsigned int &event_counter)
+	CoalescenceEventExtension(int population, unsigned int &event_counter)
 	    : CoalescenceEvent(population, event_counter),
 	      i_underlying(0)
 	{}
@@ -130,7 +140,7 @@ namespace core {
 
 	virtual double waiting_time(State &s, double current_time);
     public:
-	CoalescenceEventGrowth(unsigned int population,
+	CoalescenceEventGrowth(int population,
 			       unsigned int &event_counter,
 			       double beta = 0,
 			       double start_time = 0)
@@ -144,7 +154,7 @@ namespace core {
 
 	virtual double waiting_time(State &s, double current_time);
     public:
-	CoalescenceEventBottleneck(unsigned int population,
+	CoalescenceEventBottleneck(int population,
 				   unsigned int &event_counter,
 				   double scale_fraction)
 	    : CoalescenceEventExtension(population, event_counter),
@@ -155,9 +165,9 @@ namespace core {
 
     class EpochStartEvent : public Event {
 	double i_start;
-	CoalescenceEventExtension *i_epoch;
+	Event *i_epoch;
     public:
-	EpochStartEvent(double start, CoalescenceEventExtension *epoch)
+	EpochStartEvent(double start, Event *epoch)
 	    : i_start(start), i_epoch(epoch)
 	{}
 	virtual double event_time  (State &s, double current_time);
@@ -167,12 +177,33 @@ namespace core {
 
     class EpochEndEvent : public Event {
 	double i_end;
-	CoalescenceEventExtension *i_epoch;
+	Event *i_epoch;
     public:
-	EpochEndEvent(double end, CoalescenceEventExtension *epoch)
+	EpochEndEvent(double end, Event *epoch)
 	    : i_end(end), i_epoch(epoch)
 	{}
 	virtual double event_time  (State &s, double current_time);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time);
+    };
+	
+
+    class CoalEpochStartEvent : public EpochStartEvent {
+	CoalescenceEventExtension *i_epoch;
+    public:
+	CoalEpochStartEvent(double start, CoalescenceEventExtension *epoch)
+	    : EpochStartEvent(start,epoch), i_epoch(epoch)
+	{}
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time);
+    };
+
+    class CoalEpochEndEvent : public EpochEndEvent {
+	CoalescenceEventExtension *i_epoch;
+    public:
+	CoalEpochEndEvent(double end, CoalescenceEventExtension *epoch)
+	    : EpochEndEvent(end,epoch), i_epoch(epoch)
+	{}
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
     };
@@ -208,13 +239,14 @@ namespace core {
     // a merge moves the second population to the first and disables
     // all events in the second.
     class MergePopulationsEvent : public Event {
-        unsigned int i_pop_1, i_pop_2;
-	double       i_merge_time;
+        int    i_pop_1, i_pop_2;
+	double i_merge_time;
     public:
-	MergePopulationsEvent(unsigned int pop_1, unsigned int pop_2,
-			      double merge_time)
+	MergePopulationsEvent(int pop_1, int pop_2, double merge_time)
   	    : i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
 	{
+	    if (pop_1 < 0) throw illegal_population();
+	    if (pop_2 < 0) throw illegal_population();
 	}
 	
 	virtual double event_time  (State &s, double current_time);
@@ -222,6 +254,24 @@ namespace core {
 				    double event_time);
     };
 
+    class MigrationEvent : public Event {
+        int    i_source, i_destination;
+	double i_migration_rate;
+    public:
+	MigrationEvent(unsigned int source,
+		       unsigned int destination,
+		       double migration_rate)
+  	    : i_source(source), i_destination(destination),
+	      i_migration_rate(migration_rate)
+	{
+	    if (source < 0)      throw illegal_population();
+	    if (destination < 0) throw illegal_population();
+	}
+
+	virtual double event_time  (State &s, double current_time);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time);
+    };
 
     class Scheduler {
 	std::list<Event*> i_events;

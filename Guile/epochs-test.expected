@@ -1,4 +1,6 @@
-(bottleneck 0.1 1.0 2.0)
+(bottleneck 0 0.1 1.0 2.0)
+(growth 0 10.0 1.0 2.0)
+(migration 0 1 0.98 0.0 1.0)
 (population-merge 0 1 0.98)
 illegal-epoch
 illegal-epoch

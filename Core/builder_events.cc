@@ -22,7 +22,7 @@
 
 using namespace core;
 
-Population::Population(ARG &arg, unsigned int initial_population_size,
+Population::Population(ARG &arg, int initial_population_size,
 		       CoalescenceEvent *coal_event,
 		       double scale_fraction)
     : i_coal_event(coal_event), i_scale_fraction(scale_fraction)
@@ -159,7 +159,7 @@ double core::CoalescenceEventBottleneck::waiting_time(State &s, double c_time)
 
 
 double
-EpochStartEvent::event_time  (State &s, double current_time)
+EpochStartEvent::event_time(State &s, double current_time)
 {
     return i_start;
 }
@@ -168,19 +168,37 @@ void
 EpochStartEvent::update_state(Scheduler &scheduler, State &s,
 			      double event_time)
 {
+    scheduler.add_event(i_epoch);
+    scheduler.remove_event(this);
+    delete this;    
+}
+
+void
+CoalEpochStartEvent::update_state(Scheduler &scheduler, State &s,
+				  double event_time)
+{
     i_epoch->push(scheduler, s);
     scheduler.remove_event(this);
     delete this;    
 }
 
 double
-EpochEndEvent::event_time  (State &s, double current_time)
+EpochEndEvent::event_time(State &s, double current_time)
 {
     return i_end;
 }
 
 void
-EpochEndEvent::update_state(Scheduler &scheduler, State &s,
+EpochEndEvent::update_state(Scheduler &scheduler, State &s, double event_time)
+{
+    scheduler.remove_event(i_epoch);
+    scheduler.remove_event(this);
+    delete i_epoch;
+    delete this;    
+}
+
+void
+CoalEpochEndEvent::update_state(Scheduler &scheduler, State &s,
 			    double event_time)
 {
     i_epoch->pop(scheduler, s);
@@ -311,6 +329,24 @@ MergePopulationsEvent::update_state(Scheduler &scheduler, State &s,
 }
 
 
+double
+MigrationEvent::event_time(State &s, double current_time)
+{
+    // FIXME: not sure about this
+    Population &src = s.populations()[i_source];
+    unsigned int k = src.size();
+    double rate = i_migration_rate*k/2;	// population scale fraction???
+    return Distribution_functions::expdev(rate);
+}
+
+void
+MigrationEvent::update_state(Scheduler &scheduler, State &s,
+			     double event_time)
+{
+    Population &src = s.populations()[i_source];
+    Population &dst = s.populations()[i_destination];
+    dst.push(src.pop_random());
+}
 
 
 
