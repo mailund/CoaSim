@@ -380,7 +380,7 @@ Scheduler::next_event(State &s, double current_time)
 		    earliest_event = *i;
 		}
 	}
-    return time_event_t(std::min(current_time,minimal_time), earliest_event);
+    return time_event_t(std::max(current_time,minimal_time), earliest_event);
 }
 
 void
