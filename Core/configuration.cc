@@ -18,10 +18,69 @@ core::Configuration::~Configuration()
     delete[] i_plain_markers;
 
     std::vector<Epoch*>::iterator i;
-    for (i = i_epochs.begin(); i != i_epochs.end(); ++ i)
+    for (i = i_epochs.begin(); i != i_epochs.end(); ++i)
 	delete *i;
 }
 
-core::Epoch::~Epoch()
+core::Event::~Event() {}
+core::Epoch::~Epoch() {}
+
+double
+core::Epoch::event_time(State &s, double current_time)
 {
+    if (current_time <  i_start_time)
+	return std::numeric_limits<double>::max();
+    if (current_time >= i_end_time)
+	return i_end_time;
+
+    return nested_event_time(s, current_time);
+}
+
+void
+core::Epoch::update_state(Scheduler &scheduler, State &s, double event_time)
+{
+    if (event_time >= i_end_time)
+	{
+	    // remove epoch
+	    scheduler.remove_event(this);
+	    delete this;
+	}
+    else
+	nested_update_state(scheduler, s, event_time);
+}
+
+
+core::Scheduler::~Scheduler() 
+{
+    std::list<Event*>::iterator i;
+    for (i = i_events.begin(); i != i_events.end(); ++i)
+	delete *i;
+}
+
+
+core::Scheduler::time_event_t
+core::Scheduler::next_event(State &s, double current_time)
+{
+    double minimal_time = std::numeric_limits<double>::max();
+    Event *earliest_event = 0;
+    std::list<Event*>::iterator i;
+    for (i = i_events.begin(); i != i_events.end(); ++i)
+	{
+	    double event_time = (*i)->event_time(s, current_time);
+	    if (event_time < minimal_time)
+		{
+		    minimal_time = event_time;
+		    earliest_event = *i;
+		}
+	}
+    return time_event_t(std::max(current_time,minimal_time), earliest_event);
+}
+
+void
+core::Scheduler::remove_event(Event *event)
+{
+    std::list<Event*>::iterator i;
+    i = find(i_events.begin(), i_events.end(), event);
+    assert(i != i_events.end());
+    i_events.erase(i);
 }

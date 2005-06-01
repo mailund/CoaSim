@@ -19,26 +19,19 @@ namespace core {
     class BottleNeck : public Epoch {
         int    i_population;
 	double i_scale_fraction;
-	double i_start_point;
-	double i_end_point;
     public:
 	BottleNeck(int population,
 		   double scale_fraction, 
-		   double start_point, double end_point = -1)
-	    : i_population(population),
-	      i_scale_fraction(scale_fraction),
-	      i_start_point(start_point),
-	      i_end_point(end_point)
+		   double start_time, double end_time = -1)
+	    : Epoch(start_time, end_time),
+	      i_population(population),
+	      i_scale_fraction(scale_fraction)
 	{
 	    assert(scale_fraction > 0);
-	    assert(start_point >= 0);
-	    assert(end_point < 0 or start_point < end_point);
 	}
 
 	int    population()     const { return i_population; }
 	double scale_fraction() const { return i_scale_fraction; }
-	double start_point()    const { return i_start_point; }
-	double end_point()      const { return i_end_point; }
 
 	virtual Epoch *copy() const;
 	virtual void add_events(Scheduler &scheduler,
@@ -48,25 +41,18 @@ namespace core {
     class Growth : public Epoch {
         int    i_population;
 	double i_beta;
-	double i_start_point;
-	double i_end_point;
     public:
 	Growth(int population, double beta, 
-	       double start_point, double end_point = -1)
-  	    : i_population(population),
-	      i_beta(beta),
-	      i_start_point(start_point),
-	      i_end_point(end_point)
+	       double start_time, double end_time = -1)
+  	    : Epoch(start_time, end_time),
+	      i_population(population),
+	      i_beta(beta)
 	{
 	    assert(beta > 0);
-	    assert(start_point >= 0);
-	    assert(end_point < 0 or start_point < end_point);
 	}
 
 	int    population()  const { return i_population; }
 	double beta()        const { return i_beta; }
-	double start_point() const { return i_start_point; }
-	double end_point()   const { return i_end_point; }
 
 	virtual Epoch *copy() const;
 	virtual void add_events(Scheduler &scheduler,
@@ -79,7 +65,8 @@ namespace core {
 
     public:
 	PopulationMerge(int pop_1, int pop_2, double merge_time)
-	    : i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
+	    : Epoch(merge_time, -1),
+	      i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
 	{
 	    assert(pop_1 >= 0);
 	    assert(pop_2 >= 0);
@@ -98,28 +85,19 @@ namespace core {
     class Migration : public Epoch {
 	int i_source, i_destination;
 	double i_migration_rate;
-	double i_start_time, i_end_time;
+
+	virtual double nested_event_time  (State &s, double current_time);
+	virtual void   nested_update_state(Scheduler &scheduler, State &s,
+					   double event_time);
 
     public:
 	Migration(int source, int destination,
 		  double migration_rate,
-		  double start_time, double end_time)
-	    : i_source(source), i_destination(destination),
-	      i_migration_rate(migration_rate),
-	      i_start_time(start_time), i_end_time(end_time)
-	{
-	    assert(source >= 0);
-	    assert(destination >= 0);
-	    assert(migration_rate >= 0);
-	    assert(start_time >= 0);
-	    assert(start_time < end_time);
-	}
+		  double start_time, double end_time);
 
 	int    source()         const { return i_source; }
 	int    destination()    const { return i_destination; }
 	double migration_rate() const { return i_migration_rate; }
-	double start_time()     const { return i_start_time; }
-	double end_time()       const { return i_end_time; }
 
 	virtual Epoch *copy() const;
 	virtual void add_events(Scheduler &scheduler,

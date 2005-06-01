@@ -45,9 +45,9 @@ print_bottleneck_epoch (SCM smob, SCM port, scm_print_state *pstate)
     scm_puts(" ", port);
     scm_display(scm_make_real(bn->scale_fraction()), port); 
     scm_puts(" ", port);
-    scm_display(scm_make_real(bn->start_point()), port); 
+    scm_display(scm_make_real(bn->start_time()), port); 
     scm_puts(" ", port);
-    scm_display(scm_make_real(bn->end_point()), port);
+    scm_display(scm_make_real(bn->end_time()), port);
     scm_puts(")", port);
     return 1;
 }
@@ -70,9 +70,9 @@ print_growth_epoch (SCM smob, SCM port, scm_print_state *pstate)
     scm_puts(" ", port);
     scm_display(scm_make_real(g->beta()), port); 
     scm_puts(" ", port);
-    scm_display(scm_make_real(g->start_point()), port); 
+    scm_display(scm_make_real(g->start_time()), port); 
     scm_puts(" ", port);
-    scm_display(scm_make_real(g->end_point()), port);
+    scm_display(scm_make_real(g->end_time()), port);
     scm_puts(")", port);
     return 1;
 }

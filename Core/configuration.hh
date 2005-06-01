@@ -20,6 +20,10 @@
 # include <vector>
 # define VECTOR_INCLUDED
 #endif
+#ifndef LIST_INCLUDED
+# include <list>
+# define LIST_INCLUDED
+#endif
 #ifndef CASSERT_INCLUDED
 # include <cassert>
 # define VECTOR_INCLUDED
@@ -35,16 +39,65 @@ namespace core {
     // should be passed instead, and from those I should get the right
     // event handlers.
     class Scheduler;
+    class State;
     class CoalescenceEvent;
-    struct Epoch {
+
+    struct Event {
+	virtual ~Event();
+	virtual double event_time  (State &s, double current_time)
+	    = 0;
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time)
+	    = 0;
+    };
+
+    class Epoch : public Event {
+	double i_start_time, i_end_time;
+
+	// override this one to provide the epoch
+	virtual double nested_event_time  (State &s, double current_time)
+	{}
+	virtual void   nested_update_state(Scheduler &scheduler, State &s,
+					   double event_time)
+	{}
+	
+
+    public:
+	// Steals the epoch -- will delete it when the epoch ends!
+	Epoch(double start_time, double end_time)
+	    : i_start_time(start_time), i_end_time(end_time)
+	{
+	    assert(start_time >= 0);
+	    assert(end_time < 0 or start_time < end_time);
+	}
 	virtual ~Epoch();
+
+	double start_time() const { return i_start_time; }
+	double end_time()   const { return i_end_time; }
 
 	// polymorphic copying
 	virtual Epoch *copy() const = 0;
-
 	virtual void add_events(Scheduler &scheduler,
 				unsigned int &event_counter) = 0;
+
+	virtual double event_time  (State &s, double current_time);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time);
     };
+
+    class Scheduler {
+	std::list<Event*> i_events;
+
+    public:
+	~Scheduler();
+	void add_event(Event *event) { i_events.push_back(event); }
+	void remove_event(Event *event);
+
+	typedef std::pair<double,Event*> time_event_t;
+	time_event_t next_event(State &s, double current_time);
+
+    };
+
 
     class Configuration
     {

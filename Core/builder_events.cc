@@ -74,7 +74,6 @@ State::random_population()
 }
 
 
-Event::~Event() {}
 
 double
 core::CoalescenceEvent::waiting_time(State &s, double current_time)
@@ -332,61 +331,3 @@ MergePopulationsEvent::update_state(Scheduler &scheduler, State &s,
     delete this;
 }
 
-
-double
-MigrationEvent::event_time(State &s, double current_time)
-{
-    // FIXME: not sure about this
-    Population &src = s.populations()[i_source];
-    unsigned int k = src.size();
-    if (k < 1) return std::numeric_limits<double>::max();
-    double rate = i_migration_rate*k/2;	// population scale fraction???
-    return Distribution_functions::expdev(rate);
-}
-
-void
-MigrationEvent::update_state(Scheduler &scheduler, State &s,
-			     double event_time)
-{
-    Population &src = s.populations()[i_source];
-    Population &dst = s.populations()[i_destination];
-    dst.push(src.pop_random());
-}
-
-
-
-
-
-Scheduler::~Scheduler() 
-{
-    std::list<Event*>::iterator i;
-    for (i = i_events.begin(); i != i_events.end(); ++i)
-	delete *i;
-}
-
-
-Scheduler::time_event_t
-Scheduler::next_event(State &s, double current_time)
-{
-    double minimal_time = std::numeric_limits<double>::max();
-    Event *earliest_event = 0;
-    std::list<Event*>::iterator i;
-    for (i = i_events.begin(); i != i_events.end(); ++i)
-	{
-	    double event_time = (*i)->event_time(s, current_time);
-	    if (event_time < minimal_time)
-		{
-		    minimal_time = event_time;
-		    earliest_event = *i;
-		}
-	}
-    return time_event_t(std::max(current_time,minimal_time), earliest_event);
-}
-
-void
-Scheduler::remove_event(Event *event)
-{
-    std::list<Event*>::iterator i;
-    i = find(i_events.begin(), i_events.end(), event);
-    i_events.erase(i);
-}

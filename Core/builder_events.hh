@@ -8,13 +8,16 @@
 #ifndef CORE__BUILDER_EVENTS_HH_INCLUDED
 #define CORE__BUILDER_EVENTS_HH_INCLUDED
 
+// the abstract event class is defined in the configuration, since it
+// is needed for epochs which are configuration thingies.
+#ifndef CORE__CONFIGURATION_HH_INCLUDED
+# include "configuration.hh"
+#endif
+
+
 #ifndef VECTOR_INCLUDED
 # include <vector>
 # define VECTOR_INCLUDED
-#endif
-#ifndef LIST_INCLUDED
-# include <list>
-# define LIST_INCLUDED
 #endif
 #ifndef CASSERT_INCLUDED
 # include <cassert>
@@ -78,14 +81,6 @@ namespace core {
     };
 
 
-    struct Event {
-	virtual ~Event();
-	virtual double event_time  (State &s, double current_time)
-	    = 0;
-	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time)
-	    = 0;
-    };
 
     // thrown if a population index is given outside the allowed
     // values
@@ -253,41 +248,6 @@ namespace core {
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
     };
-
-    class MigrationEvent : public Event {
-        int    i_source, i_destination;
-	double i_migration_rate;
-    public:
-	MigrationEvent(unsigned int source,
-		       unsigned int destination,
-		       double migration_rate)
-  	    : i_source(source), i_destination(destination),
-	      i_migration_rate(migration_rate)
-	{
-	    if (source < 0)      throw illegal_population();
-	    if (destination < 0) throw illegal_population();
-	}
-
-	virtual double event_time  (State &s, double current_time);
-	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time);
-    };
-
-    class Scheduler {
-	std::list<Event*> i_events;
-
-    public:
-	~Scheduler();
-	void add_event(Event *event) { i_events.push_back(event); }
-	void remove_event(Event *event);
-
-	typedef std::pair<double,Event*> time_event_t;
-	time_event_t next_event(State &s, double current_time);
-
-    };
-
-
-
 
 
     // FIXME: This initialization is not optimal
