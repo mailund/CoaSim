@@ -76,7 +76,8 @@ State::random_population()
 
 Event::~Event() {}
 
-double core::CoalescenceEvent::waiting_time(State &s, double current_time)
+double
+core::CoalescenceEvent::waiting_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
     Population &p = s.populations()[i_population];
@@ -88,13 +89,15 @@ double core::CoalescenceEvent::waiting_time(State &s, double current_time)
     return scale_fraction * delta_time;
 }
 
-double core::CoalescenceEvent::event_time(State &s, double current_time)
+double
+core::CoalescenceEvent::event_time(State &s, double current_time)
 {
     return current_time + waiting_time(s, current_time);
 }
 
-void core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
-					  double event_time)
+void
+core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
+				     double event_time)
 {
     ARG &arg = s.arg();
     BuilderMonitor *callbacks = s.callbacks();
@@ -143,8 +146,8 @@ CoalescenceEventExtension::pop(Scheduler &scheduler, State &s)
 }
 
 
-double core::CoalescenceEventGrowth::waiting_time(State &s,
-						  double current_time)
+double
+core::CoalescenceEventGrowth::waiting_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
     double t_k_star = basic_waiting_time(s, current_time);
@@ -152,7 +155,8 @@ double core::CoalescenceEventGrowth::waiting_time(State &s,
     return log(1.0+i_beta*t_k_star*exp(-i_beta*v_k_1))/i_beta;
 }
 
-double core::CoalescenceEventBottleneck::waiting_time(State &s, double c_time)
+double
+core::CoalescenceEventBottleneck::waiting_time(State &s, double c_time)
 {
     return i_scale_fraction * basic_waiting_time(s, c_time);
 }
@@ -335,6 +339,7 @@ MigrationEvent::event_time(State &s, double current_time)
     // FIXME: not sure about this
     Population &src = s.populations()[i_source];
     unsigned int k = src.size();
+    if (k < 1) return std::numeric_limits<double>::max();
     double rate = i_migration_rate*k/2;	// population scale fraction???
     return Distribution_functions::expdev(rate);
 }
@@ -375,7 +380,7 @@ Scheduler::next_event(State &s, double current_time)
 		    earliest_event = *i;
 		}
 	}
-    return time_event_t(minimal_time, earliest_event);
+    return time_event_t(std::min(current_time,minimal_time), earliest_event);
 }
 
 void
