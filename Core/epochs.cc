@@ -26,6 +26,29 @@
 
 using namespace core;
 
+Epoch::~Epoch() {}
+
+double
+Epoch::event_time(State &s, double current_time)
+{
+    if (current_time < start_time())
+	return std::numeric_limits<double>::max();
+    return std::min(nested_event_time(s, current_time), end_time());
+}
+
+void
+Epoch::update_state(Scheduler &scheduler, State &s, double event_time)
+{
+    if (event_time >= end_time())
+	{
+	    // remove epoch
+	    scheduler.remove_event(this);
+	    delete this;
+	}
+    else
+	nested_update_state(scheduler, s, event_time);
+}
+
 CoalescenceEpoch::~CoalescenceEpoch()
 {
     delete i_underlying;
@@ -47,6 +70,14 @@ CoalescenceEpoch::nested_update_state(Scheduler &scheduler, State &s,
     CoalescenceEvent::update_state(scheduler, s, event_time);
 }
 
+double
+CoalescenceEpoch::event_time(State &s, double current_time)
+{
+    if (current_time < start_time())
+	return std::numeric_limits<double>::max();
+    return std::min(nested_event_time(s, current_time), end_time());
+}
+
 void
 CoalescenceEpoch::update_state(Scheduler &scheduler, State &s, 
 			       double event_time)
@@ -64,7 +95,7 @@ CoalescenceEpoch::update_state(Scheduler &scheduler, State &s,
 	{
 	    Population &p = s.populations().at(population());
 	    p.coalescence_event(i_underlying);
-	    scheduler.remove_event(static_cast<Epoch*>(this));
+	    scheduler.remove_event(this);
 	    scheduler.add_event(i_underlying);
 	    i_underlying = 0;
 	    delete this;
@@ -85,7 +116,7 @@ BottleNeck::waiting_time(State &s, double c_time)
 Event *
 BottleNeck::copy() const
 {
-    return static_cast<Epoch*>(new BottleNeck(*this));
+    return new BottleNeck(*this);
 }
 
 
@@ -102,7 +133,7 @@ Growth::waiting_time(State &s, double current_time)
 Event *
 Growth::copy() const
 {
-    return static_cast<Epoch*>(new Growth(*this));
+    return new Growth(*this);
 }
 
 

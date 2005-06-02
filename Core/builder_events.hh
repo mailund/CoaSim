@@ -134,14 +134,13 @@ namespace core {
 
     // a merge moves the second population to the first and disables
     // all events in the second.
-    class PopulationMerge : public Epoch {
+    class PopulationMerge : public Event {
 	int i_pop_1, i_pop_2;
         double i_merge_time;
 
     public:
 	PopulationMerge(int pop_1, int pop_2, double merge_time)
-	    : Epoch(merge_time, -1),
-	      i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
+	    : i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
 	{
 	    assert(pop_1 >= 0);
 	    assert(pop_2 >= 0);

@@ -105,7 +105,7 @@ namespace {
     protected:
 	// write one character
 	virtual int_type overflow (int_type c) {
-#if 0 // FIXME: this won't work with the intalled g++ version :-(
+#if 1 // FIXME: this won't work with the intalled g++ version :-(
 	    if (c != EOF) {
 		char z = c;
 		if (write (fd, &z, 1) != 1) {
@@ -119,7 +119,7 @@ namespace {
 	virtual
 	std::streamsize xsputn (const char* s,
 				std::streamsize num) {
-#if 0 // FIXME: this won't work with the intalled g++ version :-(
+#if 1 // FIXME: this won't work with the intalled g++ version :-(
 	    return write(fd,s,num);
 #endif
 	    return 0;

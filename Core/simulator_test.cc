@@ -43,7 +43,7 @@ int main(int argc, const char *argv[])
 	markers.push_back(mm);
 	markers.push_back(new SNPMarker(0.67, 0.0,1.0));
 
-	std::vector<Epoch*> epochs;
+	std::vector<Event*> epochs;
 	epochs.push_back(new BottleNeck(0, 0.1, 1.0, 2.0));
 	epochs.push_back(new Growth(0, 10, 1.5, 1.75));
 	epochs.push_back(new PopulationMerge(0, 1, 0.5));
@@ -65,7 +65,7 @@ int main(int argc, const char *argv[])
 	for (i = markers.begin(); i != markers.end(); ++i)
 	    delete *i;
 	markers.resize(0);
-	std::vector<Epoch*>::iterator j;
+	std::vector<Event*>::iterator j;
 	for (j = epochs.begin(); j != epochs.end(); ++j)
 	    delete *j;
 	epochs.resize(0);

@@ -19,8 +19,58 @@
 
 namespace core {
 
-    class CoalescenceEpoch : public CoalescenceEvent,
-			     public Epoch {
+    class Epoch : public Event {
+	double i_start_time, i_end_time;
+
+	// override this one to provide the epoch
+	virtual double nested_event_time  (State &s, double current_time) = 0;
+	virtual void   nested_update_state(Scheduler &scheduler, State &s,
+					   double event_time) = 0;
+
+    public:
+	// Steals the epoch -- will delete it when the epoch ends!
+	Epoch(double start_time, double end_time)
+	    : i_start_time(start_time), 
+	      i_end_time(end_time > 0 ? end_time 
+			 : std::numeric_limits<double>::max())
+	{
+	    assert(i_start_time >= 0);
+	    assert(i_start_time < i_end_time);
+	}
+	virtual ~Epoch();
+
+	double start_time() const { return i_start_time; }
+	double end_time()   const { return i_end_time; }
+
+	virtual double event_time  (State &s, double current_time);
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time);
+    };
+    
+
+    class Migration : public Epoch {
+	int i_source, i_destination;
+	double i_migration_rate;
+
+	virtual double nested_event_time  (State &s, double current_time);
+	virtual void   nested_update_state(Scheduler &scheduler, State &s,
+					   double event_time);
+
+    public:
+	Migration(int source, int destination,
+		  double migration_rate,
+		  double start_time, double end_time);
+
+	int    source()         const { return i_source; }
+	int    destination()    const { return i_destination; }
+	double migration_rate() const { return i_migration_rate; }
+
+	virtual Event *copy() const;
+    };
+
+
+    class CoalescenceEpoch : public CoalescenceEvent {
+	double i_start_time, i_end_time;
 	CoalescenceEvent *i_underlying;
 
     protected:
@@ -41,19 +91,25 @@ namespace core {
 					   double event_time);
 
 	// handles the push/pop nature of coalescence epochs
+	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
 
     public:
 	CoalescenceEpoch(int population, double start_time, double end_time)
-	    : Epoch(start_time, end_time),
-	      CoalescenceEvent(population),
+	    : CoalescenceEvent(population),
+	      i_start_time(start_time),
+	      i_end_time((end_time > 0) ? end_time 
+			 : std::numeric_limits<double>::max()),
 	      i_underlying(0)
 	{
+	    assert(i_start_time >= 0);
+	    assert(i_start_time < i_end_time);
 	}
 	virtual ~CoalescenceEpoch();
 
-	
+	double start_time() const { return i_start_time; }
+	double end_time()   const { return i_end_time; }
     };
 
     class BottleNeck : public CoalescenceEpoch {
@@ -90,27 +146,6 @@ namespace core {
 	}
 
 	double beta()        const { return i_beta; }
-
-	virtual Event *copy() const;
-    };
-    
-
-    class Migration : public Epoch {
-	int i_source, i_destination;
-	double i_migration_rate;
-
-	virtual double nested_event_time  (State &s, double current_time);
-	virtual void   nested_update_state(Scheduler &scheduler, State &s,
-					   double event_time);
-
-    public:
-	Migration(int source, int destination,
-		  double migration_rate,
-		  double start_time, double end_time);
-
-	int    source()         const { return i_source; }
-	int    destination()    const { return i_destination; }
-	double migration_rate() const { return i_migration_rate; }
 
 	virtual Event *copy() const;
     };

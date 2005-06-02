@@ -16,11 +16,14 @@
 #ifndef CORE__BUILDER_EVENTS_HH_INCLUDED
 # include "builder_events.hh"
 #endif
+#ifndef CORE__EPOCHS_HH_INCLUDED
+# include "epochs.hh"
+#endif
 
 using namespace core;
 
 
-ARG * Builder::build(BuilderMonitor    *callbacks,
+ARG * Builder::build(BuilderMonitor *callbacks,
 		     bool keep_empty_intervals) const
 {
     using namespace Distribution_functions;
@@ -38,15 +41,8 @@ ARG * Builder::build(BuilderMonitor    *callbacks,
 	 j != state.populations().end(); ++j, ++pop_no)
         {
 	    scheduler.add_event(j->coalescence_event());
-	    // FIXME: remove global growth...
-#if 0
 	    if (i_conf.growth() > 0)
-	        {
-		    CoalescenceEventExtension *growth_coa_event
-		      = new CoalescenceEventGrowth(pop_no, coal_events, i_conf.growth());
-		    growth_coa_event->push(scheduler, state);
-		}
-#endif
+		scheduler.add_event(new Growth(pop_no,i_conf.growth(), 0));
 	}
 	
     if (i_conf.rho() > 0)
@@ -58,7 +54,10 @@ ARG * Builder::build(BuilderMonitor    *callbacks,
     // FIXME: Validation of epochs!!!
     std::vector<Event*>::const_iterator i;
     for (i = i_conf.epochs_begin(); i != i_conf.epochs_end(); ++i)
-	scheduler.add_event((*i)->copy());
+	{
+	    Event *e = (*i)->copy();
+	    scheduler.add_event(e);
+	}
 
     while (state.total_population_size() > 1)
 	{

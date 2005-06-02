@@ -76,12 +76,6 @@ State::random_population()
 		   // select an individual in one of the populations
 }
 
-core::Event *
-core::CoalescenceEvent::copy() const
-{
-    return new CoalescenceEvent(*this);
-}
-
 double
 core::CoalescenceEvent::waiting_time(State &s, double current_time)
 {
@@ -94,6 +88,13 @@ core::CoalescenceEvent::waiting_time(State &s, double current_time)
     double delta_time = expdev(nodes_left, double(nodes_left-1)/2);
     return scale_fraction * delta_time;
 }
+
+core::Event *
+core::CoalescenceEvent::copy() const
+{
+    return new CoalescenceEvent(*this);
+}
+
 
 double
 core::CoalescenceEvent::event_time(State &s, double current_time)

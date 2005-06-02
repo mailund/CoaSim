@@ -35,7 +35,7 @@ int main(int argc, const char *argv[])
     try {
 	int pop_sizes[] = { 0 };
 	double pop_fracs[] = { 1 };
-	Epoch *dummy_epoch_itr = 0;
+	Event *dummy_epoch_itr = 0;
 	Configuration conf(pop_sizes, pop_sizes+1,
 			   pop_fracs, pop_fracs+1,
 			   markers.begin(), markers.end(),
@@ -47,7 +47,7 @@ int main(int argc, const char *argv[])
     try {
 	int pop_sizes[] = { -1 };
 	double pop_fracs[] = { 1 };
-	Epoch *dummy_epoch_itr = 0;
+	Event *dummy_epoch_itr = 0;
 	Configuration conf(pop_sizes, pop_sizes+1,
 			   pop_fracs, pop_fracs+1,
 			   markers.begin(), markers.end(),
@@ -59,7 +59,7 @@ int main(int argc, const char *argv[])
     try {
 	int pop_sizes[] = { 1 };
 	double pop_fracs[] = { 1, 1 };
-	Epoch *dummy_epoch_itr = 0;
+	Event *dummy_epoch_itr = 0;
 	Configuration conf(pop_sizes, pop_sizes+1,
 			   pop_fracs, pop_fracs+2,
 			   markers.begin(), markers.end(),
@@ -71,7 +71,7 @@ int main(int argc, const char *argv[])
     try {
 	int pop_sizes[] = { 1 };
 	double pop_fracs[] = { 1 };
-	Epoch *dummy_epoch_itr = 0;
+	Event *dummy_epoch_itr = 0;
 	Configuration conf(pop_sizes, pop_sizes+1,
 			   pop_fracs, pop_fracs+1,
 			   markers.begin(), markers.end(),
@@ -98,7 +98,7 @@ int main(int argc, const char *argv[])
 
 	int pop_sizes[] = { 1 };
 	double pop_fracs[] = { 1 };
-	Epoch *dummy_epoch_itr = 0;
+	Event *dummy_epoch_itr = 0;
 	Configuration conf(pop_sizes, pop_sizes+1,
 			   pop_fracs, pop_fracs+1,
 			   markers.begin(), markers.end(),

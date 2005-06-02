@@ -37,15 +37,8 @@ namespace core {
     class SimulationMonitor;
 
 
-    // FIXME: The interface for epochs needs to be rethought before I
-    // add population structure!  Passing the coalescence event
-    // handler isn't the right way to do this -- the sub-populations
-    // should be passed instead, and from those I should get the right
-    // event handlers.
     class Scheduler;
     class State;
-    class CoalescenceEvent;
-    class Event;
 
     struct Event {
 	virtual ~Event();
@@ -60,44 +53,13 @@ namespace core {
 	    = 0;
     };
 
-    // MIXIN for use with events
-    class Epoch : public virtual Event {
-	double i_start_time, i_end_time;
-
-	// override this one to provide the epoch
-	virtual double nested_event_time  (State &s, double current_time)
-	{}
-	virtual void   nested_update_state(Scheduler &scheduler, State &s,
-					   double event_time)
-	{}
-	
-
-    public:
-	// Steals the epoch -- will delete it when the epoch ends!
-	Epoch(double start_time, double end_time)
-	    : i_start_time(start_time), 
-	      i_end_time(end_time > 0 ? end_time 
-			 : std::numeric_limits<double>::max())
-	{
-	    assert(i_start_time >= 0);
-	    assert(i_start_time < i_end_time);
-	}
-	virtual ~Epoch();
-
-	double start_time() const { return i_start_time; }
-	double end_time()   const { return i_end_time; }
-
-	virtual double event_time  (State &s, double current_time);
-	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time);
-    };
 
     class Scheduler {
 	std::list<Event*> i_events;
 
     public:
 	~Scheduler();
-	void add_event(Event *event) { i_events.push_back(event); }
+	void add_event(Event *event);
 	void remove_event(Event *event);
 
 	typedef std::pair<double,Event*> time_event_t;
