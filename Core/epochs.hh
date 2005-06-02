@@ -13,74 +13,87 @@
 #ifndef CORE__CONFIGURATION_HH_INCLUDED
 # include "configuration.hh"
 #endif
+#ifndef CORE__BUILDER_EVENTS_HH_INCLUDED
+# include "builder_events.hh"
+#endif
 
 namespace core {
 
-    class BottleNeck : public Epoch {
-        int    i_population;
-	double i_scale_fraction;
+    class CoalescenceEpoch : public CoalescenceEvent,
+			     public Epoch {
+	CoalescenceEvent *i_underlying;
+
+    protected:
+	double basic_waiting_time(State &s, double current_time)
+	{
+	    assert(i_underlying);
+	    return i_underlying->waiting_time(s, current_time);
+	}
+
+	// override this to implement the change in waiting time for
+	// this epoch.
+	virtual double waiting_time(State &s, double current_time) = 0;
+
+	// these are overridden to compose the waiting times and
+	// perform a basic coalescence event
+	virtual double nested_event_time(State &s, double current_time);
+	virtual void   nested_update_state(Scheduler &scheduler, State &s,
+					   double event_time);
+
+	// handles the push/pop nature of coalescence epochs
+	virtual void   update_state(Scheduler &scheduler, State &s,
+				    double event_time);
+
     public:
-	BottleNeck(int population,
-		   double scale_fraction, 
-		   double start_time, double end_time = -1)
+	CoalescenceEpoch(int population, double start_time, double end_time)
 	    : Epoch(start_time, end_time),
-	      i_population(population),
+	      CoalescenceEvent(population),
+	      i_underlying(0)
+	{
+	}
+	virtual ~CoalescenceEpoch();
+
+	
+    };
+
+    class BottleNeck : public CoalescenceEpoch {
+	double i_scale_fraction;
+	virtual double waiting_time(State &s, double current_time);
+
+    public:
+	BottleNeck(int population, double scale_fraction, 
+		   double start_time, double end_time = -1)
+	    : CoalescenceEpoch(population, start_time, end_time),
 	      i_scale_fraction(scale_fraction)
 	{
 	    assert(scale_fraction > 0);
 	}
 
-	int    population()     const { return i_population; }
 	double scale_fraction() const { return i_scale_fraction; }
 
-	virtual Epoch *copy() const;
-	virtual void add_events(Scheduler &scheduler,
-				unsigned int &event_counter);
+	virtual Event *copy() const;
     };
 
-    class Growth : public Epoch {
-        int    i_population;
+
+    class Growth : public CoalescenceEpoch {
 	double i_beta;
+
+	virtual double waiting_time(State &s, double current_time);
+
     public:
 	Growth(int population, double beta, 
 	       double start_time, double end_time = -1)
-  	    : Epoch(start_time, end_time),
-	      i_population(population),
+  	    : CoalescenceEpoch(population, start_time, end_time),
 	      i_beta(beta)
 	{
 	    assert(beta > 0);
 	}
 
-	int    population()  const { return i_population; }
 	double beta()        const { return i_beta; }
 
-	virtual Epoch *copy() const;
-	virtual void add_events(Scheduler &scheduler,
-				unsigned int &event_counter);
+	virtual Event *copy() const;
     };
     
-    class PopulationMerge : public Epoch {
-	int i_pop_1, i_pop_2;
-        double i_merge_time;
-
-    public:
-	PopulationMerge(int pop_1, int pop_2, double merge_time)
-	    : Epoch(merge_time, -1),
-	      i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
-	{
-	    assert(pop_1 >= 0);
-	    assert(pop_2 >= 0);
-	    assert(merge_time >= 0);
-	}
-
-	int    population1() const { return i_pop_1; }
-	int    population2() const { return i_pop_2; }
-	double merge_time()  const { return i_merge_time; }
-
-	virtual Epoch *copy() const;
-	virtual void add_events(Scheduler &scheduler,
-				unsigned int &event_counter);
-    };
 
     class Migration : public Epoch {
 	int i_source, i_destination;
@@ -99,9 +112,7 @@ namespace core {
 	int    destination()    const { return i_destination; }
 	double migration_rate() const { return i_migration_rate; }
 
-	virtual Epoch *copy() const;
-	virtual void add_events(Scheduler &scheduler,
-				unsigned int &event_counter);
+	virtual Event *copy() const;
     };
 
 }

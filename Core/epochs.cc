@@ -14,57 +14,99 @@
 # include "dist_funcs.hh"
 #endif
 
+
+#ifndef LIMITS_INCLUDED
+# include <limits>
+# define LIMITS_INCLUDED
+#endif
+#ifndef CMATH_INCLUDED
+# include <cmath>
+# define CMATH_INCLUDED
+#endif
+
 using namespace core;
 
-void
-BottleNeck::add_events(Scheduler &scheduler, unsigned int &event_counter)
+CoalescenceEpoch::~CoalescenceEpoch()
 {
-    CoalescenceEventBottleneck *event
-	= new CoalescenceEventBottleneck(i_population,
-					 event_counter,
-					 i_scale_fraction);
-    scheduler.add_event(new CoalEpochStartEvent(start_time(), event));
-    if (end_time() > 0)
-      scheduler.add_event(new CoalEpochEndEvent(end_time(), event));
+    delete i_underlying;
 }
 
-Epoch *
+double
+CoalescenceEpoch::nested_event_time(State &s, double current_time)
+{
+    // use start time until we have executed the first event that
+    // pushes this to the coalescence event stack.
+    if (!i_underlying) return start_time();
+    return CoalescenceEvent::event_time(s, current_time);
+}
+
+void
+CoalescenceEpoch::nested_update_state(Scheduler &scheduler, State &s,
+				      double event_time)
+{
+    CoalescenceEvent::update_state(scheduler, s, event_time);
+}
+
+void
+CoalescenceEpoch::update_state(Scheduler &scheduler, State &s, 
+			       double event_time)
+{
+    if (start_time() <= event_time and !i_underlying)
+	// we are entering the epoch -- push this epoch on top of the stack
+	{
+	    Population &p = s.populations().at(population());
+	    i_underlying = p.coalescence_event();
+	    p.coalescence_event(this);
+	    scheduler.remove_event(i_underlying);
+	}
+    else if (end_time() > 0 and end_time() <= event_time)
+	// we are leaving, now pop the epoch
+	{
+	    Population &p = s.populations().at(population());
+	    p.coalescence_event(i_underlying);
+	    scheduler.remove_event(static_cast<Epoch*>(this));
+	    scheduler.add_event(i_underlying);
+	    i_underlying = 0;
+	    delete this;
+	}
+    else
+	// inside the epoch we just propagate
+	nested_update_state(scheduler, s, event_time);
+}
+
+
+double
+BottleNeck::waiting_time(State &s, double c_time)
+{
+    return i_scale_fraction * basic_waiting_time(s, c_time);
+}
+
+
+Event *
 BottleNeck::copy() const
 {
-    return new BottleNeck(*this);
+    return static_cast<Epoch*>(new BottleNeck(*this));
 }
 
 
 
-void
-Growth::add_events(Scheduler &scheduler, unsigned int &event_counter)
+double
+Growth::waiting_time(State &s, double current_time)
 {
-    CoalescenceEventGrowth *event
-	= new CoalescenceEventGrowth(i_population, event_counter, i_beta);
-    scheduler.add_event(new CoalEpochStartEvent(start_time(), event));
-    if (end_time() > 0)
-      scheduler.add_event(new CoalEpochEndEvent(end_time(), event));
+    using namespace Distribution_functions;
+    double t_k_star = basic_waiting_time(s, current_time);
+    double v_k_1 = current_time - start_time();
+    return log(1.0+i_beta*t_k_star*std::exp(-i_beta*v_k_1))/i_beta;
 }
 
-Epoch *
+Event *
 Growth::copy() const
 {
-    return new Growth(*this);
+    return static_cast<Epoch*>(new Growth(*this));
 }
 
 
-void
-PopulationMerge::add_events(Scheduler &scheduler, unsigned int &event_counter)
-{
-    scheduler.add_event(new MergePopulationsEvent(i_pop_1, i_pop_2,
-						  i_merge_time));
-}
 
-Epoch *
-PopulationMerge::copy() const
-{
-    return new PopulationMerge(*this);
-}
 
 
 Migration::Migration(int source, int destination,
@@ -80,16 +122,9 @@ Migration::Migration(int source, int destination,
     assert(end_time >= 0);
 }
 
-void
-Migration::add_events(Scheduler &scheduler, unsigned int &event_counter)
-{
-    // make a copy, since this remains in the configuration for future
-    // use (and will be deleted when the configuration is
-    scheduler.add_event(copy());
-}
 
-core::Epoch *
-core::Migration::copy() const
+Event *
+Migration::copy() const
 {
     return new Migration(*this);
 }
@@ -98,11 +133,10 @@ core::Migration::copy() const
 double
 Migration::nested_event_time(State &s, double current_time)
 {
-    // FIXME: not sure about this
     Population &src = s.populations()[i_source];
     unsigned int k = src.size();
     if (k < 1) return std::numeric_limits<double>::max();
-    double rate = i_migration_rate*k/2;	// population scale fraction???
+    double rate = i_migration_rate*k/2;
     return Distribution_functions::expdev(rate);
 }
 

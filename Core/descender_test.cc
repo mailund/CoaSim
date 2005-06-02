@@ -136,11 +136,9 @@ int main(int argc, const char *argv[])
 	    delete *i;
 	markers.resize(0);
 
-
 	Descender desc(conf);
-
 	ARG *arg = build_arg(conf);
-	desc.evolve(*arg, 0);
+	desc.evolve(*arg);
 
 
     } catch (std::exception &ex) {

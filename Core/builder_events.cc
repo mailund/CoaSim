@@ -20,7 +20,10 @@
 # include "node.hh"
 #endif
 
+
 using namespace core;
+
+
 
 Population::Population(ARG &arg, int initial_population_size,
 		       CoalescenceEvent *coal_event,
@@ -66,20 +69,24 @@ State::random_population()
     for (i = i_populations.begin(); i != i_populations.end(); ++i)
 	{
 	    total += i->size();
-	    if (total <= individual)
+	    if (individual <= total)
 		return *i;
 	}
     assert(false); // we should not reach this point since we must
 		   // select an individual in one of the populations
 }
 
-
+core::Event *
+core::CoalescenceEvent::copy() const
+{
+    return new CoalescenceEvent(*this);
+}
 
 double
 core::CoalescenceEvent::waiting_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
-    Population &p = s.populations()[i_population];
+    Population &p = s.populations().at(i_population);
     unsigned int nodes_left = p.size();
     if (nodes_left < 2) return std::numeric_limits<double>::max();
 
@@ -100,10 +107,10 @@ core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
 {
     ARG &arg = s.arg();
     BuilderMonitor *callbacks = s.callbacks();
-    Population &p = s.populations()[i_population];
-    unsigned int nodes_left = p.size();
+    Population &p = s.populations().at(i_population);
+    assert(p.size() >= 2);
 
-    assert(nodes_left >= 2);
+    unsigned int nodes_left = s.total_population_size();
 
     Node *child1 = p.pop_random();
     Node *child2 = p.pop_random();
@@ -114,100 +121,13 @@ core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
     CoalescentNode *coa_node = arg.coalescence(event_time, child1, child2);
     if (callbacks) callbacks->coalescence_callback(coa_node, nodes_left);
     if (coa_node->intervals().size() > 0) p.push(coa_node);
-    ++i_coal_event_counter;
-}
-
-CoalescenceEventExtension::~CoalescenceEventExtension()
-{
-    if (i_underlying) delete i_underlying;
-}
-
-void
-CoalescenceEventExtension::push(Scheduler &scheduler, State &s)
-{
-    assert(i_underlying == 0);
-    Population &p = s.populations()[i_population];
-    i_underlying = p.coalescence_event();
-    p.coalescence_event(this);
-    scheduler.remove_event(i_underlying);
-    scheduler.add_event(this);
-}
-
-void
-CoalescenceEventExtension::pop(Scheduler &scheduler, State &s)
-{
-    assert(i_underlying != 0);
-    Population &p = s.populations()[i_population];
-    p.coalescence_event(i_underlying);
-    scheduler.remove_event(this);
-    scheduler.add_event(i_underlying);
-    i_underlying = 0;
 }
 
 
-double
-core::CoalescenceEventGrowth::waiting_time(State &s, double current_time)
+core::Event *
+core::RecombinationEvent::copy() const
 {
-    using namespace Distribution_functions;
-    double t_k_star = basic_waiting_time(s, current_time);
-    double v_k_1 = current_time - i_start_time;
-    return log(1.0+i_beta*t_k_star*exp(-i_beta*v_k_1))/i_beta;
-}
-
-double
-core::CoalescenceEventBottleneck::waiting_time(State &s, double c_time)
-{
-    return i_scale_fraction * basic_waiting_time(s, c_time);
-}
-
-
-double
-EpochStartEvent::event_time(State &s, double current_time)
-{
-    return i_start;
-}
-
-void
-EpochStartEvent::update_state(Scheduler &scheduler, State &s,
-			      double event_time)
-{
-    scheduler.add_event(i_epoch);
-    scheduler.remove_event(this);
-    delete this;    
-}
-
-void
-CoalEpochStartEvent::update_state(Scheduler &scheduler, State &s,
-				  double event_time)
-{
-    i_epoch->push(scheduler, s);
-    scheduler.remove_event(this);
-    delete this;    
-}
-
-double
-EpochEndEvent::event_time(State &s, double current_time)
-{
-    return i_end;
-}
-
-void
-EpochEndEvent::update_state(Scheduler &scheduler, State &s, double event_time)
-{
-    scheduler.remove_event(i_epoch);
-    scheduler.remove_event(this);
-    delete i_epoch;
-    delete this;    
-}
-
-void
-CoalEpochEndEvent::update_state(Scheduler &scheduler, State &s,
-			    double event_time)
-{
-    i_epoch->pop(scheduler, s);
-    scheduler.remove_event(this);
-    delete i_epoch;
-    delete this;    
+    return new RecombinationEvent(*this);
 }
 
 double
@@ -228,8 +148,10 @@ RecombinationEvent::update_state(Scheduler &scheduler, State &s,
     BuilderMonitor *callbacks = s.callbacks();
 
     double cross_over_point = uniform();
-    Population &population = s.populations()[0];
-    unsigned int nodes_left = s.populations()[0].size();
+    Population &population = s.random_population();
+    assert(population.size() > 0);
+
+    unsigned int nodes_left = s.total_population_size();
     Node *child = population.pop_random();
 
     try {
@@ -243,12 +165,17 @@ RecombinationEvent::update_state(Scheduler &scheduler, State &s,
 	    callbacks->recombination_callback(pair.first, pair.second,
 					      nodes_left);
 
-	++i_recomb_event_counter;
-
     } catch (ARG::null_event&) {
 	population.push(child);
     }
 }
+
+core::Event *
+core::GeneConversionEvent::copy() const
+{
+    return new GeneConversionEvent(*this);
+}
+
 
 double
 GeneConversionEvent::event_time(State &s, double current_time)
@@ -281,8 +208,9 @@ GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
     // gene conversion outside an active interval.
     if (stop-start <= 0.0) return;
 
-    Population &population = s.populations()[0];
-    unsigned int nodes_left = population.size();
+    Population &population = s.random_population();
+    assert(population.size() > 0);
+    unsigned int nodes_left = s.total_population_size();
 
     Node *child = population.pop_random();
     try {
@@ -296,8 +224,6 @@ GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
 	    callbacks->gene_conversion_callback(pair.first, pair.second,
 						nodes_left);
 
-	++i_gene_conv_event_counter;
-
     } catch (ARG::null_event&) {
 	population.push(child);
     }
@@ -306,18 +232,25 @@ GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
 
 
 
+
+Event *
+PopulationMerge::copy() const
+{
+    return new PopulationMerge(*this);
+}
+
 double
-MergePopulationsEvent::event_time(State &s, double current_time)
+PopulationMerge::event_time(State &s, double current_time)
 {
     return i_merge_time;
 }
 
 void
-MergePopulationsEvent::update_state(Scheduler &scheduler, State &s,
-				    double event_time)
+PopulationMerge::update_state(Scheduler &scheduler, State &s,
+			      double event_time)
 {
-    Population &p1 = s.populations()[i_pop_1];
-    Population &p2 = s.populations()[i_pop_2];
+    Population &p1 = s.populations().at(i_pop_1);
+    Population &p2 = s.populations().at(i_pop_2);
 
     // move the p2 population to p1
     while (p2.size() > 0) p1.push(p2.pop_last());
@@ -327,6 +260,7 @@ MergePopulationsEvent::update_state(Scheduler &scheduler, State &s,
 
     scheduler.remove_event(pop_2_coal);
     scheduler.remove_event(this);
+
     delete pop_2_coal;
     delete this;
 }

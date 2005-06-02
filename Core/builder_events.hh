@@ -8,8 +8,6 @@
 #ifndef CORE__BUILDER_EVENTS_HH_INCLUDED
 #define CORE__BUILDER_EVENTS_HH_INCLUDED
 
-// the abstract event class is defined in the configuration, since it
-// is needed for epochs which are configuration thingies.
 #ifndef CORE__CONFIGURATION_HH_INCLUDED
 # include "configuration.hh"
 #endif
@@ -35,6 +33,7 @@ namespace core {
     class BuilderMonitor;
     class Scheduler;
     class CoalescenceEvent;
+    class State;
 
     class Population {
 	CoalescenceEvent *i_coal_event;
@@ -63,11 +62,9 @@ namespace core {
 	BuilderMonitor *i_callbacks;
 
     public:
-	// FIXME: This initialization is not optimal
 	template <typename Itr>
 	State(ARG &arg, BuilderMonitor *callbacks,
-	      Itr sizes_begin, Itr sizes_end,
-	      unsigned int &coal_counter);
+	      Itr sizes_begin, Itr sizes_end);
 
 
 	std::vector<Population> &populations() { return i_populations; }
@@ -91,140 +88,44 @@ namespace core {
     class CoalescenceEvent : public Event {
     protected:
 	int i_population;
-    private:
-	unsigned int &i_coal_event_counter;
 
     public:
-	CoalescenceEvent(int population, unsigned int &event_counter)
-	    : i_population(population), i_coal_event_counter(event_counter)
+	CoalescenceEvent(int population) : i_population(population)
 	{
 	    if (population < 0) throw illegal_population();
 	}
 
-	virtual double waiting_time(State &s, double current_time);
-	virtual double event_time  (State &s, double current_time);
-	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time);
-    };
+	virtual Event *copy() const;
 
-    class CoalescenceEventExtension : public CoalescenceEvent {
-	CoalescenceEvent *i_underlying;
-
-    protected:
-	double basic_waiting_time(State &s, double current_time)
-	{
-	    assert(i_underlying);
-	    return i_underlying->waiting_time(s, current_time);
-	}
-	virtual double waiting_time(State &s, double current_time) = 0;
-
-    public:
-	CoalescenceEventExtension(int population, unsigned int &event_counter)
-	    : CoalescenceEvent(population, event_counter),
-	      i_underlying(0)
-	{}
-	~CoalescenceEventExtension();
-
-	void push(Scheduler &scheduler, State &s);
-	void pop (Scheduler &scheduler, State &s);
-    };
-    
-    class CoalescenceEventGrowth : public CoalescenceEventExtension {
-	double i_beta;
-	double i_start_time;
+	int population() const { return i_population; }
 
 	virtual double waiting_time(State &s, double current_time);
-    public:
-	CoalescenceEventGrowth(int population,
-			       unsigned int &event_counter,
-			       double beta = 0,
-			       double start_time = 0)
-	    : CoalescenceEventExtension(population, event_counter),
-	      i_beta(beta), i_start_time(start_time)
-	{}
-    };
-
-    class CoalescenceEventBottleneck : public CoalescenceEventExtension {
-	double i_scale_fraction;
-
-	virtual double waiting_time(State &s, double current_time);
-    public:
-	CoalescenceEventBottleneck(int population,
-				   unsigned int &event_counter,
-				   double scale_fraction)
-	    : CoalescenceEventExtension(population, event_counter),
-	      i_scale_fraction(scale_fraction)
-	{}
-    };
-
-
-    class EpochStartEvent : public Event {
-	double i_start;
-	Event *i_epoch;
-    public:
-	EpochStartEvent(double start, Event *epoch)
-	    : i_start(start), i_epoch(epoch)
-	{}
 	virtual double event_time  (State &s, double current_time);
-	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time);
-    };
-
-    class EpochEndEvent : public Event {
-	double i_end;
-	Event *i_epoch;
-    public:
-	EpochEndEvent(double end, Event *epoch)
-	    : i_end(end), i_epoch(epoch)
-	{}
-	virtual double event_time  (State &s, double current_time);
-	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time);
-    };
-	
-
-    class CoalEpochStartEvent : public EpochStartEvent {
-	CoalescenceEventExtension *i_epoch;
-    public:
-	CoalEpochStartEvent(double start, CoalescenceEventExtension *epoch)
-	    : EpochStartEvent(start,epoch), i_epoch(epoch)
-	{}
-	virtual void   update_state(Scheduler &scheduler, State &s,
-				    double event_time);
-    };
-
-    class CoalEpochEndEvent : public EpochEndEvent {
-	CoalescenceEventExtension *i_epoch;
-    public:
-	CoalEpochEndEvent(double end, CoalescenceEventExtension *epoch)
-	    : EpochEndEvent(end,epoch), i_epoch(epoch)
-	{}
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
     };
 
 
     class RecombinationEvent : public Event {
-	unsigned int &i_recomb_event_counter;
 	double i_rho;
     public:
-	RecombinationEvent(unsigned int &event_counter, double rho) 
-	    : i_recomb_event_counter(event_counter), i_rho(rho)
+	RecombinationEvent(double rho) : i_rho(rho)
 	{}
+	virtual Event *copy() const;
+
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
     };
 
     class GeneConversionEvent : public Event {
-	unsigned int &i_gene_conv_event_counter;
 	double i_gamma;
 	double i_Q;
     public:
-	GeneConversionEvent(unsigned int &event_counter,
-			    double gamma, double Q)
-	    : i_gene_conv_event_counter(event_counter), i_gamma(gamma), i_Q(Q)
+	GeneConversionEvent(double gamma, double Q) : i_gamma(gamma), i_Q(Q)
 	{}
+	virtual Event *copy() const;
+
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
@@ -233,17 +134,25 @@ namespace core {
 
     // a merge moves the second population to the first and disables
     // all events in the second.
-    class MergePopulationsEvent : public Event {
-        int    i_pop_1, i_pop_2;
-	double i_merge_time;
+    class PopulationMerge : public Epoch {
+	int i_pop_1, i_pop_2;
+        double i_merge_time;
+
     public:
-	MergePopulationsEvent(int pop_1, int pop_2, double merge_time)
-  	    : i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
+	PopulationMerge(int pop_1, int pop_2, double merge_time)
+	    : Epoch(merge_time, -1),
+	      i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
 	{
-	    if (pop_1 < 0) throw illegal_population();
-	    if (pop_2 < 0) throw illegal_population();
+	    assert(pop_1 >= 0);
+	    assert(pop_2 >= 0);
+	    assert(merge_time >= 0);
 	}
-	
+	virtual Event *copy() const;
+
+	int    population1() const { return i_pop_1; }
+	int    population2() const { return i_pop_2; }
+	double merge_time()  const { return i_merge_time; }
+
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
@@ -253,14 +162,12 @@ namespace core {
     // FIXME: This initialization is not optimal
     template <typename Itr>
     State::State(ARG &arg, BuilderMonitor *callbacks,
-		 Itr sizes_begin, Itr sizes_end,
-		 unsigned int &coal_counter)
+		 Itr sizes_begin, Itr sizes_end)
         : i_arg(arg), i_callbacks(callbacks)
     {
       for (int p_no = 0; sizes_begin != sizes_end; ++p_no, ++sizes_begin)
 	  {
-	      Population p(arg, *sizes_begin,
-			   new CoalescenceEvent(p_no, coal_counter));
+	      Population p(arg, *sizes_begin, new CoalescenceEvent(p_no));
 	      i_populations.push_back(p);
 	  }
     }

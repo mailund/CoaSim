@@ -13,9 +13,6 @@
 #ifndef CORE__MARKER_HH_INCLUDED
 # include "marker.hh"
 #endif
-#ifndef CORE__MONITOR_HH_INCLUDED
-# include "monitor.hh"
-#endif
 
 using namespace core;
 
@@ -24,7 +21,7 @@ using namespace core;
 // this could of course be generalized if at some point it is needed.
 // It would require a re-write of this, though.
 
-void core::Descender::evolve(ARG &arg, SimulationMonitor *mon) const
+void core::Descender::evolve(ARG &arg) const
 {
     std::vector<RetiredInterval>::const_iterator ri_itr, ri_begin, ri_end;
     ri_begin = arg.retired_intervals().begin();
@@ -45,11 +42,9 @@ void core::Descender::evolve(ARG &arg, SimulationMonitor *mon) const
 		    if (i_conf.position(m) < ri_itr->start()) continue;
 		    if (i_conf.position(m) > ri_itr->end())   break;
 
-		    if (mon) mon->mutator_update(m);
 		first_retry: // handle retries when wrong freqs
 		    try { ri_itr->mutate(i_conf,m); } 
 		    catch (Mutator::retry_mutation&) {
-			if (mon) mon->retry_mutation();
 			goto first_retry; 
 		    }
 		}
@@ -66,11 +61,9 @@ void core::Descender::evolve(ARG &arg, SimulationMonitor *mon) const
 		    if (i_conf.position(m) < ri_itr->start()) continue;
 		    if (i_conf.position(m) > ri_itr->end())   break;
 
-		    if (mon) mon->mutator_update(m);
 		plain_retry: // handle retries when wrong freqs
 		    try { ri_itr->mutate(i_conf,m); } 
 		    catch (Mutator::retry_mutation&) {
-			if (mon) mon->retry_mutation();
 			goto plain_retry; 
 		    }
 		}

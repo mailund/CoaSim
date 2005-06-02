@@ -18,7 +18,6 @@ namespace core {
     class GeneConversionNode;
     class ARG;
     class Configuration;
-    class SimulationMonitor;
 
     struct BuilderMonitor
     {
@@ -40,8 +39,7 @@ namespace core {
 
 	// Builds an ARG.  The ARG is dynamically allocated and must be
 	// deleted after use.
-	ARG *build(SimulationMonitor *mon,
-		   BuilderMonitor    *callbacks = 0,
+	ARG *build(BuilderMonitor    *callbacks = 0,
 		   bool keep_empty_intervals = false) const;
 
     private:

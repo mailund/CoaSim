@@ -50,32 +50,6 @@ using namespace guile;
 scm_t_bits guile::arg_tag;
 
 namespace {
-    class CLISimMonitor : public core::SimulationMonitor {
-	void start_arg_building(unsigned int no_leaves);
-	void builder_update(unsigned int no_nodes, unsigned int no_top_nodes,
-			    unsigned long int no_iterations, double cur_time,
-			    unsigned int no_coal_events,
-			    unsigned int no_gene_conv_events,
-			    unsigned int no_recomb_events);
-	void builder_termination(unsigned int no_nodes,
-				 unsigned int no_top_nodes,
-				 unsigned long int no_iterations,
-				 double cur_time,
-				 unsigned int no_coal_events,
-				 unsigned int no_gene_conv_events,
-				 unsigned int no_recomb_events);
-
-	void start_mutating();
-	void mutator_update(unsigned int marker_no);
-	void retry_mutation();
-	void retry_arg_building();
-
-	void simulation_terminated();
-    };
-}
-
-
-namespace {
     size_t free_arg(SCM s_arg_data)
     {
 	ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(s_arg_data);
@@ -87,88 +61,6 @@ namespace {
 
 
 
-
-void CLISimMonitor::start_arg_building(unsigned int no_leaves)
-{
-    std::cout << "START BUILDING ARG...\n";
-}
-
-void CLISimMonitor::builder_update(unsigned int no_nodes,
-				   unsigned int no_top_nodes,
-				   unsigned long int no_iterations, 
-				   double cur_time,
-				   unsigned int no_coal_events,
-				   unsigned int no_gene_conv_events,
-				   unsigned int no_recomb_events)
-{
-    std::cout << "Iteration: " << no_iterations
-	      << " time " << cur_time << '\n'
-	      << no_nodes << " nodes in ARG, "
-	      << no_top_nodes << " remaining to be processed.\n"
-	      << '\t' << no_coal_events << " coalescence events\n"
-	      << '\t' << no_gene_conv_events << " gene conversion events\n"
-	      << '\t' << no_recomb_events << " recombination events\n";
-}
-
-void CLISimMonitor::builder_termination(unsigned int no_nodes,
-					unsigned int no_top_nodes,
-					unsigned long int no_iterations,
-					double cur_time,
-					unsigned int no_coal_events,
-					unsigned int no_gene_conv_events,
-					unsigned int no_recomb_events)
-{
-    std::cout << "\nARG Building terminated after " << no_iterations 
-	      << " iterations at time " << cur_time << '\n'
-	      << no_nodes << " nodes in ARG, "
-	      << no_top_nodes << " remaining to be processed.\n"
-	      << '\t' << no_coal_events << " coalescence events\n"
-	      << '\t' << no_gene_conv_events << " gene conversion events\n"
-	      << '\t' << no_recomb_events << " recombination events\n\n";
-}
-
-void CLISimMonitor::start_mutating()
-{
-    std::cout << "START MUTATING ARG...\n";
-}
-
-void CLISimMonitor::mutator_update(unsigned int marker_no)
-{
-    std::cout << "Mutating marker " << marker_no << "...\n";
-}
-
-void CLISimMonitor::retry_mutation()
-{
-    std::cout << "\tmutation not withing bounds, retrying...\n";
-}
-
-void CLISimMonitor::retry_arg_building()
-{
-    std::cout << "\tmutation not withing bounds of trait marker\n"
-	      << "\tbuilding new ARG...\n\n";
-}
-
-void CLISimMonitor::simulation_terminated()
-{
-    std::cout << "\nSIMULATION COMPLETED\n";
-}
-
-void ProfileMonitor::builder_termination(unsigned int no_nodes,
-					 unsigned int no_top_nodes,
-					 unsigned long int no_iterations,
-					 double cur_time,
-					 unsigned int no_coal_events,
-					 unsigned int no_gene_conv_events,
-					 unsigned int no_recomb_events)
-{
-    this->no_nodes = no_nodes;
-    this->no_top_nodes = no_top_nodes;
-    this->no_iterations = no_iterations;
-    this->termination_time = cur_time;
-    this->no_coal_events = no_coal_events;
-    this->no_gene_conv_events = no_gene_conv_events;
-    this->no_recomb_events = no_recomb_events;
-}
 
 
 /* --<GUILE COMMENT>---------------------------------------------
@@ -441,7 +333,6 @@ simulate(SCM s_markers,		// 1
 	using core::Configuration;
 	using core::ARG;
 	
-	auto_ptr<ProfileMonitor> monitor(new ProfileMonitor());
 	auto_ptr<Configuration> conf(new Configuration(pop_sizes.begin(),
 						       pop_sizes.end(),
 						       pop_fs.begin(),
@@ -454,15 +345,13 @@ simulate(SCM s_markers,		// 1
 						       Q, gamma, 
 						       beta));
 	auto_ptr<ARG> arg(core::Simulator::simulate(*conf, 
-						    monitor.get(),
 						    has_cb ? &cb : 0,
 						    keep_empty,
 						    seed));
 
 	void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
 	ARGData *arg_data = new(mem)ARGData(arg.release(),
-					    conf.release(),
-					    monitor.release());
+					    conf.release());
     
 	SCM_RETURN_NEWSMOB(guile::arg_tag, arg_data);
     } catch(core::Configuration::out_of_sequence&) {
@@ -580,92 +469,6 @@ intervals(SCM arg_data_smob)
 
 
 
-/* --<GUILE COMMENT>---------------------------------------------
-
-<method name="no-recombinations">
-  <brief>Returns the number of recombinations in the ARG.</brief>
-  <prototype>(no-recombinations arg)</prototype>
-  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate markers 100 :rho 400))
-(define n (no-recombinations arg))</example>
-  <description>
-    <p>
-     Returns the number of recombinations in the ARG.
-    </p>
-  </description>
-</method>
-
------</GUILE COMMENT>-------------------------------------------- */
-static SCM 
-no_recomb_events(SCM arg_data_smob)
-{
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
-	       arg_data_smob, SCM_ARG1, "no-recombinations");
-
-    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
-
-    return scm_int2num(arg_data->monitor->no_recomb_events);
-}
-
-/* --<GUILE COMMENT>---------------------------------------------
-
-<method name="no-coalescence-events">
-  <brief>Returns the number of coalescence events in the ARG.</brief>
-  <prototype>(no-coalescence-events arg)</prototype>
-  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate markers 100 :rho 400))
-(define n (no-coalescence-events arg))</example>
-  <description>
-    <p>
-     Returns the number of coalescence events in the ARG.
-    </p>
-  </description>
-</method>
-
------</GUILE COMMENT>-------------------------------------------- */
-static SCM 
-no_coal_events(SCM arg_data_smob)
-{
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
-	       arg_data_smob, SCM_ARG1, "no-coalescence-events");
-
-    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
-
-    return scm_int2num(arg_data->monitor->no_coal_events);
-}
-
-
-/* --<GUILE COMMENT>---------------------------------------------
-
-<method name="no-gene-conversions">
-  <brief>Returns the number of gene conversions in the ARG.</brief>
-  <prototype>(no-gene-conversions arg)</prototype>
-  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
-(define arg (simulate markers 100 :gamma 10 :Q 0.2))
-(define n (no-gene-conversions arg))</example>
-  <description>
-    <p>
-     Returns the number of gene conversions in the ARG.
-    </p>
-  </description>
-</method>
-
------</GUILE COMMENT>-------------------------------------------- */
-static SCM 
-no_gene_conv_events(SCM arg_data_smob)
-{
-    SCM_ASSERT(SCM_SMOB_PREDICATE(guile::arg_tag, arg_data_smob),
-	       arg_data_smob, SCM_ARG1, "no-gene-conversions");
-
-    ARGData *arg_data = (ARGData*) SCM_SMOB_DATA(arg_data_smob);
-
-    return scm_int2num(arg_data->monitor->no_gene_conv_events);
-}
-
-
-
-
-
 void
 guile::install_simulate()
 {
@@ -703,6 +506,10 @@ guile::install_simulate()
 
     scm_c_define_gsubr("sequences", 1, 0, 0, 
 		       (scm_unused_struct*(*)())sequences);
+    scm_c_define_gsubr("intervals", 1, 0, 0, 
+		       (scm_unused_struct*(*)())intervals);
+    scm_c_eval_string("(define (local-trees arg)"
+		      "  (map interval->tree (intervals arg)))");
 
 /* --<GUILE COMMENT>---------------------------------------------
        
@@ -726,16 +533,58 @@ guile::install_simulate()
     scm_c_eval_string("(define (simulate-sequences . params)"
 		      "  (sequences (apply simulate params)))");
 
-    scm_c_define_gsubr("intervals", 1, 0, 0, 
-		       (scm_unused_struct*(*)())intervals);
-    scm_c_eval_string("(define (local-trees arg)"
-		      "  (map interval->tree (intervals arg)))");
+/* --<GUILE COMMENT>---------------------------------------------
 
-    scm_c_define_gsubr("no-recombinations", 1, 0, 0, 
-		       (scm_unused_struct*(*)())no_recomb_events);
-    scm_c_define_gsubr("no-coalescence-events", 1, 0, 0, 
-		       (scm_unused_struct*(*)())no_coal_events);
-    scm_c_define_gsubr("no-gene-conversions", 1, 0, 0, 
-		       (scm_unused_struct*(*)())no_gene_conv_events);
+<method name="no-recombinations">
+  <brief>Returns the number of recombinations in the ARG.</brief>
+  <prototype>(no-recombinations arg)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :rho 400))
+(define n (no-recombinations arg))</example>
+  <description>
+    <p>
+     Returns the number of recombinations in the ARG.
+    </p>
+  </description>
+</method>
+
+<method name="no-gene-conversions">
+  <brief>Returns the number of gene conversions in the ARG.</brief>
+  <prototype>(no-gene-conversions arg)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :gamma 10 :Q 0.2))
+(define n (no-gene-conversions arg))</example>
+  <description>
+    <p>
+     Returns the number of gene conversions in the ARG.
+    </p>
+  </description>
+</method>
+
+<method name="no-coalescence-events">
+  <brief>Returns the number of coalescence events in the ARG.</brief>
+  <prototype>(no-coalescence-events arg)</prototype>
+  <example>(define markers (make-random-snp-markers 10 0.1 0.9))
+(define arg (simulate markers 100 :rho 400))
+(define n (no-coalescence-events arg))</example>
+  <description>
+    <p>
+     Returns the number of coalescence events in the ARG.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+    
+    scm_c_eval_string("(define (count-nodes arg p)"
+		      "  (fold-nodes arg "
+		      "    (lambda (n count) (if (p n) (+ count 1) count)) 0))"
+		      "(define (no-coalescence-events arg)"
+		      "  (count-nodes arg coalescent-node?))"
+		      "(define (no-recombinations arg)   "
+		      "  (/ (count-nodes arg recombination-node? ) 2))"
+		      "(define (no-gene-conversions arg)"
+		      "  (/ (count-nodes arg gene-conversion-node? ) 2))");
+
 }
 

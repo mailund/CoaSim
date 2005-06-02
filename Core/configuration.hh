@@ -28,6 +28,10 @@
 # include <cassert>
 # define VECTOR_INCLUDED
 #endif
+#ifndef LIMITS_INCLUDED
+# include <limits>
+# define LIMITS_INCLUDED
+#endif
 
 namespace core {
     class SimulationMonitor;
@@ -41,17 +45,23 @@ namespace core {
     class Scheduler;
     class State;
     class CoalescenceEvent;
+    class Event;
 
     struct Event {
 	virtual ~Event();
-	virtual double event_time  (State &s, double current_time)
+
+	// polymorphic copying
+	virtual Event *copy() const = 0;
+
+	virtual double event_time(State &s, double current_time)
 	    = 0;
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time)
 	    = 0;
     };
 
-    class Epoch : public Event {
+    // MIXIN for use with events
+    class Epoch : public virtual Event {
 	double i_start_time, i_end_time;
 
 	// override this one to provide the epoch
@@ -65,20 +75,17 @@ namespace core {
     public:
 	// Steals the epoch -- will delete it when the epoch ends!
 	Epoch(double start_time, double end_time)
-	    : i_start_time(start_time), i_end_time(end_time)
+	    : i_start_time(start_time), 
+	      i_end_time(end_time > 0 ? end_time 
+			 : std::numeric_limits<double>::max())
 	{
-	    assert(start_time >= 0);
-	    assert(end_time < 0 or start_time < end_time);
+	    assert(i_start_time >= 0);
+	    assert(i_start_time < i_end_time);
 	}
 	virtual ~Epoch();
 
 	double start_time() const { return i_start_time; }
 	double end_time()   const { return i_end_time; }
-
-	// polymorphic copying
-	virtual Epoch *copy() const = 0;
-	virtual void add_events(Scheduler &scheduler,
-				unsigned int &event_counter) = 0;
 
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
@@ -197,9 +204,9 @@ namespace core {
 	double gamma()  const { return i_gamma; }
 	double growth() const { return i_growth; }
 
-	typedef std::vector<Epoch*>::const_iterator epoch_iterator;
-	epoch_iterator epochs_begin() const { return i_epochs.begin(); }
-	epoch_iterator epochs_end()   const { return i_epochs.end(); }
+	typedef std::vector<Event*>::const_iterator epoch_iterator;
+	epoch_iterator epochs_begin() const { return i_events.begin(); }
+	epoch_iterator epochs_end()   const { return i_events.end(); }
 
     private:
 	// Disable these
@@ -219,7 +226,7 @@ namespace core {
 	double i_gamma;
 	double i_growth;
 
-	std::vector<Epoch*> i_epochs;
+	std::vector<Event*> i_events;
     };
 
 
@@ -261,7 +268,7 @@ namespace core {
 	    if (position(m-1) >= position(m)) throw out_of_sequence();
 
 	for ( ; e_begin != e_end; ++e_begin)
-	    i_epochs.push_back((*e_begin)->copy());
+	    i_events.push_back((*e_begin)->copy());
     }
 
 

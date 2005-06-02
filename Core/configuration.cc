@@ -7,6 +7,8 @@
 
 #include "configuration.hh"
 
+
+
 core::Configuration::~Configuration() 
 {
     for (int i = 0; i < no_markers(); ++i)
@@ -17,8 +19,8 @@ core::Configuration::~Configuration()
     delete[] i_first_markers; 
     delete[] i_plain_markers;
 
-    std::vector<Epoch*>::iterator i;
-    for (i = i_epochs.begin(); i != i_epochs.end(); ++i)
+    std::vector<Event*>::iterator i;
+    for (i = i_events.begin(); i != i_events.end(); ++i)
 	delete *i;
 }
 
@@ -28,18 +30,15 @@ core::Epoch::~Epoch() {}
 double
 core::Epoch::event_time(State &s, double current_time)
 {
-    if (current_time <  i_start_time)
+    if (current_time < start_time())
 	return std::numeric_limits<double>::max();
-    if (current_time >= i_end_time)
-	return i_end_time;
-
-    return nested_event_time(s, current_time);
+    return std::min(nested_event_time(s, current_time), end_time());
 }
 
 void
 core::Epoch::update_state(Scheduler &scheduler, State &s, double event_time)
 {
-    if (event_time >= i_end_time)
+    if (event_time >= end_time())
 	{
 	    // remove epoch
 	    scheduler.remove_event(this);

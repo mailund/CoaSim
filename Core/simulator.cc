@@ -32,7 +32,6 @@ using namespace core;
 
 ARG *
 core::Simulator::simulate(const Configuration &conf,
-			  SimulationMonitor *mon,
 			  BuilderMonitor *build_callbacks,
 			  bool keep_empty_intervals,
 			  unsigned int random_seed)
@@ -56,17 +55,12 @@ core::Simulator::simulate(const Configuration &conf,
 
     retry:
 	try {
-	    if (mon) mon->start_arg_building(conf.no_leaves());
-	    arg = builder.build(mon, build_callbacks, keep_empty_intervals);
-	    if (mon) mon->start_mutating();
-	    descender.evolve(*arg, mon);
+	    arg = builder.build(build_callbacks, keep_empty_intervals);
+	    descender.evolve(*arg);
 	} catch (Mutator::retry_arg&) {
-	    if (mon) mon->retry_arg_building();
 	    delete arg; arg = 0;
 	    goto retry;
 	}
-
-	if (mon) mon->simulation_terminated();
 
     } catch(SimulationMonitor::AbortSimulation&) {
 	if (arg) delete arg; arg = 0;
