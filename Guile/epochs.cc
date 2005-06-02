@@ -46,8 +46,11 @@ print_bottleneck_epoch (SCM smob, SCM port, scm_print_state *pstate)
     scm_display(scm_make_real(bn->scale_fraction()), port); 
     scm_puts(" ", port);
     scm_display(scm_make_real(bn->start_time()), port); 
-    scm_puts(" ", port);
-    scm_display(scm_make_real(bn->end_time()), port);
+    if (bn->end_time() != std::numeric_limits<double>::max())
+	{
+	    scm_puts(" ", port);
+	    scm_display(scm_make_real(bn->end_time()), port);
+	}
     scm_puts(")", port);
     return 1;
 }
@@ -71,8 +74,11 @@ print_growth_epoch (SCM smob, SCM port, scm_print_state *pstate)
     scm_display(scm_make_real(g->beta()), port); 
     scm_puts(" ", port);
     scm_display(scm_make_real(g->start_time()), port); 
-    scm_puts(" ", port);
-    scm_display(scm_make_real(g->end_time()), port);
+    if (g->end_time() != std::numeric_limits<double>::max())
+	{
+	    scm_puts(" ", port);
+	    scm_display(scm_make_real(g->end_time()), port);
+	}
     scm_puts(")", port);
     return 1;
 }
@@ -139,21 +145,27 @@ print_population_merge_epoch (SCM smob, SCM port, scm_print_state *pstate)
     <p>
        Specify a bottleneck the simulation process will pass through.
     </p>
+    <p>
+       The end-time parameter is optional, if left out the bottleneck
+       continues to infinity (or as long as the population exists).
+    </p>
   </description>
 </method>
 
 -----</GUILE COMMENT>-------------------------------------------- */
+
 static SCM
 bottleneck(SCM s_pop, SCM s_scale_fraction, SCM s_start_time, SCM s_end_time)
 {
     int    pop            = scm_num2int(s_pop, 1,         "bottleneck");
     double scale_fraction = scm_num2dbl(s_scale_fraction, "bottleneck");
     double start_time     = scm_num2dbl(s_start_time,     "bottleneck");
-    double end_time       = scm_num2dbl(s_end_time,       "bottleneck");
+    double end_time = (s_end_time==SCM_UNDEFINED)
+	? -1 : scm_num2dbl(s_end_time, "bottleneck");
 
     if (scale_fraction < 0)
 	scm_throw(scm_str2symbol("illegal-epoch"), SCM_EOL);
-    if (not (start_time < end_time))
+    if (end_time > 0 and (start_time > end_time))
 	scm_throw(scm_str2symbol("illegal-epoch"), SCM_EOL);
 
     void *mem = scm_must_malloc(sizeof(core::BottleNeck), "bottleneck");
@@ -173,6 +185,10 @@ bottleneck(SCM s_pop, SCM s_scale_fraction, SCM s_start_time, SCM s_end_time)
     <p>
        Specify a period of exponetial growth.
     </p>
+    <p>
+       The end-time parameter is optional, if left out the bottleneck
+       continues to infinity (or as long as the population exists).
+    </p>
   </description>
 </method>
 
@@ -183,11 +199,12 @@ growth(SCM s_pop, SCM s_beta, SCM s_start_time, SCM s_end_time)
     int    pop        = scm_num2int(s_pop, 1,     "growth");
     double beta       = scm_num2dbl(s_beta,       "growth");
     double start_time = scm_num2dbl(s_start_time, "growth");
-    double end_time   = scm_num2dbl(s_end_time,   "growth");
+    double end_time = (s_end_time==SCM_UNDEFINED)
+	? -1 : scm_num2dbl(s_end_time, "bottleneck");
 
     if (beta < 0)
 	scm_throw(scm_str2symbol("illegal-epoch"), SCM_EOL);
-    if (not (start_time < end_time))
+    if (end_time > 0 and (start_time > end_time))
 	scm_throw(scm_str2symbol("illegal-epoch"), SCM_EOL);
 
     void *mem = scm_must_malloc(sizeof(core::Growth), "growth");
@@ -219,6 +236,8 @@ migration(SCM s_src, SCM s_dst, SCM s_rate, SCM s_start_time, SCM s_end_time)
     int    dst        = scm_num2int(s_dst, 2,     "migration");
     double rate       = scm_num2dbl(s_rate,       "migration");
     double start_time = scm_num2dbl(s_start_time, "migration");
+    // FIXME: any proper handling of infinity here?  for as long as
+    // both populations exist?
     double end_time   = scm_num2dbl(s_end_time,   "migration");
 
     if (rate < 0)
@@ -298,9 +317,9 @@ guile::install_epochs()
 
 
     // install funcs for creating the types
-    scm_c_define_gsubr("bottleneck", 4, 0, 0, 
+    scm_c_define_gsubr("bottleneck", 3, 1, 0, 
 		       (scm_unused_struct*(*)())bottleneck);
-    scm_c_define_gsubr("growth", 4, 0, 0, 
+    scm_c_define_gsubr("growth", 3, 1, 0, 
 		       (scm_unused_struct*(*)())growth);
     scm_c_define_gsubr("migration", 5, 0, 0, 
 		       (scm_unused_struct*(*)())migration);
