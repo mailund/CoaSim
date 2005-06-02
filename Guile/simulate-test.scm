@@ -41,6 +41,12 @@
 (display (simulate-sequences markers 10 .1 :rho 50 :random-seed 100))(newline)
 
 (newline)
+(display (simulate-sequences markers '(10 10)
+                             :epochs (list (population-merge 0 1 0.2))
+                             :random-seed 100))
+(newline)
+(newline)
+(newline)
 (display (simulate-sequences markers '(10 10) '(.2 .9) 
                              :epochs (list (population-merge 0 1 0.2))
                              :random-seed 100))

@@ -492,7 +492,8 @@ guile::install_simulate()
 		      "     (let* ((n (if (list? n) n (list n)))"
 		      "            (f (if (or (null? args)"
 		      "                       (keyword? (car args)))"
-		      "                    1 (car args)))"
+		      "                    (make-list (length n) 1)"
+		      "                    (car args)))"
 		      "            (f (if (list? f) f (list f))))"
 		      "	  	(c-simulate ms n f"
 		      "                      (list rho gamma Q beta)"
@@ -575,7 +576,9 @@ guile::install_simulate()
 </method>
 
 -----</GUILE COMMENT>-------------------------------------------- */
-    
+
+    // FIXME: should these be moved to a module?  After all, I no
+    // longer need the C++ access for them
     scm_c_eval_string("(define (count-nodes arg p)"
 		      "  (fold-nodes arg "
 		      "    (lambda (n count) (if (p n) (+ count 1) count)) 0))"
