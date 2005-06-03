@@ -20,17 +20,18 @@
 
 (define-module (coasim SNP haplotypes) 
   :use-module (ice-9 optargs)
-  :use-module ((coasim markers) :select ((split-in-cases-controls . split))))
+  :use-module ((coasim disease-modelling) 
+	       :select ((split-in-cases-controls-on-marker . split))))
 
 
-(define-public (split-in-cases-controls haplotypes trait-idx . args)
+(define-public (split-in-cases-controls-on-marker haplotypes trait-idx . args)
   "
    --<GUILE COMMENT>---------------------------------------------
-   <method name='split-in-cases-controls'>
+   <method name='split-in-cases-controls-on-marker'>
     <brief>Split a list of haplotypes into cases and controls.</brief>
-    <prototype>(split-in-cases-controls haplotypes trait-idx)</prototype>
+    <prototype>(split-in-cases-controls-on-marker haplotypes trait-idx)</prototype>
     <example> (define haplotypes (simulate-sequences markers 100))
- (define cases-and-controls (split-in-cases-controls haplotypes trait-idx))
+ (define cases-and-controls (split-in-cases-controls-on-marker haplotypes trait-idx))
  (define cases    (car  cases-and-controls))
  (define controls (cadr cases-and-controls))</example>
     <description>

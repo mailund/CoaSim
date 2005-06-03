@@ -61,17 +61,17 @@
   (display (equal? unsorted-markers merged-markers))(newline)
   (display (equal? sorted-markers merged-markers))(newline))
   
-(use-modules (srfi srfi-1))
+(use-modules (srfi srfi-1) (coasim disease-modelling))
 (let* ((markers (make-random-snp-markers 10 0.1 0.9))
        (seqs    (simulate-sequences markers 10))
        (is-trait? (lambda (a) (= a 1)))
        (no-traits (length (filter (lambda (h) (is-trait? (car h))) seqs)))
-       (cases-controls (split-in-cases-controls seqs 0 is-trait?))
+       (cases-controls (split-in-cases-controls-on-marker seqs 0 is-trait?))
        (cases (car cases-controls))
        (controls (cadr cases-controls))
 
-       (cases-controls2 (split-in-cases-controls seqs 0 is-trait? 
-						 :remove-trait #f))
+       (cases-controls2 (split-in-cases-controls-on-marker seqs 0 is-trait? 
+							   :remove-trait #f))
        (cases2 (car cases-controls2))
        (controls2 (cadr cases-controls2))
 
@@ -86,16 +86,16 @@
   (newline)
   )
 
-(use-modules ((coasim SNP haplotypes) :select (split-in-cases-controls)))
+(use-modules ((coasim SNP haplotypes) :select (split-in-cases-controls-on-marker)))
 (let* ((markers (make-random-snp-markers 10 0.1 0.9))
        (seqs    (simulate-sequences markers 10))
        (is-trait? (lambda (a) (= a 1)))
        (no-traits (length (filter (lambda (h) (is-trait? (car h))) seqs)))
-       (cases-controls (split-in-cases-controls seqs 0))
+       (cases-controls (split-in-cases-controls-on-marker seqs 0))
        (cases (car cases-controls))
        (controls (cadr cases-controls))
 
-       (cases-controls2 (split-in-cases-controls seqs 0 :remove-trait #f))
+       (cases-controls2 (split-in-cases-controls-on-marker seqs 0 :remove-trait #f))
        (cases2 (car cases-controls2))
        (controls2 (cadr cases-controls2))
 
@@ -116,13 +116,13 @@
        (seqs    (haplotypes->genotypes (simulate-sequences markers 10)))
        (is-trait? (lambda (a) (or (= a 1) (= a 2))))
        (no-traits (length (filter (lambda (h) (is-trait? (car h))) seqs)))
-       (cases-controls (split-in-cases-controls seqs 0
-						:disease-model 'recessive))
+       (cases-controls (split-in-cases-controls-on-marker seqs 0
+						:disease-model 'dominant))
        (cases (car cases-controls))
        (controls (cadr cases-controls))
 
-       (cases-controls2 (split-in-cases-controls seqs 0 
-						 :disease-model 'recessive
+       (cases-controls2 (split-in-cases-controls-on-marker seqs 0 
+						 :disease-model 'dominant
 						 :remove-trait #f))
        (cases2 (car cases-controls2))
        (controls2 (cadr cases-controls2))
@@ -137,3 +137,47 @@
   (display (length (car cases2)))(newline)
   (newline)
   )
+
+
+(use-modules ((coasim disease-modelling)))
+(let* ((markers (make-random-snp-markers 10 0.1 0.9))
+       (seqs    (simulate-sequences markers 10))
+       (is-trait? (lambda (a0 a1) (and (= a0 1) (= a1 1))))
+       (cases-controls 
+	(split-in-cases-controls-on-markers seqs '(0 1) is-trait?
+					    :remove-traits #f))
+       (cases (car cases-controls))
+       (controls (cadr cases-controls))
+       )
+  (newline)
+  (display "cases: ")(display cases)(newline)
+  (newline)
+  )
+
+(let* ((markers (make-random-snp-markers 10 0.1 0.9))
+       (seqs    (simulate-sequences markers 10))
+       (qtl     (qtl-on-markers seqs '(0 1) + :remove-traits #f))
+       )
+  (newline)
+  (display "qtl: ")(display qtl)(newline)
+  (display "splitted<below>: ")(display (car (split-on-threshold qtl 1.5)))(newline)
+  (display "splitted<above>: ")(display (cadr (split-on-threshold qtl 1.5)))(newline)
+  (newline)
+  )
+
+
+(let* ((markers (make-random-snp-markers 10 0.1 0.9))
+       (seqs    (simulate-sequences markers 10))
+       (qtl     (qtl-on-markers seqs '(0 1) + :remove-traits #f))
+       (cases-controls (split-on-probability qtl))
+       (cases (car cases-controls))
+       (controls (cadr cases-controls))
+       )
+  (newline)
+  (display "qtl: ")(display qtl)(newline)
+  (display "cases>:    ")(display cases)(newline)
+  (display "controls>: ")(display controls)(newline)
+  (newline)
+  )
+
+
