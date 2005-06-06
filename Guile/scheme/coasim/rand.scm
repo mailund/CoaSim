@@ -31,7 +31,21 @@
 			  (else (f (car rest) (cdr rest)))))))
 	(f (car sorted-list) (cdr sorted-list)))))
 
-(define (make-random-positions no-positions)
+
+;; --<GUILE COMMENT>---------------------------------------------
+;; <method name='make-random-positions'>
+;;  <brief>Make a list of random positions.</brief>
+;;  <prototype>(make-random-positions no-positions)</prototype>
+;;  <example>(define positions (make-random-positions 10))</example>
+;;  <description>
+;;   <p>
+;;    Makes a list of random positions between 0 and 1 (0 included, 1 
+;;    excluded).  The positions are returned sorted.
+;;   </p>
+;;  </description>
+;; </method>
+;; --</GUILE COMMENT>--------------------------------
+(define-public (make-random-positions no-positions)
   "Make `no-positions' random, disjoint positions."
   (let* ((msec (cdr (gettimeofday)))
 	 (random-state (seed->random-state msec))

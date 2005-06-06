@@ -5,7 +5,10 @@
 
 ;;; Example of an ARG simulation.
 
-(use-modules ((ice-9 format) :select (format)))
+(use-modules ((coasim statistics) :select (no-coalescence-events
+                                           no-gene-conversions
+                                           no-recombinations))
+             ((ice-9 format) :select (format)))
 (let ((ARG (simulate '() 10
 		     :rho 40 :gamma 60 :Q 10
 		     :keep-empty-intervals #t)))

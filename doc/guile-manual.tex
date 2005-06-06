@@ -6,7 +6,7 @@
 \authors{Thomas Mailund}
 \contact{mailund@birc.au.dk}
 \company{Bioinformatics ApS}
-\toolversion{CoaSim v3.2}
+\toolversion{CoaSim v4.0}
 
 
 
@@ -353,10 +353,10 @@ not, however, considered how to split the sequences into cases and
 controls, based on the allele on the trait marker.
 
 The simplest way to do this is using the
-\texttt{split-in-cases-controls} function from module \texttt{(coasim
+\texttt{split-in-cases-controls-on-marker} function from module \texttt{(coasim
   SNP haplotypes)}.
 \begin{code}
-(split-in-cases-controls sequence trait-idx)
+(split-in-cases-controls-on-marker sequence trait-idx)
 \end{code}
 which splits the sequence based on the alleles at an indexed marker.
 Despite the module name, it is not actually restricted to sequences of
@@ -384,7 +384,7 @@ As an example, consider the following script:
        (markers (insert-sorted snp-markers disease-marker))
        (disease-idx (list-index (lambda (m) (= 0.5 (position m))) markers))
        (seqs (simulate-sequences markers 10))
-       (cases-controls (split-in-cases-controls seqs disease-idx))
+       (cases-controls (split-in-cases-controls-on-marker seqs disease-idx))
        (cases (car cases-controls))
        (controls (cadr cases-controls)))
   (display cases)(newline)(newline)
@@ -412,7 +412,7 @@ the module \texttt{(srfi srfi-1)}:
   ...)
 \end{code}
 and given this, we can simulate the sequences, split in cases and
-controls using \texttt{split-in-cases-controls} and get the cases as
+controls using \texttt{split-in-cases-controls-on-marker} and get the cases as
 the first element in the resulting list (or in Scheme the \texttt{car}
 of the list) and the controls as the second element (in Scheme, the
 \texttt{cadr} of the list):
@@ -420,7 +420,7 @@ of the list) and the controls as the second element (in Scheme, the
 (use-modules (coasim rand) (coasim markers) (coasim SNP haplotypes))
 (let* (...
        (seqs (simulate-sequences markers 10))
-       (cases-controls (split-in-cases-controls seqs disease-idx))
+       (cases-controls (split-in-cases-controls-on-marker seqs disease-idx))
        (cases (car cases-controls))
        (controls (cadr cases-controls)))
   ...)
@@ -445,7 +445,7 @@ Changes from the previous script are underlined.
        \underline{(markers (car m-and-idx))}
        \underline{(disease-idx (cadr m-and-idx))}
        (seqs (simulate-sequences markers 10))
-       (cases-controls (split-in-cases-controls seqs disease-idx))
+       (cases-controls (split-in-cases-controls-on-marker seqs disease-idx))
        (cases (car cases-controls))
        (controls (cadr cases-controls)))
   \underline{(call-with-output-file "snp-positions.txt"}
@@ -463,14 +463,14 @@ common diseases, we might wish to only select mutants with a certain
 probability.  Similarly, when a disease is affected by environmental
 factors as well as genetic factors, we might select wild-type
 sequences as cases with a certain probability.  Both situations can be
-handled with \texttt{split-in-cases-controls} using the key-word
+handled with \texttt{split-in-cases-controls-on-marker} using the key-word
 parameters \texttt{:mutant-prob} and \texttt{:wild-type-prob}, that
 sets the probability of a mutant or wild-type, respectively, is
 selected as a case.  To select about $20\%$ of mutants and only
 $1\%$ of wild-types, for example, you would use:
 \begin{code}
-(split-in-cases-controls seqs disease-idx
-                         \underline{:mutant-prob 0.2 :wild-type-prob 0.01})
+(split-in-cases-controls-on-marker seqs disease-idx
+                                   \underline{:mutant-prob 0.2 :wild-type-prob 0.01})
 \end{code}
 
 
@@ -542,14 +542,14 @@ sequences two and two, translating pairs of alleles by mapping
 $00\mapsto 0$, $11\mapsto 1$, $01\mapsto 2$, and $10\mapsto 2$.
 
 Genotype sequences can also be split in cases and controls using the
-function \texttt{split-in-cases-controls}, this time from the module
+function \texttt{split-in-cases-controls-on-marker}, this time from the module
 \texttt{(coasim SNP genotypes)} rather than \texttt{(coasim SNP haplotypes)}:
 \begin{code}
 (use-modules (coasim rand) (coasim SNP genotypes))
 (let* ((haplotypes
           (simulate-sequences (make-random-snp-markers 2 0.1 0.2) 100))
        (genotypes (haplotypes->genotypes haplotypes))
-       \underline{(cases-controls (split-in-cases-controls genotypes 1))}
+       \underline{(cases-controls (split-in-cases-controls-on-marker genotypes 1))}
        (cases (car cases-controls))
        (controls (cadr cases-controls)))
   (display cases)(newline)
@@ -557,31 +557,35 @@ function \texttt{split-in-cases-controls}, this time from the module
   (newline))
 \end{code}
 
-By default, \texttt{split-in-cases-controls} selects homozygote
-mutant sequences as cases, homozygote wild-type sequences as controls,
-and heterozygote as cases with probability $0.5$ and controls with
-probability $0.5$.  This default can be changed using keyword
-arguments \texttt{:homozygote-0-prob}, \texttt{:homozygote-1-prob},
-and \texttt{:heterozygote-prob}, e.g.\ to select as cases homozygote
-mutants with probability $0.5$, heterozygotes with probability $0.1$
-and homozygote wild-types with probability $0.01$, we would use:
+By default, \texttt{split-in-cases-controls-on-marker} selects
+homozygote mutant sequences as cases, homozygote wild-type sequences
+as controls, and heterozygote as cases with probability $0.5$ and
+controls with probability $0.5$.  This default can be changed using
+keyword arguments \texttt{:homozygote-0-prob}, setting the probability
+of a homozygote $00$ being a case, \texttt{:homozygote-1-prob},
+setting the probability of a homozygote $11$ being a case, and
+\texttt{:heterozygote-prob}, setting the probability of a heterozygote
+$01$ being a case.  E.g.\ to select as cases homozygote mutants with
+probability $0.5$, heterozygotes with probability $0.1$ and homozygote
+wild-types with probability $0.01$, we would use:
 \begin{code}
-(split-in-cases-controls genotypes idx \underline{:homozygote-1-prob 0.5}
-                                       \underline{:heterozygote-prob 0.1}
-                                       \underline{:homozygote-0-prob 0.01})
+(split-in-cases-controls-on-marker genotypes idx 
+                                   \underline{:homozygote-1-prob 0.5}
+                                   \underline{:heterozygote-prob 0.1}
+                                   \underline{:homozygote-0-prob 0.01})
 \end{code}
 
 As a short-cut for setting common probabilities, we can use the
 keyword argument \texttt{:disease-model}.  Setting the disease model
 to \texttt{'dominant}:
 \begin{code}
-(split-in-cases-controls genotypes \underline{:disease-model} '\underline{dominant})
+(split-in-cases-controls-on-marker genotypes \underline{:disease-model} '\underline{dominant})
 \end{code}
 will set the probability for both homozygote mutants and heterozygotes
 being cases to $1$ and the probability for homozygote wild-types being
 cases to $0$, while setting the disease model to \texttt{'recessive}
 \begin{code}
-(split-in-cases-controls genotypes \underline{:disease-model} '\underline{recessive})
+(split-in-cases-controls-on-marker genotypes \underline{:disease-model} '\underline{recessive})
 \end{code}
 will set the probability of homozygote mutants being cases to $1$ and
 the probability of the other two genotypes being cases to $0$.
@@ -640,8 +644,8 @@ simulating the local coalescent trees at the specified markers.
 \label{sec:simulating-arg}
 
 As a simple example, we can try simulating an ARG and then extract
-some statistics from it.  Currently, there are three functions for
-extracting statistics:
+some statistics from it.  We will use three functions for
+extracting statistics, all from the \texttt{(coasim statistics)} module:
 \begin{itemize}
 \item \texttt{no-coalescence-events}---returns the number of
   coalescence events that occurred in simulating the ARG.
@@ -653,7 +657,10 @@ extracting statistics:
 
 Using these could look like this:
 \begin{code}
-(use-modules ((ice-9 format) :select (format)))
+(use-modules ((coasim statistics) :select (no-coalescence-events
+                                           no-gene-conversions
+                                           no-recombinations))
+             ((ice-9 format) :select (format)))
 (let ((ARG (simulate '() 10
                      :rho 40 :gamma 60 :Q 10
                      :keep-empty-intervals \#t)))
@@ -1271,8 +1278,9 @@ installed modules, by the \texttt{use-modules} function:
 \section{Contact}
 \label{sec:contact}
 
-For any comments or questions regarding CoaSim, please contact Thomas
-Mailund, \url{<mailund@mailund.dk>}.
+For any comments or questions regarding CoaSim, please contact the
+author, Thomas Mailund, at \url{<mailund@mailund.dk>} or
+\url{<mailund@birc.au.dk>}.
 
 
 \end{document}

@@ -84,6 +84,45 @@
 
 
 ;;   --<GUILE COMMENT>---------------------------------------------
+;;   <method name='table->function'>
+;;    <brief>
+;;     Translates a table into a function usable by e.g. the qtl-on-markers
+;;     function.
+;;    </brief>
+;;    <prototype>(table->function table)</prototype>
+;;    <example> (use-modules (coasim disease-modelling))
+;; (define f-hash
+;;   (let ((h (make-hash-table 4)))
+;;     (hash-create-handle! h '(0 0)  0)
+;;     (hash-create-handle! h '(0 1)  0)
+;;     (hash-create-handle! h '(1 0) .1)
+;;     (hash-create-handle! h '(1 1) .5)
+;;     (table->function h)))
+;; 
+;; (define f-alist
+;;   (let ((t
+;; 	 (acons '(0 0)  0
+;; 	 (acons '(0 1)  0
+;; 	 (acons '(1 0) .1
+;; 	 (acons '(1 1) .5
+;; 	 '()))))))
+;;     (table->function t)))</example>
+;;    <description>
+;;     <p>
+;;      Translates a table, either a hash table or an associative list, into
+;;      a function that can be used with qtl-on-markers or 
+;;      split-in-cases-controls-on-markers.
+;;     </p>
+;;    </description>
+;;   </method>
+;;   -----</GUILE COMMENT>----------------------------------------- 
+(define-public (table->function table)
+  (let ((get (if (list? table) assoc-ref hash-ref)))
+    (lambda s (get table s))))
+
+
+
+;;   --<GUILE COMMENT>---------------------------------------------
 ;;   <method name='remove-alleles'>
 ;;    <brief>
 ;;     Removes the alleles of the markers at `indices' from the sequences.

@@ -166,9 +166,27 @@
   )
 
 
+(define f
+  (let ((h (make-hash-table 4)))
+    (hash-create-handle! h '(0 0)  0)
+    (hash-create-handle! h '(0 1)  0)
+    (hash-create-handle! h '(1 0) .1)
+    (hash-create-handle! h '(1 1) .5)
+    (table->function h)))
+
+(define f
+  (let ((t
+	 (acons '(0 0)  0
+	 (acons '(0 1)  0
+	 (acons '(1 0) .1
+	 (acons '(1 1) .5
+	 '()))))))
+    (table->function t)))
+
+
 (let* ((markers (make-random-snp-markers 10 0.1 0.9))
        (seqs    (simulate-sequences markers 10))
-       (qtl     (qtl-on-markers seqs '(0 1) + :remove-traits #f))
+       (qtl     (qtl-on-markers seqs '(0 1) f :remove-traits #f))
        (cases-controls (split-on-probability qtl))
        (cases (car cases-controls))
        (controls (cadr cases-controls))
