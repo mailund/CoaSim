@@ -15,7 +15,7 @@
 	     ((coasim markers)        :select (insert-sorted-idx))
 	     ((coasim io)             :select (sequences-printer
 					       marker-positions-printer))
-	     ((coasim SNP haplotypes) :select (split-in-cases-controls)))
+	     ((coasim SNP haplotypes) :select (split-in-cases-controls-on-marker)))
 
 
 (define rho 400) ; rho=400 ... for pop.size ~10,000 this is a mutation
@@ -38,9 +38,10 @@
 (define haplotypes (simulate-sequences markers 100 :rho rho))
 
 ;; Split in cases and controls, based on trait marker
-(define cases-and-controls (split-in-cases-controls haplotypes trait-idx
-						    :mutant-prob 0.5
-						    :wild-type-prob 0.1))
+(define cases-and-controls
+  (split-in-cases-controls-on-marker haplotypes trait-idx
+				     :mutant-prob 0.5
+				     :wild-type-prob 0.1))
 (define cases    (car  cases-and-controls))
 (define controls (cadr cases-and-controls))
 

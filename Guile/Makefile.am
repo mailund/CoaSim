@@ -92,6 +92,8 @@ dist_scheme_coasim_DATA += scheme/coasim/batch.scm
 dist_scheme_coasim_DATA += scheme/coasim/io.scm
 dist_scheme_coasim_DATA += scheme/coasim/rand.scm
 dist_scheme_coasim_DATA += scheme/coasim/markers.scm
+dist_scheme_coasim_DATA += scheme/coasim/disease-modelling.scm
+dist_scheme_coasim_DATA += scheme/coasim/statistics.scm
 
 scheme_coasim_SNPdir = ${prefix}/share/coasim/scheme/coasim/SNP
 dist_scheme_coasim_SNP_DATA =

@@ -19,13 +19,6 @@
 (display branch-lengths)(newline)
 (newline)
 
-(define no-recomb (no-recombinations arg))
-(display no-recomb)(newline)
-(define no-coal (no-coalescence-events arg))
-(display no-coal)(newline)
-(define no-gc (no-gene-conversions arg))
-(display no-gc)(newline)
-(newline)
 
 (define (print x) (display x)(display " "))
 (define (combine f g) (lambda (x) (f (g x))))
