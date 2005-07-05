@@ -46,7 +46,8 @@ int main(int argc, const char *argv[])
 	std::vector<Event*> epochs;
 	epochs.push_back(new BottleNeck(0, 0.1, 1.0, 2.0));
 	epochs.push_back(new Growth(0, 10, 1.5, 1.75));
-	epochs.push_back(new PopulationMerge(0, 1, 0.5));
+	int merge_populations[] = { 0, 1, };
+	epochs.push_back(new PopulationMerge(merge_populations, merge_populations+2, 0.5));
 	epochs.push_back(new Migration(0, 1, 0.2, 0, 0.5));
 	epochs.push_back(new Migration(1, 0, 0.1, 0, 0.5));
 

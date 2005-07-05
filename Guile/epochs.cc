@@ -125,11 +125,13 @@ print_population_merge_epoch (SCM smob, SCM port, scm_print_state *pstate)
 {
     core::PopulationMerge *pm = (core::PopulationMerge*) SCM_SMOB_DATA(smob);
     scm_puts("(population-merge ", port);
-    scm_display(scm_long2num(pm->population1()), port); 
-    scm_puts(" ", port);
-    scm_display(scm_long2num(pm->population2()), port); 
-    scm_puts(" ", port);
     scm_display(scm_make_real(pm->merge_time()), port);
+    std::vector<int>::const_iterator i;
+    for (i = pm->populations().begin(); i != pm->populations().end(); ++i)
+	{
+	    scm_puts(" ", port);
+	    scm_display(scm_long2num(*i), port); 
+	}
     scm_puts(")", port);
     return 1;
 }
@@ -258,24 +260,30 @@ migration(SCM s_src, SCM s_dst, SCM s_rate, SCM s_start_time, SCM s_end_time)
 
 <method name="population-merge">
   <brief>Merges two sub-populations.</brief>
-  <prototype>(population-merge pop1 pop2 merge-time)</prototype>
-  <example>(population-merge 0 1 0.9)</example>
+  <prototype>(population-merge merge-time pop1 pop2 ...)</prototype>
+  <example>(population-merge 0.9 0 1)</example>
   <description>
     <p>
-       Sets up the merge time for two sub-populations.  The effect
-       of the merge is that all individuals in population 2 is moved
-       to population 1.
+       Sets up the merge time for two or more sub-populations.  The effect
+       of the merge is that all individuals in the populations are moved to the
+       first population.
     </p>
   </description>
 </method>
 
 -----</GUILE COMMENT>-------------------------------------------- */
 static SCM
-population_merge(SCM s_pop1, SCM s_pop2, SCM s_merge_time)
+population_merge(SCM s_merge_time, SCM s_populations)
 {
-    int pop1          = scm_num2int(s_pop1,1,     "population-merge");
-    int pop2          = scm_num2int(s_pop2,2,     "population-merge");
     double merge_time = scm_num2dbl(s_merge_time, "population-merge");
+    SCM_ASSERT(SCM_NFALSEP(scm_list_p(s_populations)), s_populations, 2, "population-merge");
+
+    std::vector<int> populations;
+    while (!SCM_NULLP(s_populations))
+	{
+	    populations.push_back(scm_num2int(SCM_CAR(s_populations), 2, "population-merge"));
+	    s_populations = SCM_CDR(s_populations);
+	}
 
     if (merge_time < 0)
 	scm_throw(scm_str2symbol("illegal-epoch"), SCM_EOL);
@@ -283,8 +291,10 @@ population_merge(SCM s_pop1, SCM s_pop2, SCM s_merge_time)
     void *mem = scm_must_malloc(sizeof(core::PopulationMerge),
 				"population-merge");
     assert(mem);
-    core::PopulationMerge *pm = new(mem)core::PopulationMerge(pop1, pop2,
+    core::PopulationMerge *pm = new(mem)core::PopulationMerge(populations.begin(),
+							      populations.end(),
 							      merge_time);
+
     SCM_RETURN_NEWSMOB(guile::population_merge_epoch_tag, pm);
 }
 
@@ -323,6 +333,6 @@ guile::install_epochs()
 		       (scm_unused_struct*(*)())growth);
     scm_c_define_gsubr("migration", 5, 0, 0, 
 		       (scm_unused_struct*(*)())migration);
-    scm_c_define_gsubr("population-merge", 3, 0, 0, 
+    scm_c_define_gsubr("population-merge", 1, 0, 1, 
 		       (scm_unused_struct*(*)())population_merge);
 }

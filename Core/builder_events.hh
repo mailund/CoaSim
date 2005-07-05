@@ -132,24 +132,26 @@ namespace core {
     };
     
 
-    // a merge moves the second population to the first and disables
-    // all events in the second.
+    // a merge moves a set of populations to the first and disables
+    // all events in the remaining.
     class PopulationMerge : public Event {
-	int i_pop_1, i_pop_2;
+	std::vector<int> i_populations;
         double i_merge_time;
 
     public:
-	PopulationMerge(int pop_1, int pop_2, double merge_time)
-	    : i_pop_1(pop_1), i_pop_2(pop_2), i_merge_time(merge_time)
+	template <class Itr>
+	PopulationMerge(Itr pop_begin, Itr pop_end, double merge_time)
+	    : i_populations(pop_begin, pop_end), i_merge_time(merge_time)
 	{
-	    assert(pop_1 >= 0);
-	    assert(pop_2 >= 0);
+	    assert(i_populations.size() > 1);
+	    std::vector<int>::const_iterator i;
+	    for (i = i_populations.begin(); i != i_populations.end(); ++i, ++pop_begin)
+		assert(*i >= 0);
 	    assert(merge_time >= 0);
 	}
 	virtual Event *copy() const;
 
-	int    population1() const { return i_pop_1; }
-	int    population2() const { return i_pop_2; }
+	const std::vector<int> &populations() const { return i_populations; }
 	double merge_time()  const { return i_merge_time; }
 
 	virtual double event_time  (State &s, double current_time);

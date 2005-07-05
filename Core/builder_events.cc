@@ -250,19 +250,22 @@ void
 PopulationMerge::update_state(Scheduler &scheduler, State &s,
 			      double event_time)
 {
-    Population &p1 = s.populations().at(i_pop_1);
-    Population &p2 = s.populations().at(i_pop_2);
+    Population &p1 = s.populations().at(i_populations[0]);
 
-    // move the p2 population to p1
-    while (p2.size() > 0) p1.push(p2.pop_last());
+    std::vector<int>::const_iterator i;
+    for (i = i_populations.begin() + 1; i != i_populations.end(); ++i)
+	{
+	    Population &p2 = s.populations().at(*i);
+	    // move the p2 population to p1
+	    while (p2.size() > 0) p1.push(p2.pop_last());
+	    Event *pop_2_coal = p2.coalescence_event();
+	    p2.coalescence_event(0);// null the event
 
-    Event *pop_2_coal = p2.coalescence_event();
-    p2.coalescence_event(0);// null the event
+	    scheduler.remove_event(pop_2_coal);
+	    delete pop_2_coal;
+	}
 
-    scheduler.remove_event(pop_2_coal);
     scheduler.remove_event(this);
-
-    delete pop_2_coal;
     delete this;
 }
 
