@@ -80,14 +80,6 @@ namespace core {
 	};
 
 	// Exception thrown if the configuration is initialized with
-	// sequences of population sizes and fractions that does not match
-	struct inconsistent_pop_spec : public std::logic_error {
-	    inconsistent_pop_spec() : 
-		std::logic_error("Population sizes and scale factors do "
-				 "not match."){}
-	};
-
-	// Exception thrown if the configuration is initialized with
 	// un-sorted positions
 	struct out_of_sequence : public std::logic_error {
 	    out_of_sequence() : std::logic_error("Marker positions not sorted."){}
@@ -103,29 +95,17 @@ namespace core {
 	// sequence from begin to end -- an exception is thrown if the
 	// positions are not sorted in increasing order; the build
 	// parameters rho, Q, gamma, and growth.
-	template <typename PopSizeItr, typename PopFracItr,
-		  typename MarkerItr,  typename EpochItr>
+	template <typename PopSizeItr, typename MarkerItr,  typename EpochItr>
 	Configuration(PopSizeItr ps_begin, PopSizeItr ps_end,
-		      PopFracItr pf_begin, PopFracItr pf_end,
 		      MarkerItr  m_begin, MarkerItr  m_end,
 		      EpochItr   e_begin, EpochItr   e_end,
 		      double rho, double Q, double gamma, double growth)
-	    throw(out_of_sequence, non_pos_pop_size, inconsistent_pop_spec);
+	    throw(out_of_sequence, non_pos_pop_size);
 	~Configuration();
 
 	typedef std::vector<unsigned int>::const_iterator pop_size_itr_t;
 	pop_size_itr_t pop_sizes_begin() const { return i_pop_sizes.begin(); }
 	pop_size_itr_t pop_sizes_end()   const { return i_pop_sizes.end();   }
-
-	typedef std::vector<double>::const_iterator pop_frac_itr_t;
-	pop_frac_itr_t pop_scale_fracs_begin() const
-	{
-	    return i_pop_scale_fracs.begin();
-	}
-	pop_frac_itr_t pop_scale_fracs_end() const
-	{
-	    return i_pop_scale_fracs.end();
-	}
 
 	const unsigned int no_leaves() const
 	{
@@ -178,7 +158,6 @@ namespace core {
 	int i_no_markers;
 	unsigned int i_no_leaves;
 	std::vector<unsigned int> i_pop_sizes;
-	std::vector<double> i_pop_scale_fracs;
 
 	const Marker** i_first_markers;
 	const Marker** i_plain_markers;
@@ -192,30 +171,25 @@ namespace core {
     };
 
 
-    template <typename PopSizeItr, typename PopFracItr,
-	      typename MarkerItr,  typename EpochItr>
+    template <typename PopSizeItr, typename MarkerItr,  typename EpochItr>
     Configuration::Configuration(PopSizeItr ps_begin, PopSizeItr ps_end,
-				 PopFracItr pf_begin, PopFracItr pf_end,
 				 MarkerItr  m_begin,  MarkerItr  m_end,
 				 EpochItr   e_begin,  EpochItr   e_end,
 				 double rho, double Q, double gamma, 
 				 double growth)
-	throw(out_of_sequence, non_pos_pop_size, inconsistent_pop_spec)
+	throw(out_of_sequence, non_pos_pop_size)
 	: i_rho(rho), i_Q(Q), i_gamma(gamma), i_growth(growth)
     {
 	i_no_markers = m_end - m_begin;
 	i_no_leaves = 0;
 
-	for ( ; ps_begin!=ps_end && pf_begin!=pf_end; ++ps_begin, ++pf_begin)
+	for ( ; ps_begin!=ps_end ; ++ps_begin)
 	    {
 		if (*ps_begin <= 0) throw non_pos_pop_size();
 
 	        i_pop_sizes.push_back(*ps_begin);
-	        i_pop_scale_fracs.push_back(*pf_begin);
 	        i_no_leaves += *ps_begin;
 	    }
-	if (ps_begin!=ps_end || pf_begin!=pf_end)
-	    throw inconsistent_pop_spec();
 
 	i_first_markers = new const Marker* [i_no_markers];
 	for (int m = 0; m < i_no_markers; ++m) i_first_markers[m] = 0;

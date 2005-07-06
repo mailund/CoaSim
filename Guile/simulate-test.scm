@@ -26,29 +26,31 @@
 (map (combine print total-branch-length) (local-trees arg))(newline)
 (newline)
 
-(display (simulate-sequences markers 10    :rho 50 :random-seed 100))(newline)
-(display (simulate-sequences markers 10 1  :rho 50 :random-seed 100))(newline)
-(display (simulate-sequences markers '(10) :rho 50 :random-seed 100))(newline)
-(display (simulate-sequences markers '(10) '(1) :rho 50 :random-seed 100))(newline)
-(display (simulate-sequences markers '(10) 1 :rho 50 :random-seed 100))(newline)
-(display (simulate-sequences markers 10 .1 :rho 50 :random-seed 100))(newline)
+(display (simulate-sequences markers 10 :rho 50 :random-seed 100))(newline)
 
 (newline)
-(display (simulate-sequences markers '(10 10)
-                             :epochs (list (population-merge 0 1 0.2))
+(display (simulate-sequences markers 
+			     '(population 1 (merge 0.2
+						   (population 1 (sample 10))
+						   (population 1 (sample 10))))
+                             :random-seed 100))
+(newline)
+
+(newline)
+(newline)
+(display (simulate-sequences markers 
+			     '(population 1 (merge 0.2
+						   (population .2 (sample 10))
+						   (population .9 (sample 10))))
                              :random-seed 100))
 (newline)
 (newline)
-(newline)
-(display (simulate-sequences markers '(10 10) '(.2 .9) 
-                             :epochs (list (population-merge 0 1 0.2))
-                             :random-seed 100))
-(newline)
-(newline)
-(display (simulate-sequences markers '(10 10) '(.2 .9) 
-                             :epochs (list (population-merge 0 1 0.2)
-					   (migration 0 1 0.1 0 0.2)
-					   (migration 1 0 0.2 0 0.2))
+(display (simulate-sequences markers 
+			     '(population 1 (merge 0.2
+						   (population p1 .2 (sample 10))
+						   (population p2 .9 (sample 10))))
+			     :migration '((migration p1 p2 0.1 0 0.2)
+					  (migration p2 p1 0.2 0 0.2))
                              :random-seed 100))
 (newline)
 
@@ -82,6 +84,6 @@
        (lambda () (simulate out-of-sequence-markers 10))
        (lambda (key . args) (display key)(display " ")(display args)(newline)))
 
-(catch 'non-positive-population-size
+(catch 'non-positive-sample-size
        (lambda () (simulate '() -10))
        (lambda (key . args) (display key)(display " ")(display args)(newline)))

@@ -39,10 +39,8 @@ int main(int argc, const char *argv[])
    
 
 	unsigned int pop_sizes[] = { 2 };
-	double pop_fracs[] = { 1 };
 	Event *dummy_event_itr = 0;
 	Configuration conf(pop_sizes, pop_sizes+1,
-			   pop_fracs, pop_fracs+1,
 			   markers.begin(), markers.end(),
 			   &dummy_event_itr, &dummy_event_itr,
 			   400.0, 0.0, 0.0, 0.0);

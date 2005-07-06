@@ -16,10 +16,14 @@ TESTS =
 TESTS += marker_test.sh
 TESTS += epochs_test.sh
 TESTS += simulate_test.sh
+TESTS += population-structure-compilation-test.sh 
 
 EXTRA_DIST =
 EXTRA_DIST += marker_test.sh marker-test.scm marker-test.expected
 EXTRA_DIST += simulate_test.sh simulate-test.scm simulate-test.expected
+EXTRA_DIST += population-structure-compilation-test.scm \
+		population-structure-compilation-test.sh \
+		population-structure-compilation-test.expected
 
 
 epochs_test_SOURCES =
@@ -54,6 +58,7 @@ coasim_guile_SOURCES += nodes.hh nodes.cc
 coasim_guile_SOURCES += intervals.hh intervals.cc
 coasim_guile_SOURCES += simulate.hh simulate.cc
 coasim_guile_SOURCES += exceptions.hh exceptions.cc
+coasim_guile_SOURCES += simulate.scm simulate.scm.include
 coasim_guile_SOURCES += coasim_guile.cc
 
 
@@ -62,6 +67,10 @@ dist_doc_DATA =
 dist_doc_DATA += doc/bindings.html doc/guile-bindings.css
 doc/index.html:
 	(cd doc; make)
+
+simulate.$(OBJEXT): simulate.scm.include
+simulate.scm.include: simulate.scm
+	python file2string.py SIMULATE_SCM_INCLUDE simulate.scm > simulate.scm.include
 
 EXTRA_DIST += doc/extract_guile_comments.py \
               doc/guile-bindings.xsl \
