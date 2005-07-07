@@ -160,19 +160,19 @@ keywords \texttt{:gamma} and \texttt{:Q} as in
 \begin{code}
 (simulate-sequences markers no-sequences \underline{:gamma 250 :Q 100})
 \end{code}
-and to use an exponential growth factor, $\beta=2Nb$, (see \emph{Hein
-  et al.}\ Sect.~4.3), use the keyword \texttt{:beta} as in
-\begin{code}
-(simulate-sequences markers no-sequences \underline{:beta 100})
-\end{code}
+
+%%and to use an exponential growth factor, $\beta=2Nb$, (see \emph{Hein
+%%  et al.}\ Sect.~4.3), use the keyword \texttt{:beta} as in
+%%\begin{code}
+%%(simulate-sequences markers no-sequences \underline{:beta 100})
+%%\end{code}
 
 These parameters can be combined, so e.g.\ simulating sequences with both
-exponential growth and recombination can be done using the updated
-script:
+gene conversions and recombination can be done using:
 \begin{code}
 (use-modules (coasim rand))
 (let* ((markers (make-random-snp-markers 10 0 1))
-       (seqs (simulate-sequences markers 10 \underline{:rho 400 :beta 100})))
+       (seqs (simulate-sequences markers 10 \underline{:rho 400 :gamma 250 :Q 100})))
   (display seqs)(newline))
 \end{code}
 
@@ -592,6 +592,45 @@ the probability of the other two genotypes being cases to $0$.
 
 
 
+\section{Population Structure}
+\label{sec:pop-structure}
+
+In the simulations we have seen so far, we have simulated samples from
+a single, constant size, population, but CoaSim contains a powerful
+specification language for demographic structures.  Instead of using
+the form for simulating sequences we have used so far
+\begin{code}
+(simulate-sequences markers no-sequences ...)
+\end{code}
+we use the more general form
+\begin{code}
+(simulate-sequences markers population-structure ...)
+\end{code}
+where \texttt{population-structure} is a program describing the
+population structure of the sample.
+
+
+\subsection{Bottlenecks and Exponential Growth}
+\label{sec:b-and-eg}
+
+
+
+FIXME
+
+\subsection{Sub-populations}
+\label{sec:sub-pop}
+
+FIXME
+
+\subsection{Migration}
+\label{sec:migration}
+
+FIXME
+
+
+%% FIXME: update beta's below
+
+
 \section{Simulating the ARG and (Local) Coalescent Trees}
 \label{sec:simul-coal-trees}
 
@@ -873,6 +912,9 @@ or to count the total number of coalescence nodes:
                (if (coalescent-node? n) (+ count 1) count)) 
             0)
 \end{code}
+
+
+
 
 
 \section{Advanced Usage}
