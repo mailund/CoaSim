@@ -613,6 +613,49 @@ population structure of the sample.
 \subsection{Bottlenecks and Exponential Growth}
 \label{sec:b-and-eg}
 
+Simple extensions to the fixed size population model are bottlenecks
+and periods of exponential growth.  A bottleneck is parameterised with
+the scale factor of the effective population size: $f=N_b/N$, where
+$N$ is the effective population size outside the bottleneck and $N_b$
+the effective population size inside the bottleneck.  To specify a
+bottleneck of $f=0.2$, starting at time $1.5$ (as measured in $2N$),
+we use
+\begin{code}
+(simulate-sequences markers
+     '(population 1 :epochs (bottleneck 0.2 1.5) (sample 10)))
+\end{code}
+
+The setup is a tad more complicated than the simple number of samples
+in the simulation, but we will walk through it: Instead of a simple
+number we have a program, \texttt{'(population ...)}---notice the
+quote, \texttt{'}, at the beginning; this is needed for the simulator
+to be able to process the program rather than having Scheme evaluate
+it.  If you are not familiar with how Scheme handles quotes and
+S-expressions, do not worry about it, just remember to use the quote
+for the population structure specification.
+
+The specification starts with a population \texttt{'(population
+  ...)}---it always does---and the next parameter specifies the size
+of the population relative to $N$: it is a parameter $f'$, similar
+to the bottleneck parameter.  In this particular case it is not really
+useful, but when we add population sub-structure later on, it will be.
+
+The epochs parameter \texttt{'(population 1 \underline{:epochs (...)}
+  ...)} specifies the bottleneck, and we will get back to it shortly.
+The final parameter is `the rest of the specification', in this case
+just the number of samples to simulate from the population.  We will
+see more complicated examples in the next section.
+
+The \texttt{:epochs} keyword parameter can take two forms: a single
+epoch, as above, or a list of epochs.  In this case we have a single
+epoch, a bottleneck \texttt{(bottleneck 0.2 1.5)}.  This specification
+says that the size of the bottleneck is 0.2 ($f=0.2$) and that the
+bottleneck starts at time 1.5; there is no end time for this
+particular bottleneck, so in effect it is just a reduction of the
+effective population size to $20\%$ at time 1.5. 
+
+FIXME: figure
+
 
 
 FIXME
