@@ -654,11 +654,51 @@ bottleneck starts at time 1.5; there is no end time for this
 particular bottleneck, so in effect it is just a reduction of the
 effective population size to $20\%$ at time 1.5. 
 
-FIXME: figure
+%%FIXME: figure
 
+To specify a bottleneck of a finite extend, we simply add a third,
+parameter, e.g.\ to have the bottleneck from time 1.5 to 3:
+\begin{code}
+(simulate-sequences markers
+     '(population 1 :epochs (bottleneck 0.2 1.5 \underline{3}) (sample 10)))
+\end{code}
 
+%%FIXME: figure
 
-FIXME
+Exponential growth is specified in a similar way, and parameterised by
+the exponential growth factor, $\beta=2Nb$, (see \emph{Hein
+  et al.}\ Sect.~4.3).  To have an exponential growth with $\beta=10$
+starting at time 1.5, we use:
+\begin{code}
+(simulate-sequences markers
+     '(population 1 :epochs (growth 10 1.5) (sample 10)))
+\end{code}
+once again, an end time can be specified as a third parameter.
+\begin{code}
+(simulate-sequences markers
+     '(population 1 :epochs (growth 10 1.5 \underline{3}) (sample 10)))
+\end{code}
+
+%%FIXME: what should the population size be after the growth?
+
+Since a common case is that the growth is going on in the entire
+population's lifetime, CoaSim provide a shortcut to specify this, using
+the keyword \texttt{:beta} as in
+\begin{code}
+(simulate-sequences markers '(population 1 \underline{:beta 10} (sample 10)))
+\end{code}
+
+%%FIXME: figure
+
+For convenience, the \texttt{:beta} option can also be given to the
+\texttt{simulate-sequences} function directly, when using the simple
+form where only the sample size is given as the population structure
+specification, so this
+\begin{code}
+(simulate-sequences markers 10 :beta 10)
+\end{code}
+is equivalent to the specification above.
+
 
 \subsection{Sub-populations}
 \label{sec:sub-pop}
@@ -671,7 +711,6 @@ FIXME
 FIXME
 
 
-%% FIXME: update beta's below
 
 
 \section{Simulating the ARG and (Local) Coalescent Trees}
