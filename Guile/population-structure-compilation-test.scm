@@ -1,6 +1,6 @@
 
-;; include simulate.scm first since the code is defined there....
 (load "simulate.scm")
+(use-modules (ice-9 receive))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; Small test framework ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -43,9 +43,9 @@
 
 (deftest compile1
   (compile 
-   '(population p1 1 :epochs ((bottleneck 111 1 2)) (sample 1))
+   '(population p1 1 :beta 77 :epochs ((bottleneck 111 1 2)) (sample 1))
    '())
-  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (bottleneck 0 111 1 2))))
+  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (beta 0 77 0 -1) (bottleneck 0 111 1 2))))
 
 (deftest compile2
   (compile 
@@ -91,6 +91,18 @@
    '(population 1 :epochs () (sample 1))
    '())
   '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1))))
+
+(deftest compile6
+  (compile 
+   '(population 1 (sample 1))
+   '())
+  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1))))
+
+(deftest compile7
+  (compile 
+   '(population 1 :beta 55 (sample 1))
+   '())
+  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (beta 0 55 0 -1))))
 
 ;;;;(deftest compile4
 ;;;;  (compile 
@@ -156,6 +168,7 @@
 
 
 
+
 (deftest get-pop-sizes-test
   (get-pop-sizes (get-populations -1 *epochs-2*))
   '(6 2 4 2 2))
@@ -215,7 +228,6 @@
 
 
 
-
 (deftest check-merge-times0
   (check-merge-times -1 *epochs-0* )
   #t)
@@ -253,7 +265,6 @@
 							    (population :name p5 :size 2
 									:subtree (sample 2)))))))
   #f)
-
 
 
 

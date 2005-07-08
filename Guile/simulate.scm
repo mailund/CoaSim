@@ -5,6 +5,7 @@
 	     (ice-9 pretty-print)
 	     (srfi srfi-1))
 
+(read-set! keywords 'prefix)
 
 (defmacro unless (pred . body)
   `(if ,pred
@@ -129,7 +130,7 @@
 
 (define (get-populations-helper-sample size) '())
 
-(define* (get-populations-helper-pop :key name index size epochs subtree)
+(define* (get-populations-helper-pop :key name index size (epochs '()) subtree)
   (cons `(population :name ,name :index ,index :size ,size :epochs ,epochs) 
 	(get-populations-helper subtree)))
 
@@ -142,21 +143,6 @@
        pops
        time-frames))
 
-(define (add-default-bottlenecks pops)
-  (map (lambda (pop)
-	 (apply (lambda* (tag :key name index size epochs time-frame)
-			 `(population
-			   :name ,name
-			   :index ,index
-			   :size ,size
-			   :epochs ,(list* `(bottleneck ,size ,(first time-frame) ,(second time-frame))
-					   (if epochs
-					       epochs
-					       '()))
-			   :time-frame ,time-frame))
-		pop))
-       pops))
-
 (define (check-for-duplicate-names pops)
   (let ((names (filter (lambda (x) x)
 		       (map (lambda (pop)
@@ -165,13 +151,34 @@
     (unless (equal? (length names) (length (delete-duplicates names)))
 	    (throw 'syntax-error "Populations must have unique names" names))))
 
+(define (normalise-epochs pops)
+  (map (lambda (pop)
+	 (apply (lambda* (tag :key name index size epochs time-frame)
+			 (let ((new-epochs (map (lambda (epoch)
+						  (if (equal? 'beta (car epoch))
+						      `(beta ,(second epoch) 
+							     ,(first time-frame) ,(second time-frame))
+						      epoch))
+						epochs)))
+			   `(population
+			     :name ,name
+			     :index ,index
+			     :size ,size
+			     :epochs ,(list* `(bottleneck ,size ,(first time-frame) ,(second time-frame))
+					     (if new-epochs
+						 new-epochs
+						 '()))
+			     :time-frame ,time-frame)))
+		pop))
+       pops))
+
 (define (get-populations time tree-descr)
   (reset-index)
   (let* ((pops-no-time           (get-populations-helper tree-descr))
 	 (time-frames            (population-time-frames time tree-descr))
 	 (pops-no-default-epochs (add-time-frames pops-no-time time-frames)))
     (check-for-duplicate-names pops-no-time)
-    (add-default-bottlenecks pops-no-default-epochs)))
+    (normalise-epochs pops-no-default-epochs)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -201,7 +208,7 @@
 (define (add-indexes-helper-sample size)
   (cons (inc-index) `(sample ,size)))
 
-(define* (add-indexes-helper-pop :key name size epochs subtree)
+(define* (add-indexes-helper-pop :key name size (epochs '()) subtree)
   (let ((i/tree (add-indexes-helper subtree)))
   (cons (car i/tree)
 	`(population :name ,name 
@@ -369,23 +376,31 @@
 	    (throw 'systax-error "In sample: size has to be a number" size))
     `(sample ,size)))
 
+(define (make-local-epochs epochs beta)
+  (if (and (pair? epochs)
+	   (not (pair? (car epochs))))
+      (list* epochs (if beta
+			`((beta .beta))
+			'()))
+      (if beta
+	  (list* `(beta ,beta) epochs)
+	  epochs)))
+
 (define* (syntax-check-and-normalization-pop . in)
   (init-list-iterator in)
   (let ((name (optional-arg symbol? :default #f))
 	(size (mandatory-arg number?
 			     :error `(syntax-error
 				      "In population: size must be a number" ,`(population ,@in))))
-	(epochs (optional-keyword-arg :epochs :default #f))
+	(beta   (optional-keyword-arg :beta :default #f))
+	(epochs (optional-keyword-arg :epochs :default '()))
 	(subtree (mandatory-arg pair?
 				:error `(syntax-error
 					 "In population: error in subtree definition"
 					 ,`(population ,@in)))))
     `(population :name ,name 
 		 :size ,size 
-		 :epochs ,(if (and (pair? epochs)
-				   (not (pair? (car epochs))))
-			      (list epochs)
-			      epochs) 
+		 :epochs ,(make-local-epochs epochs beta)
 		 :subtree ,(syntax-check-and-normalization subtree))))
 
 
