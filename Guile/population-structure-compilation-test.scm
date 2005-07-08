@@ -45,7 +45,7 @@
   (compile 
    '(population p1 1 :beta 77 :epochs ((bottleneck 111 1 2)) (sample 1))
    '())
-  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (beta 0 77 0 -1) (bottleneck 0 111 1 2))))
+  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (growth 0 77 0 -1) (bottleneck 0 111 1 2))))
 
 (deftest compile2
   (compile 
@@ -102,7 +102,7 @@
   (compile 
    '(population 1 :beta 55 (sample 1))
    '())
-  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (beta 0 55 0 -1))))
+  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (growth 0 55 0 -1))))
 
 ;;;;(deftest compile4
 ;;;;  (compile 

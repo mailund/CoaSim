@@ -156,7 +156,7 @@
 	 (apply (lambda* (tag :key name index size epochs time-frame)
 			 (let ((new-epochs (map (lambda (epoch)
 						  (if (equal? 'beta (car epoch))
-						      `(beta ,(second epoch) 
+						      `(growth ,(second epoch) 
 							     ,(first time-frame) ,(second time-frame))
 						      epoch))
 						epochs)))
