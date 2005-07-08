@@ -161,12 +161,6 @@ keywords \texttt{:gamma} and \texttt{:Q} as in
 (simulate-sequences markers no-sequences \underline{:gamma 250 :Q 100})
 \end{code}
 
-%%and to use an exponential growth factor, $\beta=2Nb$, (see \emph{Hein
-%%  et al.}\ Sect.~4.3), use the keyword \texttt{:beta} as in
-%%\begin{code}
-%%(simulate-sequences markers no-sequences \underline{:beta 100})
-%%\end{code}
-
 These parameters can be combined, so e.g.\ simulating sequences with both
 gene conversions and recombination can be done using:
 \begin{code}
@@ -610,8 +604,8 @@ where \texttt{population-structure} is a program describing the
 population structure of the sample.
 
 
-\subsection{Bottlenecks and Exponential Growth}
-\label{sec:b-and-eg}
+\subsection{Epochs: Bottlenecks and Exponential Growth}
+\label{sec:epochs}
 
 Simple extensions to the fixed size population model are bottlenecks
 and periods of exponential growth.  A bottleneck is parameterised with
@@ -699,16 +693,227 @@ specification, so this
 \end{code}
 is equivalent to the specification above.
 
+As briefly mentioned, a population can contain a list of epochs, and
+we can use this to, e.g.\ specify an exponential growth followed (back
+in time) by a bottleneck, effectively modeling a smaller effective
+population size before (forward in time) the growth:
+\begin{code}
+(simulate-sequences markers
+   '(population 1 :epochs ((bottleneck 0.2 3) (growth 10 0 3))
+                (sample 10)))
+\end{code}
+
+Epochs must be either nested or non-overlapping; nested epochs combine
+in the obvious way: a bottleneck that scales the effective population
+size with $f_1$, nested inside a bottleneck that scales the effective
+population size with $f_2$ will in effect scale the effective
+population size with $f_1\cdot{}f_2$; a bottleneck inside an
+exponential growth epoch, or vice versa, will model growth in a
+reduced size, and so on.
+
+%%FIXME: figure
+
 
 \subsection{Sub-populations}
 \label{sec:sub-pop}
 
-FIXME
+The population structure in the previous section only contained a
+single population, going through various kinds of epochs, but the
+population structure specification language allows us to specify trees
+of populations, and thus specify the history of a set of populations
+back to their common ancestor population.
+
+The branches on the population tree---describing the period a
+population exist and the epochs it goes through---are specified with
+the \texttt{(population ...)} structure described above.  The leaves
+of the tree---describing how many samples to simulate from a currently
+(at time 0) existing population---are specified with the
+\texttt{(sample ...)} also described above.  The nodes---describing
+population merging events (backward in time, corresponding to splits
+of populations forward in time)---are specified with the
+\texttt{(merge ...)} construction.
+
+The merge construction takes, as first argument, the time of the
+merge, backward in time in units of $2N$, followed by two or more
+population structure specifications.  The merge must, of course, occur
+further back in time than any epochs or merges in the sub-trees
+specified by the population structures.
+
+Thus, to simulate 20 samples from each of two populations merging at
+time 10, we use:
+\begin{code}
+(simulate-sequences markers
+   '(population 1 (merge 10 (population 1 (sample 20))
+                            (population 1 (sample 20)))))
+\end{code}
+
+%%FIXME: figure
+
+The outermost \texttt{(population ...)} specifies the population size
+after (back in time) the merge and the two inner \texttt{(population
+  ...)}s the effective population size and the sample size in the
+sub-populations.
+
+We now see the use of the population size parameter, the first
+parameter to the \texttt{(population ...)} construction: to specify
+different effective sizes of the populations.  CoaSim assumes a fixed
+global effective size, $2N$ and scales all populations relative to
+this, using the population size parameter; this works in exactly the
+same way as time is scaled for population bottlenecks (and is in fact
+just syntactic sugar for bottlenecks covering the entire population
+life time).
+
+As an example we can simulate three subpopulations, one twice the
+effective size of the other two, merging at time 10 back in time to a
+population with the same effective size as the larger sub-population at
+the current time:
+\begin{code}
+(simulate-sequences markers
+   '(population 2 (merge 10 (population 2 (sample 20))
+                            (population 1 (sample 20))
+                            (population 1 (sample 20)))))
+\end{code}
+
+%%FIXME: figure
+
+The subpopulation size combine with epochs in the expected way,
+considering that they behave similar to bottlenecks, e.g.\ a
+bottleneck with size parameter $f_b$ inside a population with size
+parameter $f_p$ will result in an effective population size of
+$f_b\cdot{}f_p\cdot{}2N$.  Thus, in 
+\begin{code}
+(simulate-sequences markers
+   '(population 2 :epochs (bottleneck 0.25 10 12)
+                (merge 10 (population 2 (sample 20))
+                          (population 1 (sample 20))
+                          (population 1 (sample 20)))))
+\end{code}
+the population merge is followed, back in time, by a bottleneck from
+time $10$ to time $12$ that scales the effective size to half that of
+the smaller current subpopulations: $0.25\cdot{}2=0.5$, the $0.25$
+factor from the bottleneck and the $2$ factor from the population
+size.
+
+%%FIXME: figure
+
+A population structure tree does not have to be in only two levels, as
+above, where a merge is followed by an edge to a leaf; each sub-tree
+can be of the general form containing further merges, as for example
+\begin{code}
+(simulate-sequences markers
+   '(population 2
+       (merge 10 (population 2 (sample 20))
+                 (population 1 (merge 8 (population 1 (sample 20))
+                                        (population 1 (sample 20)))))))
+\end{code}
+where the original population splits in two (forward in time) $10$
+time units ago, one half the size of the other, and where the smaller
+population splits again $8$ time units ago.
+
+The merge times closer to the root must, of course, be larger than the
+merge times further down the tree, since events closer to the root
+represent events further back in time.  For similar reasons, all
+epoch times on an edge must be contained in the time interval between
+the merge events at the end points of the edge; time $0$ for edges to
+leaves; and open ended up for the root-edge.
+
 
 \subsection{Migration}
 \label{sec:migration}
 
-FIXME
+It is also possible to simulate migrations between subpopulations
+existing at the same time.  This is done by specifying the rates of
+migration from one population to another---optionally together with
+the period for which the migration goes, if this period does not span
+the entire period for which both populations exist.
+
+To be able to refer to the individual subpopulations when specifying
+migration rates, we must name them.  This is done by adding a name (a
+non-number) as the first parameter to the \texttt{(population ...)}
+construction, thus making the population size the second parameter.
+Thus, \texttt{(population P 1 ...)} assigns the name \texttt{P} to a
+population, of size $1$.
+
+We can name the subpopulations in the example in the previous section,
+with two small populations and one large, like this:
+\begin{code}
+(simulate-sequences markers
+   '(population 2 (merge 10 (population \underline{large}   2 (sample 20))
+                            (population \underline{small-1} 1 (sample 20))
+                            (population \underline{small-2} 1 (sample 20)))))
+\end{code}
+giving the larger population the name \texttt{large}, and the two
+smaller populations the names \texttt{small-1} and \texttt{small-2},
+respectively.  The populations after the merge is not named, and thus
+cannot be refereed to in the migration specification---but since it is
+the only population in existing after the merge, this would not be
+meaningful anyway.
+
+With the relevant populations named, we can specify a migration rate
+using the \texttt{(migration ...)} construction which is on the form:
+\begin{code}
+(migration \textit{source} \textit{destination} \textit{rate} [\textit{start-time} \textit{end-time}])
+\end{code}
+where \texttt{[\textit{start-time} \textit{end-time}]} is optional and
+will default to the total time where both populations exist.
+
+The \texttt{\textit{destination}} parameter is the population that
+receives the immigrants, going back in time, and the
+\texttt{\textit{source}} parameter is the population from which they
+emigrate, again going back in time.
+
+%% FIXME: figure of migration from source to destination
+
+The \texttt{\textit{rate}} parameter is the migration rate $M=4Nm$
+(see \emph{Hein et al.}\ Sect.~4.6).  Notice that the rate is given in
+units of the \emph{global} effective population size, the global $N$,
+not relative to the individual population sizes.  It is, thus, not
+influenced by bottlenecks or relative subpopulation sizes---to achieve
+such effects it is necessary to specify different periods of migration
+with varying rates.
+
+The migration rates are provided to the simulation function as a list
+through the keyword argument \texttt{:migration}.  To simulate a
+migration rate of $M=0.5$ from each of the two small populations to
+the larger (back in time, and thus from the larger population to the
+smaller forward in time), a rate of $1.0$ in the other direction, and
+a rate of $2.0$ in each direction between the two smaller populations,
+we use:\footnote{
+  Once again, notice the quote, ', before the migration list.  Without
+  this quote, the simulate function will not be able to weave the
+  migration list into the population structure.
+}
+\begin{code}
+(simulate-sequences markers
+   '(population 2 (merge 10 (population large   2 (sample 20))
+                            (population small-1 1 (sample 20))
+                            (population small-2 1 (sample 20))))
+   :migration '((migration small-1 large   0.5)
+                (migration small-2 large   0.5)
+                (migration large small-1   1.0)
+                (migration large small-2   1.0)
+                (migration small-2 small-1 2.0)
+                (migration small-1 small-2 2.0)))
+\end{code}
+
+To specify that the migration rate between the two smaller populations
+is only $2.0$ for the last half (back in time) of the population
+existence, and $1.5$ before that (back in time), we can use the
+optional start and end time parameters:
+\begin{code}
+(simulate-sequences markers
+   '(population 2 (merge 10 (population large   2 (sample 20))
+                            (population small-1 1 (sample 20))
+                            (population small-2 1 (sample 20))))
+   :migration '((migration small-1 large   0.5)
+                (migration small-2 large   0.5)
+                (migration large small-1   1.0)
+                (migration large small-2   1.0)
+                (migration small-2 small-1 2.0 \underline{5 10})
+                (migration small-1 small-2 2.0 \underline{5 10})
+                (migration small-2 small-1 1.5 \underline{0 5})
+                (migration small-1 small-2 1.5 \underline{0 5})))
+\end{code}
 
 
 
