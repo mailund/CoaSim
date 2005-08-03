@@ -1,4 +1,4 @@
-AC_INIT(CoaSim-Guile, 3.2.0, mailund@birc.dk)
+AC_INIT(CoaSim-Guile, 4.0.1, mailund@birc.dk)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.hh)
 

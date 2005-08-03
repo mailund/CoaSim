@@ -52,14 +52,15 @@
    '(population p1 5 (merge 11 
 			    (population p2 2 :epochs (bottleneck 7 0 5) (sample 2))
 			    (population p3 3 (sample 3))))
-   '((migration p2 p3 0.2 3 7)))
+   '((migration p2 p3 0.2 3 5) (migration p2 p3 0.7)))
   '(:sample-sizes (2 3)
 		  :epochs ((population-merge 11 0 1)
 			   (bottleneck 0 5 11 -1)
 			   (bottleneck 0 2 0 11)
 			   (bottleneck 0 7 0 5)
 			   (bottleneck 1 3 0 11)
-			   (migration 0 1 0.2 3 7))))
+			   (migration 0 1 0.2 3 5)
+			   (migration 0 1 0.7 0 11))))
 
 (deftest compile3
   (compile 

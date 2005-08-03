@@ -90,6 +90,11 @@
 	 (get-pop-key-value :size pop))
        pops))
 
+(define (get-pop-names pops) 
+  (map (lambda (pop)
+	 (get-pop-key-value :name pop))
+       pops))
+
 ;; Moej kode!!!!!!
 (define (get-pop-epochs pops) 
   (let ((tmp (map (lambda (pop)
@@ -151,6 +156,45 @@
     (unless (equal? (length names) (length (delete-duplicates names)))
 	    (throw 'syntax-error "Populations must have unique names" names))))
 
+(define (inf<= . rest)
+  (let ((split-index (list-index (lambda (x)
+				   (equal? -1 x))
+				 rest)))
+    (receive (xs infs) (if split-index
+			   (split-at rest split-index)
+			   (values rest '()))
+	     (if (every (lambda (x) (equal? -1 x)) infs)
+		 (apply <= xs)
+		 #f))))
+
+(define (first-inside-second? tf1 tf2)
+  (and (inf<= (first tf2) (first  tf1) (second tf2))
+       (inf<= (first tf2) (second tf1) (second tf2))))
+
+(define (first-later=-than-second? tf1 tf2)
+  (and (inf<= (first tf2) (second tf2) (first  tf1) (second tf1))))
+
+(define (cross-boundaries? tf1 tf2)
+  (not (or (first-inside-second? tf1 tf2)
+	   (first-inside-second? tf2 tf1)
+	   (first-later=-than-second? tf1 tf2)
+	   (first-later=-than-second? tf2 tf1))))
+
+(define (get-epochs-time-frames pop)
+  (let ((epochs (get-pop-key-value :epochs pop)))
+    (map (lambda (epoch)
+	   (take-right epoch 2))
+	 epochs)))
+
+(define (check-for-epochs-overlap pop)
+  (let ((time-frames (delete-duplicates (get-epochs-time-frames pop))))
+    (for-each (lambda (time-frame)
+		(if (find (lambda (time-frame2)
+			    (cross-boundaries? time-frame time-frame2))
+			  time-frames)
+		    (throw 'syntax-error "Overlapping epochs exists" pop)))
+	      time-frames)))
+
 (define (normalise-epochs pops)
   (map (lambda (pop)
 	 (apply (lambda* (tag :key name index size epochs time-frame)
@@ -174,11 +218,16 @@
 
 (define (get-populations time tree-descr)
   (reset-index)
+
   (let* ((pops-no-time           (get-populations-helper tree-descr))
 	 (time-frames            (population-time-frames time tree-descr))
-	 (pops-no-default-epochs (add-time-frames pops-no-time time-frames)))
-    (check-for-duplicate-names pops-no-time)
-    (normalise-epochs pops-no-default-epochs)))
+	 (pops-no-default-epochs (add-time-frames pops-no-time time-frames))
+	 (pops                   (normalise-epochs pops-no-default-epochs)))
+
+    (check-for-duplicate-names pops)
+    (map check-for-epochs-overlap pops)
+
+    pops))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -408,13 +457,38 @@
 ;;;;;;;;;;; The compiler ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define (check-that-pops-have-names migrations pops)
+  (let ((m-names (delete-duplicates 
+		  (apply append 
+			 (map (lambda (m) (list (second m) (third m)))
+			      migrations))))
+	(p-names (delete-duplicates (get-pop-names pops))))
+    (unless (or (null? m-names)
+		(null? (lset-difference equal? m-names p-names)))
+	    (throw 'syntax-error "Populations have to have names in order to specify migrations"
+		   (lset-difference equal? m-names p-names)))))
+
+(define (normalize-migrations migrations pops)
+  (map (lambda (migration) 
+	 (if (= 4 (length migration))
+	     (let ((tf-from (find-pop-time-frame (second migration) pops))
+		   (tf-to   (find-pop-time-frame (third  migration) pops)))
+	       (unless (and (not (first-later=-than-second? tf-from tf-to))
+			    (not (first-later=-than-second? tf-to   tf-from)))
+		       (throw 'syntax-error "Populations not valid in the same time interval" migration))
+	       (append migration (list (max (first  tf-from) (first  tf-to))
+				       (min (second tf-from) (second tf-to)))))
+	     migration))
+       migrations))
+
 (define (add-migrations migrations pops)
+  (check-that-pops-have-names migrations pops) 
   (map (lambda (migration)
 	 (list* 'migration 
 		(find-pop-index (second migration) pops)
 		(find-pop-index (third migration) pops)
 		(list-tail migration 3)))
-       migrations))
+       (normalize-migrations migrations pops)))
 
 (define (compile tree migrations)
   (let ((tree2 (add-indexes (syntax-check-and-normalization tree))))

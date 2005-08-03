@@ -67,7 +67,7 @@ namespace {
 
 <method name="simulate">
   <brief>Simulate an ARG and corresponding sequences.</brief>
-  <prototype>(simulate marker-list no-leaves . additional-keyword-parameters)</prototype>
+  <prototype>(simulate marker-list sim-spec . additional-keyword-parameters)</prototype>
   <example>(define markers (make-random-snp-markers 10 0.1 0.9))
 (define arg (simulate markers 100 :rho 400 :beta 10))
 
@@ -79,8 +79,11 @@ namespace {
 (newline)</example>
   <description>
     <p>
-      Simulate an ARG and corresponding sequences, based ARG parameters, 
-      a list of markers, and the number of markers to simulate.
+      Simulate an ARG and corresponding sequences, based on ARG parameters, 
+      a list of markers, and a simulation specification.  The specification 
+      is either a number--the number of samples to simulate -- or 
+      a population structure specification -- see the <em>CoaSim Guile
+      Manual</em> for details.
     </p>
     <p>
       The building of the ARG is affected by the following paramters, that 
@@ -105,6 +108,11 @@ namespace {
 	By default, this parameter is 0.
       </li>
     </ul>
+    <p>
+      For specifying migration rates between subpopulations (see the <em>CoaSim
+      Guile Manual</em> for details), the keyword parameter <b>:migrations</b>
+      is used.  This parameter takes a list of migration specifications.
+    </p>
     <p>
       For fine-monitoring of the simulation, callback functions can be given
       as key-word arguments.  The supported callbacks are:

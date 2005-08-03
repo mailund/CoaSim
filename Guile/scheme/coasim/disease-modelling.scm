@@ -17,9 +17,21 @@
 ;; -----</GUILE COMMENT>----------------------------------------- 
 
 (define-module (coasim disease-modelling) 
-  :use-module ((srfi srfi-1)   :select (partition zip))
+  :use-module ((srfi srfi-1)   :select (zip))
   :use-module ((ice-9 receive) :select (receive))
   :use-module ((ice-9 optargs) :select (let-keywords)))
+
+
+;; re-implemetation of partition from srfi-1 -- the existing one is
+;; not tail-recursive leading to a stack overflow when large
+;; haplotypes are processed.
+(define (partition pred list)
+  (let loop ((list list) (first '()) (second '()))
+    (if (null? list) 
+	(values (reverse first) (reverse second))
+	(if (pred (car list))
+	    (loop (cdr list) (cons (car list) first) second)
+	    (loop (cdr list) first (cons (car list) second))))))
 
 
 (define (process-indices sequence indices combine)

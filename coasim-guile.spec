@@ -1,6 +1,6 @@
 Summary: CoaSim -- A coalescence process simulator
 Name: coasim-guile
-Version: 3.2.0
+Version: 4.0.1
 Release: 1
 License: GPL
 Group: Applications/Bioinformatics
