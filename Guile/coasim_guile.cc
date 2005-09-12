@@ -58,6 +58,7 @@ namespace options {
 };
 
 
+static int dummy;
 static struct poptOption info_options[] = {
     {
 	"version",
@@ -110,6 +111,22 @@ static struct poptOption main_options[] = {
 	0
     },
 
+    // This is really here only for documentation purposes -- this
+    // option is NOT handled by libpopt but used to split the options
+    // before option parsing, to give some options to the main program
+    // and some to the scripts.
+    {
+	"args",
+	'a',
+	POPT_ARG_NONE,
+	&dummy,
+	0,
+	"All options following this option is passed to the scripts rather "
+	"than handled by CoaSim.",
+	0
+    },
+
+
     POPT_AUTOHELP
     { 0 } // sentinel
 };
@@ -147,39 +164,13 @@ init_scheme_bindings(void *dummy)
 }
 
 
-int
-main(int argc, const char *argv[])
+static std::vector<const char*> scripts;
+
+void
+real_main(void *dummy_closure, int argc, char *argv[])
 {
 
-
-  try {
-
-	poptContext ctxt = poptGetContext(0, argc, argv, main_options, 0);
-	poptSetOtherOptionHelp(ctxt, "scripts");
-
-	int opt = poptGetNextOpt(ctxt);
-	if (opt < -1)
-	    {
-		std::cerr << poptBadOption(ctxt, POPT_BADOPTION_NOALIAS)
-			  << ':' << poptStrerror(opt) << std::endl;
-		exit(2);
-	    }
-
-	if (options::version)
-	    {
-		std::cout << PACKAGE_STRING << std::endl;
-		exit(0);
-	    }
-
-	if (options::contact)
-	    {
-		std::cout << PACKAGE_STRING << "\n\n"
-			  << "For questions or comments, contact "
-			  << PACKAGE_BUGREPORT << "\n";
-		exit(0);
-	    }
-
-	scm_init_guile();
+    try {
 
 	// let use use :keyword instead of #:keyword
 	scm_c_eval_string("(read-set! keywords 'prefix)");
@@ -209,21 +200,14 @@ main(int argc, const char *argv[])
 	// run global initialization scripts
 	read_home_rc_file();
 
-	// run remaining arguments as scripts
-	const char *fname = poptGetArg(ctxt);
-	if (!fname and !options::interactive)
+	// run scripts
+	std::vector<const char*>::const_iterator i;
+	for (i = scripts.begin(); i != scripts.end(); ++i)
 	    {
-		std::cerr << "At least one run-script expected!\n";
-		return 1;
-	    }
-
-	while (fname)
-	    {
+		const char *fname = *i;
 		if (options::verbose) 
 		    std::cout << "Executing " << fname << std::endl;
 		scm_c_primitive_load(fname);
-
-		fname = poptGetArg(ctxt);
 	    }
 
 	if (options::interactive)
@@ -239,8 +223,68 @@ main(int argc, const char *argv[])
 
     } catch (std::exception &ex) {
 	std::cerr << "Unexpected exception: " << ex.what() << std::endl;
-	return 1;
     }
+}
+
+int
+main(int argc, const char *argv[])
+{
+
+    // split command line to CoaSim from command line to scripts
+    int split = argc;
+    for (int i = 1; i < argc; ++i)
+	if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i],"--args") == 0)
+	    {
+		split = i;
+		break;
+	    }
+
+    poptContext ctxt = poptGetContext(0, split, argv, main_options, 0);
+    poptSetOtherOptionHelp(ctxt, "scripts");
+
+    int opt = poptGetNextOpt(ctxt);
+    if (opt < -1)
+	{
+	    std::cerr << poptBadOption(ctxt, POPT_BADOPTION_NOALIAS)
+		      << ':' << poptStrerror(opt) << std::endl;
+	    exit(2);
+	}
+    
+    if (options::version)
+	{
+	    std::cout << PACKAGE_STRING << std::endl;
+	    exit(0);
+	}
+    
+    if (options::contact)
+	{
+	    std::cout << PACKAGE_STRING << "\n\n"
+		      << "For questions or comments, contact "
+		      << PACKAGE_BUGREPORT << "\n";
+	    exit(0);
+	}
+
+    // run remaining arguments as scripts
+    const char *fname = poptGetArg(ctxt);
+    if (!fname and !options::interactive)
+	{
+	    std::cerr << "At least one run-script expected!\n";
+	    return 1;
+	}
+    
+    while (fname)
+	{
+	    scripts.push_back(fname);
+	    fname = poptGetArg(ctxt);
+	}
+
+    if (split != argc)
+	{
+	    argv[split] = argv[0];
+	    scm_boot_guile(argc-split, (char**)(argv+split), real_main, 0);
+	}
+    else
+	scm_boot_guile(1, (char**)argv, real_main, 0);
 
     return 0;
 }

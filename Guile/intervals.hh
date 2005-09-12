@@ -24,7 +24,7 @@ namespace guile {
     extern scm_t_bits interval_tag;
     extern scm_t_bits local_tree_tag;
 
-    SCM guile::wrap_interval(SCM arg, const core::RetiredInterval *rinterval);
+    SCM wrap_interval(SCM arg, const core::RetiredInterval *rinterval);
 }
 
 #endif
