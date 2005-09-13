@@ -21,6 +21,7 @@ TESTS += population-structure-compilation-test.sh
 EXTRA_DIST =
 EXTRA_DIST += marker_test.sh marker-test.scm marker-test.expected
 EXTRA_DIST += simulate_test.sh simulate-test.scm simulate-test.expected
+EXTRA_DIST += epochs-test.expected epochs-test.scm epochs_test.sh
 EXTRA_DIST += population-structure-compilation-test.scm \
 		population-structure-compilation-test.sh \
 		population-structure-compilation-test.expected

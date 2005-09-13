@@ -1,0 +1,27 @@
+
+CoaSim is a tool for simulating the coalescent process with
+recombination and geneconversion under various demographic models. It
+effectively constructs the ancestral recombination graph for a given
+number of individuals and uses this to simulate samples of SNP,
+micro-satellite, and other haplotypes/genotypes. The generated sample
+can afterwards be separated in cases and controls, depending on states
+of selected individual markers. The tool can accordingly also be used
+to construct cases and control data sets for association studies.
+
+CoaSim is developed in collaboration between Bioinformatics ApS
+<http://www.bioinformatics.dk> and Bioinformatics Research Center
+(BiRC) <http://www.birc.au.dk>.
+
+
+
+CoaSim comes in two versions: a graphical interface with limited
+functionality, for exploratory use, and a Guile Scheme interface for
+power-use. A short introduction to both versions can be found in the
+Getting Started manual
+<http://www.daimi.au.dk/~mailund/CoaSim/download/getting-started-4.0.pdf>
+
+This module contains the core functionality, used by both the GUI and
+Guile Scheme version.  To use CoaSim you must link this module with
+either the GUI og Guile Scheme version, as explained at
+<http://www.daimi.au.dk/~mailund/CoaSim/#installation>.
+
