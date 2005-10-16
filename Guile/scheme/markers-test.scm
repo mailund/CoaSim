@@ -138,6 +138,44 @@
   (newline)
   )
 
+(use-modules ((coasim SNP genotypes)
+	      :select (split-in-cases-controls-on-marker
+		       split-in-cases-controls-on-marker/phased
+		       pair-haplotypes)))
+(let* ((markers (make-random-snp-markers 10 0.1 0.9))
+       (seqs    (simulate-sequences markers 10))
+
+       (is-he? (lambda (a) (list? (member a '((0 1) (1 0))))))
+       (is-hm? (lambda (a) (equal? a '(1 1))))
+       (is-trait? (lambda (a) (or (is-he? a) (is-hm? a))))
+       (no-traits 
+	(let* ((genotypes (pair-haplotypes seqs))
+	       (affected-genotype? (lambda (h) (is-trait? (car h))))
+	       (affected-genotypes (filter affected-genotype? genotypes))
+	       (no-aff-genotypes (length affected-genotypes)))
+	  (* 2 no-aff-genotypes)))
+
+       (cases-controls (split-in-cases-controls-on-marker/phased seqs 0
+						:disease-model 'dominant))
+       (cases (car cases-controls))
+       (controls (cadr cases-controls))
+
+       (cases-controls2 (split-in-cases-controls-on-marker/phased seqs 0 
+						 :disease-model 'dominant
+						 :remove-trait #f))
+       (cases2 (car cases-controls2))
+       (controls2 (cadr cases-controls2))
+       )
+  (newline)
+  (display no-traits)(newline)
+  (display (length cases))(newline)
+  (display (length cases2))(newline)
+  (newline)
+  (display (length (car cases)))(newline)
+  (display (length (car cases2)))(newline)
+  (newline)
+  )
+
 
 (use-modules ((coasim disease-modelling)))
 (let* ((markers (make-random-snp-markers 10 0.1 0.9))

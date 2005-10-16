@@ -1,9 +1,33 @@
-AC_INIT(CoaSim-Guile, 4.0.2, mailund@birc.dk)
+AC_INIT(CoaSim-Guile, 4.0.3, mailund@birc.dk)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.hh)
 
 AC_PROG_CXX
 AC_PROG_INSTALL
+
+AC_CHECK_LIB(popt, poptGetContext, dnl FOUND, DO NOTHING
+, dnl NOT FOUND
+AC_ERROR([[
+************************************************************************
+************************************************************************
+The popt option parsing library was not found.  This is currently the
+only supported form of option parsing, so without it you will not have
+access to command line options.
+************************************************************************
+************************************************************************
+]])
+)
+AC_CHECK_LIB(guile, scm_boot_guile, , 
+AC_ERROR([[
+************************************************************************
+************************************************************************
+Could not find the guile library.  Make sure you have it installed and
+in your include and library path.
+************************************************************************
+************************************************************************
+]])
+)
+
 
 AC_OUTPUT([
 	Makefile

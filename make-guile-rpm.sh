@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=4.0.2
+version=4.0.3
 release=1
 
 (cd Core; make dist)

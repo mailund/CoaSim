@@ -1,0 +1,22 @@
+
+
+	
+4.0.3
+=====
+
+2005-10-16  Thomas Mailund  <mailund@mailund.dk>
+
+	* scheme/coasim/SNP/genotypes.scm
+	(split-in-cases-controls-on-marker/phased): added split function
+	for phased genotypes.
+
+2005-10-12  Thomas Mailund  <mailund@mailund.dk>
+
+	* scheme/coasim/disease-modelling.scm: minor changes to
+	table->function.
+
+2005-10-11  Thomas Mailund  <mailund@mailund.dk>
+
+	* scheme/coasim/stepwise.scm (step-ms-marker): added step-wise
+	mutation model in a module.
+

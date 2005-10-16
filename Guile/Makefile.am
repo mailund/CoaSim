@@ -102,6 +102,7 @@ dist_scheme_coasim_DATA += scheme/coasim/batch.scm
 dist_scheme_coasim_DATA += scheme/coasim/io.scm
 dist_scheme_coasim_DATA += scheme/coasim/rand.scm
 dist_scheme_coasim_DATA += scheme/coasim/markers.scm
+dist_scheme_coasim_DATA += scheme/coasim/stepwise.scm
 dist_scheme_coasim_DATA += scheme/coasim/disease-modelling.scm
 dist_scheme_coasim_DATA += scheme/coasim/statistics.scm
 

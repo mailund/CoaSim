@@ -19,7 +19,7 @@
 (define-module (coasim disease-modelling) 
   :use-module ((srfi srfi-1)   :select (zip))
   :use-module ((ice-9 receive) :select (receive))
-  :use-module ((ice-9 optargs) :select (let-keywords)))
+  :use-module ((ice-9 optargs) :select (let-keywords let-optional)))
 
 
 ;; re-implemetation of partition from srfi-1 -- the existing one is
@@ -118,19 +118,41 @@
 ;; 	 (acons '(1 0) .1
 ;; 	 (acons '(1 1) .5
 ;; 	 '()))))))
-;;     (table->function t)))</example>
+;;     (table->function t)))
+;; 
+;; (define f-alist
+;;   (let ((t
+;; 	 (acons '(1 0) .1
+;; 	 (acons '(1 1) .5
+;; 	 '()))))))
+;;     (table->function t)))
+;; 
+;; (define f-alist
+;;   (let ((t
+;; 	 (acons '(1 0) .1
+;; 	 (acons '(1 1) .5
+;; 	 '()))))))
+;;     (table->function t 0.1)))</example>
 ;;    <description>
 ;;     <p>
 ;;      Translates a table, either a hash table or an associative list, into
 ;;      a function that can be used with qtl-on-markers or 
 ;;      split-in-cases-controls-on-markers.
 ;;     </p>
+;;     <p>
+;;      An optional second parameter can be used to set the default value for
+;;      the function to return when the table does not contain whatever
+;;      value the function is called with.  By default this value is 0.0.
+;;     </p>
 ;;    </description>
 ;;   </method>
 ;;   -----</GUILE COMMENT>----------------------------------------- 
-(define-public (table->function table)
-  (let ((get (if (list? table) assoc-ref hash-ref)))
-    (lambda s (get table s))))
+(define-public (table->function table . rest)
+  (let-optional rest ((default 0.0))
+    (let ((get (if (list? table) assoc-ref hash-ref)))
+      (lambda s 
+	(let ((val (get table s)))
+	  (if val val default))))))
 
 
 
@@ -141,7 +163,7 @@
 ;;    </brief>
 ;;    <prototype>(remove-alleles sequences indices)</prototype>
 ;;    <example> (use-modules (coasim disease-modelling))
-;; (remove-allele seqs trait-indices)))</example>
+;; (remove-allele seqs trait-indices)</example>
 ;;    <description>
 ;;     <p>
 ;;      Removes the alleles at `inidices' from the sequences; 
@@ -212,10 +234,10 @@
 ;;      satisfy the is-case? predicate, the sequence is considered a case, 
 ;;      otherwise a control.
 ;;     </p>
-;;     <p>
-;;      By default the alleles at the marker indices are removed from the
-;;      resulting lists; an optional parameter, :remove-traits, if set to #f, 
-;;      will prevent removal of the marker alleles.
+;;     <p> By default the alleles at the marker indices are removed
+;;      from the resulting lists; an optional parameter,
+;;      <b>:remove-traits</b>, if set to #f, will prevent removal of
+;;      the marker alleles.
 ;;     </p>
 ;;    </description>
 ;;   </method>
@@ -245,10 +267,9 @@
 ;;      is-case? predicate, the sequence is considered a case, otherwise a
 ;;      control.
 ;;     </p>
-;;     <p>
-;;      By default the alleles at the marker is removed from the resulting
-;;      lists; an optional parameter, :remove-trait, if set to #f, will prevent
-;;      removal of the marker alleles.
+;;     <p> By default the alleles at the marker is removed from the
+;;      resulting lists; an optional parameter, <b>:remove-trait</b>,
+;;      if set to #f, will prevent removal of the marker alleles.
 ;;     </p>
 ;;    </description>
 ;;   </method>
@@ -283,10 +304,10 @@
 ;;       Returns a list of lists, where the car is the sequence and the 
 ;;       cadr is the calculated value.
 ;;     </p>
-;;     <p>
-;;      By default the alleles at the marker indices are removed from the
-;;      resulting lists; an optional parameter, :remove-traits, if set to #f, 
-;;      will prevent removal of the marker alleles.
+;;     <p> By default the alleles at the marker indices are removed
+;;      from the resulting lists; an optional parameter,
+;;      <b>:remove-traits</b>, if set to #f, will prevent removal of
+;;      the marker alleles.
 ;;     </p>
 ;;    </description>
 ;;   </method>

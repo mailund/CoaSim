@@ -1,5 +1,19 @@
 \documentclass{manual}
 \usepackage{url}
+\usepackage{subfigure}
+\usepackage{wrapfig}
+
+% metapost figures
+\usepackage{emp}
+\empTeX{%
+\documentclass{report}
+\usepackage{charter}            %for body
+\usepackage{helvet}             %for sf
+\usepackage{euler}              %for math
+}
+\usepackage{ifpdf}
+\ifpdf\DeclareGraphicsRule{*}{mps}{*}{}\fi
+
 
 \title{CoaSim Guile Manual}
 \subtitle{Using the Guile-based CoaSim Simulator}
@@ -11,6 +25,7 @@
 
 
 \begin{document}
+\begin{empfile}
 
 
 \section{About This Manual}
@@ -360,14 +375,12 @@ $0$ wild-types.  Here, \texttt{trait-idx} is the index of the marker
 to split on, indexing from $0$, in \texttt{sequences}.  The function
 returns a list of two lists, the first being the mutants the second
 the wild-types.  Both lists have the marker at \texttt{trait-idx}
-removed, i.e.\ the contain one less marker than the input
-sequence.\footnote{
-  It is possible to disable the removal of the trait alleles in this
-  function by calling the function with the key-word argument
-  \texttt{:remove-trait} set to \texttt{\#f}.  In most cases, however,
-  you do not want to keep the trait marker after having determined the
-  case/control phenotype from it, so the default is to remove it.
-  }
+removed, i.e.\ the contain one less marker than the input sequence.
+It is possible to disable the removal of the trait alleles in this
+function by calling the function with the key-word argument
+\texttt{:remove-trait} set to \texttt{\#f}.  In most cases, however,
+you do not want to keep the trait marker after having determined the
+case/control phenotype from it, so the default is to remove it.
 
 As an example, consider the following script:
 \begin{code}
@@ -468,52 +481,6 @@ $1\%$ of wild-types, for example, you would use:
 \end{code}
 
 
-\subsection{Running Multiple Simulations}
-\label{sec:runn-mult-simul}
-
-So far, we have only considered scripts for running a single
-simulation, but running several simulations is not much more
-complicated than running a single simulation.  Consider this variation
-on the very first script we saw, with changes underlined:
-\begin{code}
-(use-modules \underline{(coasim batch)} (coasim rand))
-\underline{(repeat 10}
-   (let* ((markers (make-random-snp-markers 10 0 1))
-          (seqs (simulate-sequences markers 10)))
-     (display seqs)(newline))\underline{)}
-\end{code}
-
-In this version, we load the module \texttt{(coasim batch)} which
-gives us access to the function \texttt{repeat} that let us run a
-script a fixed number of times, in this case $10$.
-
-When we are just printing the results of a simulation, as above, the
-\texttt{repeat} function is simple and easy to use, but if we want to
-save the results in various files we want to be able to use different
-files for each simulation.  One way of doing this is to have a counter
-that is incremented with each iteration, and use this counter to
-create new file names for each simulation.  Using the function
-\texttt{repeat-with-index}, also from \texttt{(coasim batch)}, this
-could look like:
-\begin{code}
-(use-modules (coasim rand) (coasim io) (coasim batch))
-(repeat-with-index (i 1 10)
-   (let* ((markers (make-random-snp-markers 10 0 1))
-          (seqs (simulate-sequences markers 10))
-          (pos-file (string-append "positions." (number->string i) ".txt"))
-          (seq-file (string-append "sequences." (number->string i) ".txt")))
-     (call-with-output-file pos-file (marker-positions-printer markers))
-     (call-with-output-file seq-file (sequences-printer seqs))))
-\end{code}
-Here the variable \texttt{i} iterates from $1$ to $10$, and for each
-value a list of markers and sequences are generated and written to
-files \texttt{positions.}$i$\texttt{.txt} and
-\texttt{sequences.}$i$\texttt{.txt}, respectively.
-
-We will return to \texttt{(coasim batch)} again later in this manual,
-for constructing more complex scripts, but for now we will once again
-consider running a single simulation per script.
-
 
 \subsection{Unphased Genotype Sequences}
 \label{sec:unph-genotype-sequ}
@@ -573,16 +540,245 @@ As a short-cut for setting common probabilities, we can use the
 keyword argument \texttt{:disease-model}.  Setting the disease model
 to \texttt{'dominant}:
 \begin{code}
-(split-in-cases-controls-on-marker genotypes \underline{:disease-model} '\underline{dominant})
+(split-in-cases-controls-on-marker genotypes idx
+                                   \underline{:disease-model} '\underline{dominant})
 \end{code}
 will set the probability for both homozygote mutants and heterozygotes
 being cases to $1$ and the probability for homozygote wild-types being
 cases to $0$, while setting the disease model to \texttt{'recessive}
 \begin{code}
-(split-in-cases-controls-on-marker genotypes \underline{:disease-model} '\underline{recessive})
+(split-in-cases-controls-on-marker genotypes idx
+                                   \underline{:disease-model} '\underline{recessive})
 \end{code}
 will set the probability of homozygote mutants being cases to $1$ and
 the probability of the other two genotypes being cases to $0$.
+
+
+\subsection{Phased Genotype Sequences}
+\label{sec:phased-genotypes}
+
+Although we will usually work with either haplotype sequences or
+unphased genotype sequences---since the first is the actual result of
+the simulated process and the second the usual experimental data
+available---CoaSim also has some support for phased genotypes.  Phased
+genotypes are simply haplotypes considered in pairs; a list of an even
+number of haplotypes can also be seen as a list of phased genotypes of
+half the size.
+
+In the \texttt{(coasim SNP genotypes)} module, the
+\texttt{split-in-cases-controls\-on-marker/phased} function does
+exactly this.  As input, it takes a sequence, an index, and optionally
+a disease-model---exactly like the
+\texttt{split-in-cases\-controls-on-marker} function described
+above---but this function considers the sequence a list of haplotypes
+that should, pairwise, be split as genotypes.  The result will, as
+above, be a list of cases and a list of controls, but these are lists
+with an even number of haplotypes that, again, can be seen as lists of
+genotypes of half the length.
+
+
+\subsection{Complex Disease Models}
+\label{sec:compl-dise-models}
+
+Splitting the simulated sequences into cases and controls on a single
+marker, as we have seen now for both haplotype and (unphased) genotype
+data, is the common case for simulating data for disease mapping
+applications.  More complex disease models require a bit more
+programming on the user's side, but a number of functions are
+available in the \texttt{(coasim disease-modelling)} module for
+assisting in this.
+
+The \texttt{split-in-cases-controls-on-marker} function in this module
+is a generalisation of the functions in the \texttt{(coasim SNP
+  haplotype)} and \texttt{(coasim SNP genotype)} functions of the same
+name---or as it is, the functions in these modules are implemented as
+specialisations of this more general function.  The function in this
+module takes a list of sequences (either haplotypes or genotypes), a
+marker index, and a predicate function used for determining which
+sequences are cases and which are controls:
+\begin{code}
+(split-in-cases-controls-on-marker sequences marker-idx is-case?)
+\end{code}
+
+The predicate function is called with the allele at the marker index
+in each sequence, and if it returns \texttt{\#t} the sequence is
+considered a case sequence, otherwise it is considered a control
+sequence.  So to emulate the default behaviour of the \texttt{(coasim
+  SNP haplotype)} function we could use:
+\begin{code}
+(use-modules (coasim disease-modelling))
+(let ((is-case? (lambda (a) (= 1 a))))
+   (split-in-cases-controls-on-marker seqs marker-idx is-case?))) 
+\end{code}
+
+Using different variations on the \texttt{is-case?} predicate, it is
+simple to implement the different disease models we saw in the
+previous two sections, and not surprisingly the functions we used
+there were implemented in exactly this way.
+
+A slightly more general function is
+\texttt{split-in-cases-controls-on-markers} (notice the plural).  It
+is very similar to \texttt{split-in-cases-controls-on-marker} (notice
+singular), except that it takes a list of marker indices and maps
+these to the predicate to decide on the classification of cases.  For
+example, to model that both the marker at index 2 and the marker at
+index 4 must be mutants for a disease to develop, we can use:
+\begin{code}
+(use-modules (coasim disease-modelling))
+(let ((is-case? (lambda (a2 a4) (and (= 1 a2) (= 1 a4)))))
+   (split-in-cases-controls-on-markers seqs '(2 4) is-case?)))
+\end{code}
+where the call to \texttt{split-in-cases-controls-on-markers}
+specifies that we are interested in the markers at index 2 and 4,
+\texttt{'(2 4)}---which means that the \texttt{is-case?} predicate is
+called with the alleles at those two markers---and the
+\texttt{is-case?} predicate returns true if both alleles are 1.
+
+Both split functions removes the marker(s) used for testing the
+disease status from the sequences by default, but as before this can
+be prevented by setting the \texttt{:remove-trait} and
+\texttt{:remove-traits} arguments, for the two functions respectively,
+to \texttt{\#f}.  If they are left in, they can later be removed using
+the function \texttt{remove-alleles} that takes a list of sequences
+and a list of indices and removes the markers on those indices from
+all sequences:
+\begin{code}
+(use-modules (coasim disease-modelling))
+(remove-allele sequences indices)
+\end{code}
+
+Rather than simply splitting the sequences in two classes, we can
+associate a value to each, based on alleles at selected markers, and
+use that to separate cases from controls, based on some threshold
+value, or randomly, considering the value a probability of being
+diseased.  The function \texttt{qtl-on-markers} can be used to
+associate values to the sequences.  It is called similar to the
+\texttt{split-in-cases-controls-on-markers}, but instead of calling a
+predicate for each sequence it calls a function for calculating the
+value that should be associated with the sequence.
+
+As an example, we consider marker 2, 3 and 4 and associate a value to
+each sequence by letting marker 2 contribute 0.5 if it is a mutant
+(and 0 otherwise) and markers 3 and 4 contribute 0.2 each for mutant
+alleles (and 0 otherwise) and having the value be the sum of these:
+\begin{code}
+(use-modules (coasim markers) (coasim disease-modelling) (coasim rand))
+
+(define sequences
+  (simulate-sequences (make-random-snp-markers 10 0 1) 10))
+
+(define sequences-and-values
+  (let ((seq->value (lambda (a2 a3 a4) (+ (* .5 a2) (* .2 a3) (* .2 a4)))))
+    (qtl-on-markers sequences '(2 3 4) seq->value)))
+
+;; display the sequences and the values associated to each sequence
+(define (print-seq-and-value seq-and-value)
+   (let ((seq   (car seq-and-value))
+         (value (cadr seq-and-value)))
+     (display "seq: ")(display seq)(display " ")
+     (display "value: ")(display value)(newline)))
+(for-each print-seq-and-value sequences-and-values)
+\end{code}
+
+As the split functions, \texttt{qtl-on-markers} removes the indices
+used for the value calculations, and as before the
+\texttt{:remove-traits} can be used to disable this.
+
+Once the sequences have been annotated with values in this way, we can
+use the values to split them in cases and controls.  There are two
+functions to assist in this: \texttt{split-on-threshold} and
+\texttt{split-on-probability}.  The \texttt{split-on\-threshold}
+function simply considers any sequence with a value above a specified
+threshold a case and all others controls.  As an example, if we wish
+to consider individuals with a mutation at marker 2 and at least one
+mutation at either 3 or 4, in the previous example, a case, we can use
+the threshold 0.6.  Markers 3 and 4 alone can at most reach 0.4 and
+marker 2 alone only 0.5, but with a mutation in marker 2 and at least
+one in the other two we get at least 0.7.  We can split on this, using
+\begin{code}
+(define cases-and-controls
+  (split-on-threshold sequences-and-values 0.6))
+(define cases    (car cases-and-controls))
+(define controls (cadr cases-and-controls))
+\end{code}
+
+Alternatively, we can consider the values probabilities of being cases
+and select the cases based on this probability.  This is what the
+\texttt{split-on-probability} does; otherwise it works exactly as the
+\texttt{split-on-threshold} function.
+\begin{code}
+(define cases-and-controls (split-on-probability sequences-and-values))
+(define cases    (car cases-and-controls))
+(define controls (cadr cases-and-controls))
+\end{code}
+
+Rather than having a function to compute a value for a list of
+alleles, it is sometimes more convenient to have a table mapping
+haplotypes or genotypes to values.  The function
+\texttt{table->function} can then be used to translate such a table
+into a function that can be used with the \texttt{qtl-on-markers}
+function.
+\begin{code}
+(define prob-table
+  (acons '(1 0) .2
+  (acons '(1 1) .4 
+         '())))
+(define seq->value (table->function prob-table))
+(define sequences-and-values
+  (qtl-on-markers sequences '(2 4) seq->value))
+\end{code}
+
+The \texttt{table->function} function can translate both association
+lists (created with \texttt{acons} as above) or hash-tables (created
+with the \texttt{make-hash-table} and \texttt{hash-create-handle!}
+functions) into functions.
+
+
+\subsection{Running Multiple Simulations}
+\label{sec:runn-mult-simul}
+
+So far, we have only considered scripts for running a single
+simulation, but running several simulations is not much more
+complicated than running a single simulation.  Consider this variation
+on the very first script we saw, with changes underlined:
+\begin{code}
+(use-modules \underline{(coasim batch)} (coasim rand))
+\underline{(repeat 10}
+   (let* ((markers (make-random-snp-markers 10 0 1))
+          (seqs (simulate-sequences markers 10)))
+     (display seqs)(newline))\underline{)}
+\end{code}
+
+In this version, we load the module \texttt{(coasim batch)} which
+gives us access to the function \texttt{repeat} that let us run a
+script a fixed number of times, in this case $10$.
+
+When we are just printing the results of a simulation, as above, the
+\texttt{repeat} function is simple and easy to use, but if we want to
+save the results in various files we want to be able to use different
+files for each simulation.  One way of doing this is to have a counter
+that is incremented with each iteration, and use this counter to
+create new file names for each simulation.  Using the function
+\texttt{repeat-with-index}, also from \texttt{(coasim batch)}, this
+could look like:
+\begin{code}
+(use-modules (coasim rand) (coasim io) (coasim batch))
+(repeat-with-index (i 1 10)
+   (let* ((markers (make-random-snp-markers 10 0 1))
+          (seqs (simulate-sequences markers 10))
+          (pos-file (string-append "positions." (number->string i) ".txt"))
+          (seq-file (string-append "sequences." (number->string i) ".txt")))
+     (call-with-output-file pos-file (marker-positions-printer markers))
+     (call-with-output-file seq-file (sequences-printer seqs))))
+\end{code}
+Here the variable \texttt{i} iterates from $1$ to $10$, and for each
+value a list of markers and sequences are generated and written to
+files \texttt{positions.}$i$\texttt{.txt} and
+\texttt{sequences.}$i$\texttt{.txt}, respectively.
+
+We will return to \texttt{(coasim batch)} again later in this manual,
+for constructing more complex scripts, but for now we will once again
+consider running a single simulation per script.
 
 
 
@@ -607,17 +803,19 @@ population structure of the sample.
 \subsection{Epochs: Bottlenecks and Exponential Growth}
 \label{sec:epochs}
 
+
 Simple extensions to the fixed size population model are bottlenecks
 and periods of exponential growth.  A bottleneck is parameterised with
 the scale factor of the effective population size: $f=N_b/N$, where
 $N$ is the effective population size outside the bottleneck and $N_b$
 the effective population size inside the bottleneck.  To specify a
 bottleneck of $f=0.2$, starting at time $1.5$ (as measured in $2N$),
-we use
+see Fig.~\ref{fig:infinite-bottleneck}, we use
 \begin{code}
 (simulate-sequences markers
      '(population 1 :epochs (bottleneck 0.2 1.5) (sample 10)))
 \end{code}
+
 
 The setup is a tad more complicated than the simple number of samples
 in the simulation, but we will walk through it: Instead of a simple
@@ -646,18 +844,71 @@ epoch, a bottleneck \texttt{(bottleneck 0.2 1.5)}.  This specification
 says that the size of the bottleneck is 0.2 ($f=0.2$) and that the
 bottleneck starts at time 1.5; there is no end time for this
 particular bottleneck, so in effect it is just a reduction of the
-effective population size to $20\%$ at time 1.5. 
-
-%%FIXME: figure
-
-To specify a bottleneck of a finite extend, we simply add a third,
-parameter, e.g.\ to have the bottleneck from time 1.5 to 3:
+effective population size to $20\%$ at time 1.5.  To specify a
+bottleneck of a finite extend, we simply add a third, parameter, e.g.\
+to have the bottleneck starting at time 1.5 and ending at time 3 we
+use:
 \begin{code}
 (simulate-sequences markers
      '(population 1 :epochs (bottleneck 0.2 1.5 \underline{3}) (sample 10)))
 \end{code}
+see Fig.~\ref{fig:finite-bottleneck}.
 
-%%FIXME: figure
+\begin{figure}[t]
+  \begin{empdef}[bottleneck_infinite](40,60)
+    numeric bot_start, bot_left, bot_right;
+  
+    bot_start = 1.5h/6;
+    bot_left  = w/2-w/10;
+    bot_right = w/2+w/10;
+  
+    fill (0,0)--(0,bot_start)--(bot_left,bot_start)--(bot_left,h)
+         --(bot_right,h)--(bot_right,bot_start)--(w,bot_start)--(w,0)
+         --cycle withcolor .2[white,black];
+    draw (0,0)--(0,bot_start)--(bot_left,bot_start)--(bot_left,h);
+    draw (w,0)--(w,bot_start)--(bot_right,bot_start)--(bot_right,h);
+  
+    label.rt(btex $\tau=0$ etex,   (w,0));
+    label.rt(btex $\tau=1.5$ etex, (w,bot_start));
+  \end{empdef}
+  \begin{empdef}[bottleneck_finite](40,60)
+    numeric bot_start, bot_end, bot_left, bot_right;
+
+    bot_start = 1.5h/6;
+    bot_end   = 3  h/6;
+    bot_left  = w/2-w/10;
+    bot_right = w/2+w/10;
+  
+    fill (0,0)--(0,bot_start)--(bot_left,bot_start)--(bot_left,bot_end)
+         --(0,bot_end)--(0,h)--(w,h)--(w,bot_end)--(bot_right,bot_end)
+         --(bot_right,bot_start)--(w,bot_start)--(w,0)--cycle
+         withcolor .2[white,black];
+    draw (0,0)--(0,bot_start)--(bot_left,bot_start)--(bot_left,bot_end)
+         --(0,bot_end)--(0,h);
+    draw (w,0)--(w,bot_start)--(bot_right,bot_start)--(bot_right,bot_end)
+         --(w,bot_end)--(w,h);
+  
+    label.rt(btex $\tau=0$ etex,   (w,0));
+    label.rt(btex $\tau=1.5$ etex, (w,bot_start));
+    label.rt(btex $\tau=3$ etex,   (w,bot_end));
+  \end{empdef}
+  
+  \hspace*{.5cm}
+  \subfigure[A bottleneck of size 0.2 starting at time $\tau=1.5$ and
+             extending back in time. \label{fig:infinite-bottleneck}]
+             {\hspace*{1.5cm}\empuse{bottleneck_infinite}\hspace*{1.5cm}}
+  \hfill
+  \subfigure[A bottleneck of size 0.2 starting at time $\tau=1.5$ and
+             and ending at time $\tau=3$. \label{fig:finite-bottleneck}]
+             {\hspace*{1.5cm}\empuse{bottleneck_finite}\hspace*{1.5cm}}
+  \hspace*{.5cm}
+
+  \caption{A bottleneck of size 0.2 starting at time $\tau=1.5$ and
+    extending back in time indefinitely (left) or until time $\tau=3$
+    (right).}
+  \label{fig:bottlenecks}
+\end{figure}
+
 
 Exponential growth is specified in a similar way, and parameterised by
 the exponential growth factor, $\beta=2Nb$, (see \emph{Hein
@@ -667,13 +918,73 @@ starting at time 1.5, we use:
 (simulate-sequences markers
      '(population 1 :epochs (growth 10 1.5) (sample 10)))
 \end{code}
-once again, an end time can be specified as a third parameter.
+see Fig.~\ref{fig:infinite-growth}.  Once again, an end time can be
+specified as a third parameter:
 \begin{code}
 (simulate-sequences markers
      '(population 1 :epochs (growth 10 1.5 \underline{3}) (sample 10)))
 \end{code}
+see Fig.~\ref{fig:finite-growth}.  After a finite period of growth,
+the population size returns to the size outside the epoch, i.e.\ the
+original size before the growth, unless the growth is followed by a
+bottleneck to reduce the population size.
 
-%%FIXME: what should the population size be after the growth?
+\begin{figure}[t]
+  \begin{empdef}[growth_infinite](40,60)
+    numeric growth_start, growth_left, growth_right;
+  
+    growth_start = 1.5h/6;
+    growth_left  = w/2-w/20;
+    growth_right = w/2+w/20;
+
+    fill (0,0)--(0,growth_start)..{up}(growth_left,h)
+         --(growth_right,h){down}..(w,growth_start)--(w,0)--cycle
+         withcolor .2[white,black];
+  
+    draw (0,0)--(0,growth_start)..{up}(growth_left,h);
+    draw (w,0)--(w,growth_start)..{up}(growth_right,h);
+  
+    label.rt(btex $\tau=0$ etex,   (w,0));
+    label.rt(btex $\tau=1.5$ etex, (w,growth_start));
+  \end{empdef}
+  \begin{empdef}[growth_finite](40,60)
+    numeric growth_start, growth_end, growth_left, growth_right;
+
+    growth_start = 1.5h/6;
+    growth_end   = 3  h/6;
+    growth_left  = w/2-w/10;
+    growth_right = w/2+w/10;
+
+    fill (0,0)--(0,growth_start)..{up}(growth_left,growth_end)
+         --(0,growth_end)--(0,h)--(w,h)--(w,growth_end)
+         --(growth_right,growth_end){down}..(w,growth_start)--(w,0)--cycle
+         withcolor .2[white,black];
+  
+    draw (0,0)--(0,growth_start)..{up}(growth_left,growth_end)
+         --(0,growth_end)--(0,h);
+    draw (w,0)--(w,growth_start)..{up}(growth_right,growth_end)
+         --(w,growth_end)--(w,h);
+  
+    label.rt(btex $\tau=0$ etex,   (w,0));
+    label.rt(btex $\tau=1.5$ etex, (w,growth_start));
+    label.rt(btex $\tau=3$ etex,   (w,growth_end));
+  \end{empdef}
+  
+  \hspace*{.5cm}
+  \subfigure[Exponential growth starting at time $\tau=1.5$ and
+             extending back in time. \label{fig:infinite-growth}]
+             {\hspace*{1.5cm}\empuse{growth_infinite}\hspace*{1.5cm}}
+  \hfill
+  \subfigure[Exponential growth starting at time $\tau=1.5$ and
+             and ending at time $\tau=3$. \label{fig:finite-growth}]
+             {\hspace*{1.5cm}\empuse{growth_finite}\hspace*{1.5cm}}
+  \hspace*{.5cm}
+
+  \caption{Exponential growth starting at time $\tau=1.5$ and
+    extending back in time indefinitely (left) or until time $\tau=3$
+    (right).}
+  \label{fig:growth}
+\end{figure}
 
 Since a common case is that the growth is going on in the entire
 population's lifetime, CoaSim provide a shortcut to specify this, using
@@ -681,8 +992,6 @@ the keyword \texttt{:beta} as in
 \begin{code}
 (simulate-sequences markers '(population 1 \underline{:beta 10} (sample 10)))
 \end{code}
-
-%%FIXME: figure
 
 For convenience, the \texttt{:beta} option can also be given to the
 \texttt{simulate-sequences} function directly, when using the simple
@@ -740,15 +1049,33 @@ further back in time than any epochs or merges in the sub-trees
 specified by the population structures.
 
 Thus, to simulate 20 samples from each of two populations merging at
-time 10, we use:
+time 10, see Fig.~\ref{fig:sub-populations}, we use:
 \begin{code}
 (simulate-sequences markers
    '(population 1 (merge 10 (population 1 (sample 20))
                             (population 1 (sample 20)))))
 \end{code}
 
-%%FIXME: figure
+\begin{wrapfigure}{r}{4cm}
+  \vspace*{-.5\baselineskip}
+  \centering
+  \begin{emp}(55,50)
+    fill (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h)--
+         (w/2+w/8,h)--(w/2+w/8,h/2)--(w,0)--
+         (w-w/4,0)--(w/2,h/2)--(w/4,0)--cycle
+         withcolor .2[white,black];
 
+    draw (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h);
+    draw (w/4,0)--(w/2,h/2)--(w-w/4,0);
+    draw (w,0)--(w/2+w/8,h/2)--(w/2+w/8,h);
+  
+    label.rt(btex $\tau=0$ etex, (1.1w,0));
+    label.rt(btex $\tau=10$ etex, (1.1w,h/2));
+  \end{emp}
+  \caption{Two populations merging at time $\tau=10$.}
+  \label{fig:sub-populations}
+\end{wrapfigure}
+%%
 The outermost \texttt{(population ...)} specifies the population size
 after (back in time) the merge and the two inner \texttt{(population
   ...)}s the effective population size and the sample size in the
@@ -763,6 +1090,83 @@ same way as time is scaled for population bottlenecks (and is in fact
 just syntactic sugar for bottlenecks covering the entire population
 life time).
 
+\begin{figure}[tb]
+  \centering
+  \begin{empdef}[three_populations](55,60)
+
+    fill (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h)--
+         (w/2+w/8,h)--(w/2+w/8,h/2)--(w,0)--
+         (7w/8,0)--(9w/16,h/2)--(6w/8,0)--
+         (5w/8,0)--(w/2,h/2)--(w/4,0)--cycle
+         withcolor .2[white,black];
+
+    draw (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h);
+    draw (w,0)--(w/2+w/8,h/2)--(w/2+w/8,h);
+    draw (w/4,0)--(w/2,h/2)--(5w/8,0);
+    draw (6w/8,0)--(9w/16,h/2)--(7w/8,0);
+
+    label.rt(btex $\tau=0$ etex, (1.1w,0));
+    label.rt(btex $\tau=10$ etex, (1.1w,h/2));
+  \end{empdef}
+  \begin{empdef}[three_populations_bottleneck](55,60)
+
+    fill  (0,0)--(w/2-w/8,11h/20)--(w/2-w/16,11h/20)
+         --(w/2-w/16,13h/20)--(w/2-w/8,13h/20)
+         --(w/2-w/8,h)--(w/2+w/8,h)--(w/2+w/8,13h/20)
+         --(w/2+w/16,13h/20)--(w/2+w/16,11h/20)
+         --(w/2+w/8,11h/20)--(w,0)--
+         (7w/8,0)--(9w/16,h/2)--(6w/8,0)--
+         (5w/8,0)--(w/2,h/2)--(w/4,0)--cycle
+         withcolor .2[white,black];
+
+    draw (0,0)--(w/2-w/8,11h/20)--(w/2-w/16,11h/20)
+         --(w/2-w/16,13h/20)--(w/2-w/8,13h/20)
+         --(w/2-w/8,h);
+    draw (w,0)--(w/2+w/8,11h/20)--(w/2+w/16,11h/20)
+         --(w/2+w/16,13h/20)--(w/2+w/8,13h/20)
+         --(w/2+w/8,h);
+    draw (w/4,0)--(w/2,h/2)--(5w/8,0);
+    draw (6w/8,0)--(9w/16,h/2)--(7w/8,0);
+
+    label.rt(btex $\tau=0$ etex, (1.1w,0));
+    label.rt(btex $\tau=10$ etex, (1.1w,h/2));
+    label.rt(btex $\tau=12$ etex, (1.1w,13h/20));
+  \end{empdef}
+  \begin{empdef}[three_populations_diff_merge](55,60)
+
+    fill (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h)--
+         (w/2+w/8,h)--(w/2+w/8,h/2)--(w,0)--
+         (7w/8,0)--(10w/16,7h/20)--(6w/8,0)--
+         (5w/8,0)--(w/2,h/2)--(w/4,0)--cycle
+         withcolor .2[white,black];
+
+    draw (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h);
+    draw (w,0)--(w/2+w/8,h/2)--(w/2+w/8,h);
+    draw (w/4,0)--(w/2,h/2)--(5w/8,0);
+    draw (6w/8,0)--(10w/16,7h/20)--(7w/8,0);
+
+    label.rt(btex $\tau=0$ etex, (1.1w,0));
+    label.rt(btex $\tau=8$ etex, (1.1w,7h/20));
+    label.rt(btex $\tau=10$ etex, (1.1w,h/2));
+  \end{empdef}
+
+  \hspace*{.2cm}
+  \subfigure[Three populations merging at time $10$.
+             \label{fig:three_populations}]
+            {\hspace*{.2cm}\empuse{three_populations}\hspace*{.2cm}}
+  \hfill
+  \subfigure[Three populations merging followed by a bottleneck.
+             \label{fig:three_populations_bottleneck}]
+            {\hspace*{.2cm}\empuse{three_populations_bottleneck}\hspace*{.2cm}}
+  \hfill
+  \subfigure[Three populations merging at time $8$ and $10$.
+             \label{fig:three_populations_diff_merge}]
+            {\hspace*{.2cm}\empuse{three_populations_diff_merge}\hspace*{.2cm}}
+  \hspace*{.2cm}
+
+  \caption{Three different population structures.}
+  \label{fig:population-structures}
+\end{figure}
 As an example we can simulate three subpopulations, one twice the
 effective size of the other two, merging at time 10 back in time to a
 population with the same effective size as the larger sub-population at
@@ -773,8 +1177,7 @@ the current time:
                             (population 1 (sample 20))
                             (population 1 (sample 20)))))
 \end{code}
-
-%%FIXME: figure
+see Fig.~\ref{fig:three_populations}.
 
 The subpopulation size combine with epochs in the expected way,
 considering that they behave similar to bottlenecks, e.g.\ a
@@ -792,9 +1195,7 @@ the population merge is followed, back in time, by a bottleneck from
 time $10$ to time $12$ that scales the effective size to half that of
 the smaller current subpopulations: $0.25\cdot{}2=0.5$, the $0.25$
 factor from the bottleneck and the $2$ factor from the population
-size.
-
-%%FIXME: figure
+size, see Fig.~\ref{fig:three_populations_bottleneck}.
 
 A population structure tree does not have to be in only two levels, as
 above, where a merge is followed by an edge to a leaf; each sub-tree
@@ -808,7 +1209,8 @@ can be of the general form containing further merges, as for example
 \end{code}
 where the original population splits in two (forward in time) $10$
 time units ago, one half the size of the other, and where the smaller
-population splits again $8$ time units ago.
+population splits again $8$ time units ago, see
+Fig.~\ref{fig:three_populations_diff_merge}.
 
 The merge times closer to the root must, of course, be larger than the
 merge times further down the tree, since events closer to the root
@@ -861,8 +1263,6 @@ The \texttt{\textit{destination}} parameter is the population that
 receives the immigrants, going back in time, and the
 \texttt{\textit{source}} parameter is the population from which they
 emigrate, again going back in time.
-
-%% FIXME: figure of migration from source to destination
 
 The \texttt{\textit{rate}} parameter is the migration rate $M=4Nm$
 (see \emph{Hein et al.}\ Sect.~4.6).  Notice that the rate is given in
@@ -1545,6 +1945,8 @@ waiting time moves past the length of the edge being processed.
     (custom-marker pos 0 mutate)))
 \end{code}
 
+The step-wise model, as implemented above, is also available in the
+module \texttt{(coasim stepwise)}, implemented similar to above.
 
 \section{Customising CoaSim}
 \label{sec:customising-coasim}
@@ -1603,19 +2005,19 @@ installed modules, by the \texttt{use-modules} function:
 (use-modules (stepwise))
 \end{code}
 
+For this particular case, the step-wise mutation model, you can also
+use the \texttt{(coasim stepwise)} module distributed with CoaSim, but
+in general, custom modules can be used to extend the functionality of
+the simulator in a flexible way.
 
 \section{Contact}
 \label{sec:contact}
 
-For any comments or questions regarding CoaSim, please contact the
-author, Thomas Mailund, at \url{<mailund@mailund.dk>} or
-\url{<mailund@birc.au.dk>}.
+For any comments or questions regarding CoaSim, please contact Thomas
+Mailund, at \url{<mailund@mailund.dk>} or \url{<mailund@birc.au.dk>}.
 
 
+\end{empfile}
 \end{document}
 
-%% Local Variables: ***
-%% TeX-command-default:"LaTeX PDF" ***
-%% End: ***
-
-% LocalWords:   CoaSim geneconversion haplotype haplotypes SNP
+% LocalWords:   CoaSim geneconversion haplotype haplotypes SNP Unphased indices
