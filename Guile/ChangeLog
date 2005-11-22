@@ -1,6 +1,11 @@
+4.0.4
+=====
 
+2005-11-22  Thomas Mailund  <mailund@mailund.dk>
 
-	
+	* simulate.scm (normalise-epochs): added implicit end times (as
+	described in the documentation).
+
 4.0.3
 =====
 
