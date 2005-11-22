@@ -105,6 +105,29 @@
    '())
   '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (growth 0 55 0 -1))))
 
+
+(deftest implicit-end
+  (compile
+   '(population 1 :epochs (bottleneck 2 0.5) (sample 1))
+   '())
+  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (bottleneck 0 2 0.5 -1))))
+
+(deftest implicit-end-2
+  (compile
+   '(population 1 :epochs (growth 2 0.5) (sample 1))
+   '())
+  '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (growth 0 2 0.5 -1))))
+
+
+(deftest double-bottleneck
+  (compile
+   '(population 1 :epochs ((bottleneck 2 0.004 0.04) (bottleneck .5 0.04)) (sample 10))
+   '())
+  '(:sample-sizes (10) :epochs ((bottleneck 0 1   0     -1)
+				(bottleneck 0 2   0.004  0.04)
+				(bottleneck 0 0.5 0.04  -1))))
+  
+
 ;;;;(deftest compile4
 ;;;;  (compile 
 ;;;;   '(population p1 7 (merge 11

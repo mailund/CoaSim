@@ -198,20 +198,30 @@
 (define (normalise-epochs pops)
   (map (lambda (pop)
 	 (apply (lambda* (tag :key name index size epochs time-frame)
-			 (let ((new-epochs (map (lambda (epoch)
-						  (if (equal? 'beta (car epoch))
-						      `(growth ,(second epoch) 
-							     ,(first time-frame) ,(second time-frame))
-						      epoch))
-						epochs)))
+			 (let* ((implicit-growth
+				 (map (lambda (epoch)
+					(if (equal? 'beta (car epoch))
+					    `(growth ,(second epoch) 
+						     ,(first time-frame) ,(second time-frame))
+					    epoch))
+				      epochs))
+				(implicit-end 
+				 (map (lambda (epoch)
+					(cond ((and (equal? 'bottleneck (car epoch))
+						    (= (length epoch) 3))
+					       `(bottleneck ,(second epoch) ,(third epoch) -1))
+					      ((and (equal? 'growth (car epoch))
+						    (= (length epoch) 3))
+					       `(growth ,(second epoch) ,(third epoch) -1))
+					      (else epoch)))
+				      implicit-growth))
+				(new-epochs implicit-end))
 			   `(population
 			     :name ,name
 			     :index ,index
 			     :size ,size
 			     :epochs ,(list* `(bottleneck ,size ,(first time-frame) ,(second time-frame))
-					     (if new-epochs
-						 new-epochs
-						 '()))
+					     (if new-epochs new-epochs '()))
 			     :time-frame ,time-frame)))
 		pop))
        pops))
