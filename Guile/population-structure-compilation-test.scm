@@ -114,6 +114,20 @@
 
 (deftest implicit-end-2
   (compile
+   '(population 1 (merge 1
+			 (population 2 :epochs (growth 2 0.5) (sample 1))
+		         (population 4 (sample 1))))
+   '())
+  '(:sample-sizes (1 1)
+    :epochs ((population-merge 1 0 1)
+	     (bottleneck 0 1 1 -1)
+	     (bottleneck 0 2 0  1)
+	     (growth 0 2 0.5 1)
+	     (bottleneck 1 4 0 1))))
+
+
+(deftest implicit-end-3
+  (compile
    '(population 1 :epochs (growth 2 0.5) (sample 1))
    '())
   '(:sample-sizes (1) :epochs ((bottleneck 0 1 0 -1) (growth 0 2 0.5 -1))))
