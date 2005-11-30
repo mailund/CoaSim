@@ -253,6 +253,142 @@
 		   (list cases controls))))))
 
 
+
+;;   --<GUILE COMMENT>---------------------------------------------
+;;   <method name='pair-haplotypes'>
+;;    <brief>Combine haplotypes pair-wise to construct (phased) genotypes.</brief>
+;;    <prototype> (pair-haplotypes haplotypes)</prototype>
+;;    <example> (use-modules (coasim rand) (coasim disease-modelling))
+;; 
+;; (define sequences
+;;   (simulate-sequences (make-random-snp-markers 10 0 1) 10))
+;; (define (print-sequences seqs)
+;;   (for-each (lambda (x) (display x)(newline)) seqs))
+;; 
+;; (newline)
+;; (print-sequences sequences)(newline)
+;; (print-sequences (pair-haplotypes sequences))(newline)
+;; (print-sequences (unpair-genotypes (pair-haplotypes sequences)))(newline)
+;; (newline)</example>
+;;    <description>
+;;     <p>
+;;       Translate a list (of even length) of haplotypes into a list of
+;;       (phased) genotypes in the form of lists of pairs.
+;;     </p>
+;;    </description>
+;;   </method>
+
+;;   <method name='unpair-genotypes'>
+;;    <brief>Translates a list of (phased) genotypes into haplotypes.</brief>
+;;    <prototype> (unpair-genotypes genotypes)</prototype>
+;;    <example> (use-modules (coasim rand) (coasim disease-modelling))
+;; 
+;; (define sequences
+;;   (simulate-sequences (make-random-snp-markers 10 0 1) 10))
+;; (define (print-sequences seqs)
+;;   (for-each (lambda (x) (display x)(newline)) seqs))
+;; 
+;; (newline)
+;; (print-sequences sequences)(newline)
+;; (print-sequences (pair-haplotypes sequences))(newline)
+;; (print-sequences (unpair-genotypes (pair-haplotypes sequences)))(newline)
+;; (newline)</example>
+;;    <description>
+;;     <p>
+;;       Translate a list (phased) genotypes in the form of lists of pairs
+;;       into a list of haplotypes.
+;;     </p>
+;;    </description>
+;;   </method>
+
+;;   -----</GUILE COMMENT>----------------------------------------- 
+(define-public (pair-haplotypes haplotypes)
+  ;; sanity check
+  (if (odd? (length haplotypes)) (throw 'uneven-number-of-haplotypes))
+  ;; pairing of haplotypes
+  (letrec ((pair-haplotypes
+	    (lambda (h1 h2) (map list h1 h2)))
+	   (first
+	    (lambda (lst acc)
+	      (cond ((null? lst) acc)
+		    (else (second (car lst) (cdr lst) acc)))))
+	   (second
+	    (lambda (f lst acc)
+	      (first (cdr lst)
+		     (cons (pair-haplotypes f (car lst)) acc)))))
+    (reverse (first haplotypes '()))))
+
+(define-public (unpair-genotypes genotypes)
+  (letrec ((unpack-pairs-helper
+	    (lambda (plist 1st 2nd)
+	      (if (null? plist)
+		  (list (reverse 1st) (reverse 2nd))
+		  (let ((p (car plist)))
+		    (unpack-pairs-helper (cdr plist) 
+					 (cons (car p) 1st)
+					 (cons (cadr p) 2nd))))))
+	   (unpack-pairs
+	    (lambda (plist) (unpack-pairs-helper plist '() '())))
+
+	   (unpack-genotypes-helper
+	    (lambda (genotypes acc)
+	      (if (null? genotypes) 
+		  (reverse acc)
+		  (let ((p (unpack-pairs (car genotypes))))
+		    (unpack-genotypes-helper (cdr genotypes)
+					     (cons (cadr p)
+						   (cons (car p) acc))))))))
+    (unpack-genotypes-helper genotypes '())))
+
+
+
+;;   --<GUILE COMMENT>---------------------------------------------
+;;   <method name='split-in-cases-controls-on-markers/genotype'>
+;;    <brief>Split a list of sequences into cases and controls.</brief>
+;;    <prototype> (split-in-cases-controls-on-markers/genotype sequences marker-indices is-case?)</prototype>
+;;    <example> (use-modules (coasim disease-modelling))
+;; (let ((is-case? (lambda (g2 g4) 
+;;                (let ((a2-1 (car g2)) (a2-2 (cadr g2))
+;;                      (a4-1 (car g4)) (a4-2 (cadr g4)))
+;;                  (or (> (+ a2-1 a2-2) 0) (= 1 a4-1 a4-2))))))
+;;   (split-in-cases-controls-on-markers/genotype seqs '(2 4) is-case?))</example>
+;;    <description>
+;;     <p>
+;;      Split a dataset into cases and controls, based on the values of the 
+;;      alleles at indices marker-indices.  If thes value at those indices
+;;      satisfy the is-case? predicate, the sequence is considered a case, 
+;;      otherwise a control.  The dataset consist of a list of haplotypes, with
+;;      an even number of haplotypes; the haplotypes will be
+;;      considered pairwise and split into cases/controls based on
+;;      their <em>genotype</em> at the trait marker, rather than the
+;;      haplotype.  The resulting cases will be the pairs of
+;;      haplotypes considered cases and the controls will be the
+;;      remaining pairs.
+;;     </p>
+;;     <p> By default the alleles at the marker indices are removed
+;;      from the resulting lists; an optional parameter,
+;;      <b>:remove-traits</b>, if set to #f, will prevent removal of
+;;      the marker alleles.
+;;     </p>
+;;    </description>
+;;   </method>
+;;   -----</GUILE COMMENT>----------------------------------------- 
+
+(define (pre-post-processing-split preprocess postprocess)
+  (lambda (genotypes trait-indices is-case? . kwargs)
+    (let-keywords kwargs #f ((remove-traits #t))
+      (let ((cases/controls
+             (split-in-cases-controls-on-markers
+              (preprocess genotypes) trait-indices is-case? 
+              :remove-traits remove-traits)))
+        (list (postprocess (car  cases/controls))
+              (postprocess (cadr cases/controls)))))))
+
+(define-public split-in-cases-controls-on-markers/genotype
+  (pre-post-processing-split pair-haplotypes unpair-genotypes))
+
+
+
 ;;   --<GUILE COMMENT>---------------------------------------------
 ;;   <method name='split-in-cases-controls-on-marker'>
 ;;    <brief>Split a list of sequences into cases and controls.</brief>
@@ -273,12 +409,45 @@
 ;;     </p>
 ;;    </description>
 ;;   </method>
+
+;;   <method name='split-in-cases-controls-on-marker/genotype'>
+;;    <brief>Split a list of sequences into cases and controls.</brief>
+;;    <prototype> (split-in-cases-controls-on-marker/genotype sequences marker-idx is-case?)</prototype>
+;;    <example> (use-modules (coasim disease-modelling))
+;; (let ((is-case? (lambda (p) (= 2 (apply + p)))))
+;;     (split-in-cases-controls-on-marker seqs marker-idx is-case?)))</example>
+;;    <description>
+;;     <p>
+;;      Split a dataset into cases and controls, based on the value at
+;;      trait-idx.  The dataset consist of a list of haplotypes, with
+;;      an even number of haplotypes; the haplotypes will be
+;;      considered pairwise and split into cases/controls based on
+;;      their <em>genotype</em> at the trait marker, rather than the
+;;      haplotype.  The resulting cases will be the pairs of
+;;      haplotypes considered cases and the controls will be the
+;;      remaining pairs.
+;;     </p>
+;;     <p> By default the alleles at the marker is removed from the
+;;      resulting lists; an optional parameter, <b>:remove-trait</b>,
+;;      if set to #f, will prevent removal of the marker alleles.
+;;     </p>
+;;    </description>
+;;   </method>
+
 ;;   -----</GUILE COMMENT>----------------------------------------- 
 (define-public (split-in-cases-controls-on-marker 
-		sequences marker-idx is-case? . kwargs)
+                sequences marker-idx is-case? . kwargs)
   (let-keywords kwargs #f ((remove-trait #t))
      (split-in-cases-controls-on-markers sequences (list marker-idx) is-case?
-					 :remove-traits remove-trait)))
+                                         :remove-traits remove-trait)))
+
+(define-public (split-in-cases-controls-on-marker/genotype
+                sequences marker-idx is-case? . kwargs)
+  (let-keywords kwargs #f ((remove-trait #t))
+     (split-in-cases-controls-on-markers/genotype
+                                          sequences (list marker-idx) is-case?
+                                         :remove-traits remove-trait)))
+
 
 
 
@@ -315,10 +484,10 @@
 (define-public (qtl-on-markers sequences marker-indices f . kwargs)
   (let-keywords kwargs #f ((remove-traits #t))
     (let* ((qtl (project-function f marker-indices))
-	  (qtls (map qtl sequences)))
+           (qtls (map qtl sequences)))
       (if remove-traits
-	  (zip (remove-alleles sequences marker-indices) qtls)
-	  (zip sequences qtls)))))
+          (zip (remove-alleles sequences marker-indices) qtls)
+          (zip sequences qtls)))))
 
 
 ;;   --<GUILE COMMENT>---------------------------------------------
@@ -357,7 +526,7 @@
 (define-public (split-on-threshold seqs-and-qtl threshold)
   (let ((p (lambda (seq-qtl) (< (cadr seq-qtl) threshold))))
     (receive (below above) (partition p seqs-and-qtl)
-	     (list (map car below) (map car above)))))
+             (list (map car below) (map car above)))))
 
 ;;   --<GUILE COMMENT>---------------------------------------------
 ;;   <method name='split-on-probability'>
@@ -389,10 +558,10 @@
 ;;   -----</GUILE COMMENT>----------------------------------------- 
 (define-public (split-on-probability seqs-and-p)
   (let* ((msec (cdr (gettimeofday)))
-	 (random-state (seed->random-state msec))
-	 (p (lambda (seq-p) (< (random 1.0 random-state) (cadr seq-p)))))
+         (random-state (seed->random-state msec))
+         (p (lambda (seq-p) (< (random 1.0 random-state) (cadr seq-p)))))
     (receive (below above) (partition p seqs-and-p)
-	     (list (map car below) (map car above)))))
+             (list (map car below) (map car above)))))
 
 
 

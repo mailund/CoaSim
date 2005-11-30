@@ -1079,7 +1079,10 @@ time 10, see Fig.~\ref{fig:sub-populations}, we use:
 The outermost \texttt{(population ...)} specifies the population size
 after (back in time) the merge and the two inner \texttt{(population
   ...)}s the effective population size and the sample size in the
-sub-populations.
+sub-populations.  For the simulated sequences, the first ``sample
+size'' individuals will be from the first population in the population
+structure specification, the second ``sample size'' from the next
+population and so forth.
 
 We now see the use of the population size parameter, the first
 parameter to the \texttt{(population ...)} construction: to specify
