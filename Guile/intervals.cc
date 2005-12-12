@@ -145,7 +145,7 @@ namespace {
 	//__gnu_cxx::stdio_filebuf<char> obuf(dup(fd), std::ios::out);
 	//std::ostream os(&obuf);
 	fdostream os(fd);
-
+	os.precision(12);	// float precision
 	node->print_tree_at_point(os, start);
 	os << std::endl;
 

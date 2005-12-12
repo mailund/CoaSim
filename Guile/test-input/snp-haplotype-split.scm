@@ -18,7 +18,7 @@
 	     ((coasim SNP haplotypes) :select (split-in-cases-controls-on-marker)))
 
 
-(define rho 400) ; rho=400 ... for pop.size ~10,000 this is a mutation
+(define rho 400) ; rho=400 ... for pop.size ~10,000 this is a recombination
 		 ; rate of 0.01, or about a centi-Morgan
 
 ;; Make SNP markers the random positions, accepting the SNP mutations
