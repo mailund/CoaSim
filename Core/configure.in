@@ -1,4 +1,4 @@
-AC_INIT(CoaSim-Core, 4.0.4, mailund@birc.dk)
+AC_INIT(CoaSim-Core, 4.0.5, mailund@birc.dk)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.hh)
 

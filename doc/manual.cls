@@ -42,30 +42,42 @@
 
 \RequirePackage{subfigure}
 \RequirePackage{boxedminipage}
-\RequirePackage[dvips,all]{xy}
-\RequirePackage[sort]{cite}
+\RequirePackage[sort]{natbib}
 
 %\RequirePackage{palatino}
 \usepackage{charter}            %for body
 \usepackage{helvet}             %for sf
 \usepackage{euler}              %for math
 
-\bibliographystyle{amsplain}
+\bibliographystyle{abbrvnat}
 
 \usepackage{alltt}
 \newenvironment{code}
   {\vspace*{-.1\baselineskip}\begin{alltt}\small}
   {\normalsize\end{alltt}\vspace*{-.2\baselineskip}}
 
+\usepackage{url}
+\usepackage[pdftex,
+            pdfstartview=FitH,
+            pdfpagelabels,plainpages,
+            colorlinks, linkcolor=blue, citecolor=blue, urlcolor=blue]
+            {hyperref}
+
 %% --- MAIN CODE ---------------------------------------------------
 
 %% Title of the report
 \def\thetitle{Report Title}
-\renewcommand{\title}[1]{\def\thetitle{#1}}
+\renewcommand{\title}[1]{%
+  \def\thetitle{#1}%
+  \hypersetup{pdftitle=\thetitle}%
+}
 
 %% Subtitle of the report
 \def\thesubtitle{}
-\newcommand{\subtitle}[1]{\def\thesubtitle{#1}}
+\newcommand{\subtitle}[1]{%
+  \def\thesubtitle{#1}%
+  \hypersetup{pdfsubject=\thesubtitle}
+}
 
 %% Series and number
 \def\thereportseries{STATES Report Series}
@@ -75,7 +87,10 @@
 
 %% Authors
 \def\theauthors{}
-\newcommand{\authors}[1]{\def\theauthors{#1}}
+\newcommand{\authors}[1]{%
+  \def\theauthors{#1}%
+  \hypersetup{pdfauthor=\theauthors}
+}
 \def\thecontact{}
 \newcommand{\contact}[1]{\def\thecontact{#1}}
 \def\thecompany{Bioinformatics ApS}

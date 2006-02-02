@@ -1,5 +1,4 @@
 \documentclass{manual}
-\usepackage{url}
 \usepackage{subfigure}
 \usepackage{wrapfig}
 
@@ -15,12 +14,14 @@
 \ifpdf\DeclareGraphicsRule{*}{mps}{*}{}\fi
 
 
+
 \title{CoaSim Guile Manual}
 \subtitle{Using the Guile-based CoaSim Simulator}
 \authors{Thomas Mailund}
 \contact{mailund@birc.au.dk}
 \company{Bioinformatics ApS}
 \toolversion{CoaSim v4.0}
+
 
 
 
@@ -52,7 +53,7 @@ giving a detailed description of all the functions available in
 CoaSim.  For the later, we refer to the \emph{CoaSim Scheme Bindings}
 reference manual, distributed with CoaSim in
 \url{/usr/local/share/coasim/doc/bindings.html}, or online at
-\url{http://www.birc.dk/Software/CoaSim/refman/index.html}.
+\url{http://www.daimi.au.dk/~mailund/CoaSim/refman/index.html}.
 
 Some familiarity with the Scheme programming language and with
 coalescent theory is assumed.  For people not familiar with Scheme, an
@@ -68,7 +69,7 @@ and for people not familiar with coalescent theory, the text book
 is recommended.
 
 We also assume that you have successfully installed CoaSim, if not we
-refer to the \emph{Getting Started with CoaSim} manual.
+refer to the \emph{Getting Started with CoaSim} manual (\url{http://www.daimi.au.dk/~mailund/CoaSim/download/getting-started-4.0.pdf}).
 
 
 \subsection{Running CoaSim}
@@ -97,7 +98,6 @@ desired end-result, rather, the sequences found at the leaves of the
 ARG are.  To make the common case easy, CoaSim provides the function
 \texttt{simulate-sequences}, that simulates an ARG and then
 automatically extracts the sequences from the leaf-nodes.
-
 
 \subsection{Simulating and Saving Sequences}
 \label{sec:simul-saving-sequ}
@@ -1658,7 +1658,7 @@ In CoaSim, we can calculate the rescaling like this:
              (let loop ((j 1) (sum 0))
                (if (< j no-leaves)
                    (loop (+ j 1) (+ sum (/ 1 j)))
-                   sum)))
+                   (* 2 sum))))
             (growth-tree-length
              ;; simulating the tree length with growth
              (let* ((no-iterations 10000)
@@ -1966,12 +1966,12 @@ for use in the simulation scripts.
 \subsection{Start-up File}
 \label{sec:start-up-file}
 
-Upon start-up, CoaSim checks if the file \url{~/.coasim/startup.scm}
+Upon start-up, CoaSim checks if the file \texttt{\raise.6ex\hbox{$\scriptstyle\sim$}/.coasim/startup.scm}
 exists, and if so, loads it in and execute it before any other script
 is run.  Since any code in this file will be executed before any
 scripts, it is an ideal place to put your custom functions if you want
-them to be available to all scripts.  As \url{~/.coasim/startup.scm}
-is \texttt{always} executed, it can hurt runtime performance to put
+them to be available to all scripts.  As \texttt{\raise.6ex\hbox{$\scriptstyle\sim$}/.coasim/startup.scm}
+is \emph{always} executed, it can hurt runtime performance to put
 time-consuming computations here, so that is best avoided.
 
 
@@ -1984,8 +1984,9 @@ together with CoaSim, but it is also possible to install modules
 locally.  Before searching globally for a module---using a path that
 depends on the platform, but is most often
 \url{/usr/local/share/coasim/scheme}---it searches in the directory
-\url{~/.coasim/}; by placing a module in this directory you can
-include it in your scripts using \texttt{use-modules}.
+\texttt{\raise.6ex\hbox{$\scriptstyle\sim$}/.coasim/}; by placing a
+module in this directory you can include it in your scripts using
+\texttt{use-modules}.
 
 For example, to create a module, \texttt{(stepwise)}, containing the
 step-wise mutation model micro-satellite described earlier, we can
@@ -1997,13 +1998,14 @@ save the code
   (let* ((msec (cdr (gettimeofday)))
   ;; ... same as before ...
 \end{code}
-in the file \url{~/.coasim/stepwise.scm}.  The \texttt{define-module}
-in the beginning of the file informs the scheme interpreter that this
-really is a module, with the right name, and the
-\texttt{define-public}, rather than just \texttt{define}, exports the
-function from the module to the script including the module.  This
-module can now be included in your scripts, similarly to the globally
-installed modules, by the \texttt{use-modules} function:
+in the file
+\texttt{\raise.6ex\hbox{$\scriptstyle\sim$}/.coasim/stepwise.scm}.
+The \texttt{define-module} in the beginning of the file informs the
+scheme interpreter that this really is a module, with the right name,
+and the \texttt{define-public}, rather than just \texttt{define},
+exports the function from the module to the script including the
+module.  This module can now be included in your scripts, similarly to
+the globally installed modules, by the \texttt{use-modules} function:
 \begin{code}
 (use-modules (stepwise))
 \end{code}
@@ -2017,7 +2019,8 @@ the simulator in a flexible way.
 \label{sec:contact}
 
 For any comments or questions regarding CoaSim, please contact Thomas
-Mailund, at \url{<mailund@mailund.dk>} or \url{<mailund@birc.au.dk>}.
+Mailund, at \href{mailto:mailund@mailund.dk}{mailund@mailund.dk} or
+\href{mailund@birc.au.dk}{mailund@birc.au.dk}.
 
 
 \end{empfile}
