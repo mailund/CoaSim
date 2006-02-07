@@ -2,7 +2,8 @@
  *
  *  CoaSim -- A coalescence process simulator
  *
- *  Copyright (C) 2004, 2005 by Bioinformatics ApS
+ *  Copyright (C) 2004, 2005, 2006 by Bioinformatics ApS
+ *                                    and Thomas Mailund <mailund@mailund.dk>
  */
 
 #include "micro_satellite_marker.hh"
