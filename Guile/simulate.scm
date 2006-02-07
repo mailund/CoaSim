@@ -532,6 +532,7 @@
                           (coalescence-callback '())
                           (recombination-callback '())
                           (geneconversion-callback '())
+                          (migration-callback '())
                           (keep-empty-intervals #f)
                           (random-seed 0))
      (if (number? program)
@@ -540,7 +541,8 @@
                       (list rho gamma Q beta)
                       (list coalescence-callback
                             recombination-callback
-                            geneconversion-callback)
+                            geneconversion-callback
+			    migration-callback)
                       '() ;; no epochs
                       keep-empty-intervals
                       random-seed)
@@ -552,7 +554,8 @@
 				       (list rho gamma Q beta)
 				       (list coalescence-callback
 					     recombination-callback
-					     geneconversion-callback)
+					     geneconversion-callback
+					     migration-callback)
 				       real-epochs
 				       keep-empty-intervals
 				       random-seed)))))))

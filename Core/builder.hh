@@ -29,6 +29,9 @@ namespace core {
 	virtual void gene_conversion_callback(GeneConversionNode *n1,
 					      GeneConversionNode *n2,
 					      int k) = 0;
+	virtual void migration_callback(int pop1, int pop2,
+					double time, int k) = 0;
+	// fixme: should this be be k for each population as well?
     };
 
     class Builder

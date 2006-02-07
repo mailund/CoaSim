@@ -72,7 +72,6 @@ int main(int argc, const char *argv[])
 	ARG *arg = Simulator::simulate(conf);
 	CHECK(arg != 0);
 
-
     } catch (std::exception &ex) {
 	std::cout << "EXCEPTION: " << ex.what() << std::endl;
 	return 2;

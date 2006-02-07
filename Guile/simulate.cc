@@ -135,6 +135,12 @@ namespace {
 	  (i.e. the number of linages just after the event, moving forward 
 	  in time).
       </li>
+      <li><b>migration-callback:</b>
+          called with the two populations (their number in the specification
+          tree), the time of the migration, and the number of lineages at the
+          time of the gene conversion (i.e. the number of linages just after
+          the event, moving forward in time).
+      </li>
     </ul>
     <p>
       The following additional keyword arguments are available:
@@ -160,15 +166,18 @@ class Callbacks : public core::BuilderMonitor
     SCM i_coa_cb;
     SCM i_rc_cb;
     SCM i_gc_cb;
+    SCM i_migration_cb;
 
     bool i_has_coa_cb;
     bool i_has_rc_cb;
     bool i_has_gc_cb;
+    bool i_has_migration_cb;
 
 public:
     Callbacks() : i_has_coa_cb(false),
 		  i_has_rc_cb(false), 
-		  i_has_gc_cb(false)
+		  i_has_gc_cb(false),
+		  i_has_migration_cb(false)
     {};
 
     void set_coa_cb(SCM cb)
@@ -186,6 +195,11 @@ public:
 	i_gc_cb = cb;
 	i_has_gc_cb = true;
     }
+    void set_migration_cb(SCM cb)
+    {
+	i_migration_cb = cb;
+	i_has_migration_cb = true;
+    }
 
     virtual void coalescence_callback(core::CoalescentNode *n, int k);
     virtual void recombination_callback(core::RecombinationNode *n1,
@@ -194,6 +208,8 @@ public:
     virtual void gene_conversion_callback(core::GeneConversionNode *n1,
 					  core::GeneConversionNode *n2,
 					  int k);
+    virtual void migration_callback(int pop1, int pop2,
+				    double time, int k);
 };
 
 
@@ -229,6 +245,17 @@ void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
     SCM s_k   = scm_int2num(k);
     wrapped_apply(i_gc_cb, scm_list_3(node1, node2, s_k));
 }
+
+void Callbacks::migration_callback(int pop1, int pop2, double time, int k)
+{
+    if (!i_has_migration_cb) return;
+    SCM s_pop1 = scm_int2num(pop1);
+    SCM s_pop2 = scm_int2num(pop2);
+    SCM s_time = scm_make_real(time);
+    SCM s_k    = scm_int2num(k);
+    wrapped_apply(i_migration_cb, scm_list_4(s_pop1, s_pop2, s_time, s_k));
+}
+
 
 static SCM
 simulate(SCM s_markers,		// 1
@@ -298,6 +325,7 @@ simulate(SCM s_markers,		// 1
     SCM coa_cb = SCM_CAR(s_callbacks);
     SCM rc_cb  = SCM_CADR(s_callbacks);
     SCM gc_cb  = SCM_CADDR(s_callbacks);
+    SCM mig_cb = SCM_CADDDR(s_callbacks);
 
     bool has_cb = false;
     Callbacks cb;
@@ -320,6 +348,13 @@ simulate(SCM s_markers,		// 1
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(gc_cb)),
 		       gc_cb, 4, "c-simulate");
 	    cb.set_gc_cb(gc_cb);
+	    has_cb = true;
+	}
+    if (mig_cb != SCM_EOL)
+	{
+	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(mig_cb)),
+		       mig_cb, 4, "c-simulate");
+	    cb.set_migration_cb(mig_cb);
 	    has_cb = true;
 	}
 

@@ -7,6 +7,9 @@
 
 #include "epochs.hh"
 
+#ifndef CORE__BUILDER_HH_INCLUDED
+#  include "builder.hh"
+#endif
 #ifndef CORE__BUILDER_EVENTS_HH_INCLUDED
 # include "builder_events.hh"
 #endif
@@ -173,11 +176,17 @@ Migration::nested_event_time(State &s, double current_time)
 
 void
 Migration::nested_update_state(Scheduler &scheduler, State &s,
-			     double event_time)
+			       double event_time)
 {
+    BuilderMonitor *callbacks = s.callbacks();
+    if (callbacks)
+	callbacks->migration_callback(i_source, i_destination, event_time, 
+				      s.total_population_size());
+
     Population &src = s.populations()[i_source];
     Population &dst = s.populations()[i_destination];
     dst.push(src.pop_random());
+
 }
 
 
