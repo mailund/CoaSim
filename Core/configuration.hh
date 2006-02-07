@@ -47,13 +47,19 @@ namespace core {
 	// polymorphic copying
 	virtual Event *copy() const = 0;
 
+	virtual double earliest_event() const;
 	virtual double event_time(State &s, double current_time)
 	    = 0;
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time)
 	    = 0;
+
+	virtual void print(std::ostream &os) const = 0;
     };
 
+    inline std::ostream &
+    operator<<(std::ostream &os, const Event &e)
+    { e.print(os); return os; }
 
     class Scheduler {
 	std::list<Event*> i_events;
@@ -65,7 +71,6 @@ namespace core {
 
 	typedef std::pair<double,Event*> time_event_t;
 	time_event_t next_event(State &s, double current_time);
-
     };
 
 
@@ -151,6 +156,11 @@ namespace core {
 	epoch_iterator epochs_begin() const { return i_events.begin(); }
 	epoch_iterator epochs_end()   const { return i_events.end(); }
 
+	void sort_events() const;// sort events wrt. their start time
+				 // (if it is fixed).  Prevents
+	                         // incorrect nesting of non-nested
+				 // epochs...
+
     private:
 	// Disable these
 	Configuration(const Configuration&);
@@ -168,7 +178,7 @@ namespace core {
 	double i_gamma;
 	double i_growth;
 
-	std::vector<Event*> i_events;
+	mutable std::vector<Event*> i_events;
     };
 
 

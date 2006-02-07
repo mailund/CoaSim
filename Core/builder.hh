@@ -9,7 +9,10 @@
 #ifndef CORE__BUILDER_HH_INCLUDED
 #define CORE__BUILDER_HH_INCLUDED
 
-
+#ifndef VECTOR_INCLUDED
+# include <vector>
+# define VECTOR_INCLUDED
+#endif
 
 
 namespace core {
@@ -22,6 +25,9 @@ namespace core {
 
     struct BuilderMonitor
     {
+	// FIXME: should these be k for each population as well?
+	// Should the population be reported?
+
 	virtual void coalescence_callback(CoalescentNode *n,
 					  int k) = 0;
 	virtual void recombination_callback(RecombinationNode *n1,
@@ -30,9 +36,19 @@ namespace core {
 	virtual void gene_conversion_callback(GeneConversionNode *n1,
 					      GeneConversionNode *n2,
 					      int k) = 0;
+
+	virtual void bottleneck_callback(int pop, bool entering,
+					 double time, int k) = 0;
+	virtual void growth_callback(int pop, bool entering,
+				     double time, int k) = 0;
+
 	virtual void migration_callback(int pop1, int pop2,
 					double time, int k) = 0;
-	// fixme: should this be be k for each population as well?
+
+	// FIXME: here it should *really* be ks for the two
+	// populations...
+	virtual void population_merge_callback(const std::vector<int> &pops,
+					       double time, int k) = 0;
     };
 
     class Builder

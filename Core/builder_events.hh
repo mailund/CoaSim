@@ -104,6 +104,7 @@ namespace core {
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
+	virtual void print(std::ostream &os) const;
     };
 
 
@@ -117,6 +118,7 @@ namespace core {
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
+	virtual void print(std::ostream &os) const;
     };
 
     class GeneConversionEvent : public Event {
@@ -130,6 +132,7 @@ namespace core {
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
+	virtual void print(std::ostream &os) const;
     };
     
 
@@ -158,6 +161,8 @@ namespace core {
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);
+	virtual double earliest_event() const;
+	virtual void print(std::ostream &os) const;
     };
 
 

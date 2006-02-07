@@ -52,8 +52,8 @@ ARG * Builder::build(BuilderMonitor *callbacks,
 	scheduler.add_event(new GeneConversionEvent(i_conf.gamma(), 
 						    i_conf.Q()));
 
-    // FIXME: Validation of epochs!!!
     std::vector<Event*>::const_iterator i;
+    i_conf.sort_events();
     for (i = i_conf.epochs_begin(); i != i_conf.epochs_end(); ++i)
 	{
 	    Event *e = (*i)->copy();
@@ -66,7 +66,6 @@ ARG * Builder::build(BuilderMonitor *callbacks,
 	    assert(e.second);
 	    e.second->update_state(scheduler, state, e.first);
 	    time = e.first;
-
 	}
 
     arg->sort_retired_intervals(); // NB! important, since the

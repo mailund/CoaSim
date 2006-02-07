@@ -19,6 +19,10 @@
 #endif
 
 
+#ifndef IOSTREAM_INCLUDED
+# include <iostream>
+# define IOSTREAM_INCLUDED
+#endif
 #ifndef LIMITS_INCLUDED
 # include <limits>
 # define LIMITS_INCLUDED
@@ -35,8 +39,7 @@ Epoch::~Epoch() {}
 double
 Epoch::event_time(State &s, double current_time)
 {
-    if (current_time < start_time())
-	return std::numeric_limits<double>::max();
+    if (current_time < start_time()) start_time();
     return std::min(nested_event_time(s, current_time), end_time());
 }
 
@@ -52,6 +55,13 @@ Epoch::update_state(Scheduler &scheduler, State &s, double event_time)
     else
 	nested_update_state(scheduler, s, event_time);
 }
+
+double
+Epoch::earliest_event() const
+{
+    return start_time();
+}
+
 
 CoalescenceEpoch::~CoalescenceEpoch()
 {
@@ -77,8 +87,7 @@ CoalescenceEpoch::nested_update_state(Scheduler &scheduler, State &s,
 double
 CoalescenceEpoch::event_time(State &s, double current_time)
 {
-    if (current_time < start_time())
-	return std::numeric_limits<double>::max();
+    if (current_time < start_time()) return start_time();
     return std::min(nested_event_time(s, current_time), end_time());
 }
 
@@ -93,10 +102,14 @@ CoalescenceEpoch::update_state(Scheduler &scheduler, State &s,
 	    i_underlying = p.coalescence_event();
 	    p.coalescence_event(this);
 	    scheduler.remove_event(i_underlying);
+
+	    enter_callback(s, event_time);
 	}
     else if (end_time() > 0 and end_time() <= event_time)
 	// we are leaving, now pop the epoch
 	{
+	    leave_callback(s, event_time);
+
 	    Population &p = s.populations().at(population());
 	    p.coalescence_event(i_underlying);
 	    scheduler.remove_event(this);
@@ -109,6 +122,21 @@ CoalescenceEpoch::update_state(Scheduler &scheduler, State &s,
 	nested_update_state(scheduler, s, event_time);
 }
 
+void 
+CoalescenceEpoch::enter_callback(State &s, double current_time)
+{
+}
+
+void
+CoalescenceEpoch::leave_callback(State &s, double current_time)
+{
+}
+
+double
+CoalescenceEpoch::earliest_event() const
+{
+    return start_time();
+}
 
 double
 BottleNeck::waiting_time(State &s, double c_time)
@@ -123,7 +151,33 @@ BottleNeck::copy() const
     return new BottleNeck(*this);
 }
 
+void 
+BottleNeck::enter_callback(State &s, double current_time)
+{
+    BuilderMonitor *callbacks = s.callbacks();
+    if (!callbacks) return;
+    callbacks->bottleneck_callback(population(), true, 
+				   current_time,
+				   s.total_population_size());
+}
 
+void
+BottleNeck::leave_callback(State &s, double current_time)
+{
+    BuilderMonitor *callbacks = s.callbacks();
+    if (!callbacks) return;
+    callbacks->bottleneck_callback(population(), false,
+				   current_time, 
+				   s.total_population_size());
+}
+
+void
+BottleNeck::print(std::ostream &os) const
+{
+    os << "BottleNeck(" << population() << ", "
+       << start_time() << ", " << end_time() << ", " 
+       << i_scale_fraction << ')';
+}
 
 double
 Growth::waiting_time(State &s, double current_time)
@@ -140,6 +194,31 @@ Growth::copy() const
     return new Growth(*this);
 }
 
+void 
+Growth::enter_callback(State &s, double current_time)
+{
+    BuilderMonitor *callbacks = s.callbacks();
+    if (!callbacks) return;
+    callbacks->growth_callback(population(), true, 
+			       current_time, s.total_population_size());
+}
+
+void
+Growth::leave_callback(State &s, double current_time)
+{
+    BuilderMonitor *callbacks = s.callbacks();
+    if (!callbacks) return;
+    callbacks->growth_callback(population(), false,
+			       current_time, s.total_population_size());
+}
+
+void
+Growth::print(std::ostream &os) const
+{
+    os << "Growth(" << population() << ", "
+       << start_time() << ", " << end_time() << ", " 
+       << i_beta << ')';
+}
 
 
 
@@ -190,6 +269,13 @@ Migration::nested_update_state(Scheduler &scheduler, State &s,
 
 }
 
+void
+Migration::print(std::ostream &os) const
+{
+    os << "Migration(" << source() << ", " << destination() << ", "
+       << migration_rate() << ", "
+       << start_time() << ", " << end_time() << ')';
+}
 
 
 

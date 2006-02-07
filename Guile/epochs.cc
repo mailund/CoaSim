@@ -20,6 +20,10 @@
 # include <new>
 # define NEW_INCLUDED
 #endif
+#ifndef IOSTREAM_INCLUDED
+# include <iostream>
+# define IOSTREAM_INCLUDED
+#endif
 
 scm_t_bits guile::bottleneck_epoch_tag;
 scm_t_bits guile::growth_epoch_tag;

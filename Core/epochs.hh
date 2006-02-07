@@ -42,6 +42,7 @@ namespace core {
 
 	double start_time() const { return i_start_time; }
 	double end_time()   const { return i_end_time; }
+	virtual double earliest_event() const;
 
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
@@ -67,6 +68,7 @@ namespace core {
 	double migration_rate() const { return i_migration_rate; }
 
 	virtual Event *copy() const;
+	virtual void print(std::ostream &os) const;
     };
 
 
@@ -111,6 +113,10 @@ namespace core {
 
 	double start_time() const { return i_start_time; }
 	double end_time()   const { return i_end_time; }
+	virtual double earliest_event() const;
+
+	virtual void enter_callback(State &s, double current_time);
+	virtual void leave_callback(State &s, double current_time);
     };
 
     class BottleNeck : public CoalescenceEpoch {
@@ -129,6 +135,11 @@ namespace core {
 	double scale_fraction() const { return i_scale_fraction; }
 
 	virtual Event *copy() const;
+
+	virtual void enter_callback(State &s, double current_time);
+	virtual void leave_callback(State &s, double current_time);
+
+	virtual void print(std::ostream &os) const;
     };
 
 
@@ -149,6 +160,10 @@ namespace core {
 	double beta()        const { return i_beta; }
 
 	virtual Event *copy() const;
+
+	virtual void enter_callback(State &s, double current_time);
+	virtual void leave_callback(State &s, double current_time);
+	virtual void print(std::ostream &os) const;
     };
 
 }

@@ -136,11 +136,29 @@ namespace {
 	  (i.e. the number of linages just after the event, moving forward 
 	  in time).
       </li>
+
+      <li><b>bottleneck-callback:</b>
+        called with the number of the affected population, a boolean flag
+        indicating whether the event indicates <em>entering</em> or
+        <em>leaving</em> the bottleneck, the time of the event and the
+        (total) number of lineages left at the time of the event.
+      </li>
+      <li><b>growth-callback:</b>
+        called with the number of the affected population, a boolean flag
+        indicating whether the event indicates <em>entering</em> or
+        <em>leaving</em> the growth perioed, the time of the event and the
+        (total) number of lineages left at the time of the event.
+      </li>
+
       <li><b>migration-callback:</b>
           called with the two populations (their number in the specification
           tree), the time of the migration, and the number of lineages at the
           time of the gene conversion (i.e. the number of linages just after
           the event, moving forward in time).
+      </li>
+      <li><b>population-merge-callback:</b>
+          called with a list of the populations being merged, the time of the
+          merge, and the (total) number of lineages left at the time.
       </li>
     </ul>
     <p>
@@ -167,18 +185,33 @@ class Callbacks : public core::BuilderMonitor
     SCM i_coa_cb;
     SCM i_rc_cb;
     SCM i_gc_cb;
+
+    SCM i_bottleneck_cb;
+    SCM i_growth_cb;
+
     SCM i_migration_cb;
+    SCM i_pop_merge_cb;
 
     bool i_has_coa_cb;
     bool i_has_rc_cb;
     bool i_has_gc_cb;
+
+    bool i_has_bottleneck_cb;
+    bool i_has_growth_cb;
+
     bool i_has_migration_cb;
+    bool i_has_pop_merge_cb;
 
 public:
     Callbacks() : i_has_coa_cb(false),
 		  i_has_rc_cb(false), 
 		  i_has_gc_cb(false),
-		  i_has_migration_cb(false)
+
+		  i_has_bottleneck_cb(false),
+		  i_has_growth_cb(false),
+
+		  i_has_migration_cb(false),
+		  i_has_pop_merge_cb(false)
     {};
 
     void set_coa_cb(SCM cb)
@@ -196,10 +229,27 @@ public:
 	i_gc_cb = cb;
 	i_has_gc_cb = true;
     }
+
+    void set_bottleneck_cb(SCM cb)
+    {
+	i_bottleneck_cb = cb;
+	i_has_bottleneck_cb = true;
+    }
+    void set_growth_cb(SCM cb)
+    {
+	i_growth_cb = cb;
+	i_has_growth_cb = true;
+    }
+
     void set_migration_cb(SCM cb)
     {
 	i_migration_cb = cb;
 	i_has_migration_cb = true;
+    }
+    void set_pop_merge_cb(SCM cb)
+    {
+	i_pop_merge_cb = cb;
+	i_has_pop_merge_cb = true;
     }
 
     virtual void coalescence_callback(core::CoalescentNode *n, int k);
@@ -209,8 +259,16 @@ public:
     virtual void gene_conversion_callback(core::GeneConversionNode *n1,
 					  core::GeneConversionNode *n2,
 					  int k);
+
+    virtual void bottleneck_callback(int pop, bool entering,
+				     double time, int k);
+    virtual void growth_callback(int pop, bool entering,
+				 double time, int k);
+
     virtual void migration_callback(int pop1, int pop2,
 				    double time, int k);
+    virtual void population_merge_callback(const std::vector<int> &pops,
+					   double time, int k);
 };
 
 
@@ -247,6 +305,28 @@ void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
     wrapped_apply(i_gc_cb, scm_list_3(node1, node2, s_k));
 }
 
+
+void Callbacks::bottleneck_callback(int pop, bool entering, double time, int k)
+{
+    if (!i_has_bottleneck_cb) return;
+    SCM s_pop      = scm_int2num(pop);
+    SCM s_entering = SCM_BOOL(entering);
+    SCM s_time     = scm_make_real(time);
+    SCM s_k        = scm_int2num(k);
+    wrapped_apply(i_bottleneck_cb, scm_list_4(s_pop, s_entering, s_time, s_k));
+}
+
+void Callbacks::growth_callback(int pop, bool entering, double time, int k)
+{
+    if (!i_has_growth_cb) return;
+    SCM s_pop      = scm_int2num(pop);
+    SCM s_entering = SCM_BOOL(entering);
+    SCM s_time     = scm_make_real(time);
+    SCM s_k        = scm_int2num(k);
+    wrapped_apply(i_growth_cb, scm_list_4(s_pop, s_entering, s_time, s_k));
+}
+
+
 void Callbacks::migration_callback(int pop1, int pop2, double time, int k)
 {
     if (!i_has_migration_cb) return;
@@ -255,6 +335,22 @@ void Callbacks::migration_callback(int pop1, int pop2, double time, int k)
     SCM s_time = scm_make_real(time);
     SCM s_k    = scm_int2num(k);
     wrapped_apply(i_migration_cb, scm_list_4(s_pop1, s_pop2, s_time, s_k));
+}
+
+void Callbacks::population_merge_callback(const std::vector<int> &pops,
+					  double time, int k)
+{
+    if (!i_has_pop_merge_cb) return;
+    SCM s_pops = SCM_EOL;
+
+    std::vector<int>::const_iterator i;
+    for (i = pops.begin(); i != pops.end(); ++i)
+	s_pops = scm_cons( scm_int2num(*i), s_pops);
+    s_pops = scm_reverse(s_pops);
+
+    SCM s_time = scm_make_real(time);
+    SCM s_k    = scm_int2num(k);
+    wrapped_apply(i_pop_merge_cb, scm_list_3(s_pops, s_time, s_k));
 }
 
 
@@ -323,10 +419,15 @@ simulate(SCM s_markers,		// 1
     SCM_ASSERT(SCM_NFALSEP(scm_list_p(s_callbacks)),
 	       s_callbacks, 4, "simulate");
 
-    SCM coa_cb = SCM_CAR(s_callbacks);
-    SCM rc_cb  = SCM_CADR(s_callbacks);
-    SCM gc_cb  = SCM_CADDR(s_callbacks);
-    SCM mig_cb = SCM_CADDDR(s_callbacks);
+    SCM coa_cb   = SCM_CAR(s_callbacks); s_callbacks = SCM_CDR(s_callbacks);
+    SCM rc_cb    = SCM_CAR(s_callbacks); s_callbacks = SCM_CDR(s_callbacks);
+    SCM gc_cb    = SCM_CAR(s_callbacks); s_callbacks = SCM_CDR(s_callbacks);
+
+    SCM bn_cb    = SCM_CAR(s_callbacks); s_callbacks = SCM_CDR(s_callbacks);
+    SCM gr_cb    = SCM_CAR(s_callbacks); s_callbacks = SCM_CDR(s_callbacks);
+
+    SCM mig_cb   = SCM_CAR(s_callbacks); s_callbacks = SCM_CDR(s_callbacks);
+    SCM merge_cb = SCM_CAR(s_callbacks); s_callbacks = SCM_CDR(s_callbacks);
 
     bool has_cb = false;
     Callbacks cb;
@@ -351,11 +452,34 @@ simulate(SCM s_markers,		// 1
 	    cb.set_gc_cb(gc_cb);
 	    has_cb = true;
 	}
+
+    if (bn_cb != SCM_EOL)
+	{
+	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(bn_cb)),
+		       bn_cb, 4, "c-simulate");
+	    cb.set_bottleneck_cb(bn_cb);
+	    has_cb = true;
+	}
+    if (gr_cb != SCM_EOL)
+	{
+	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(gr_cb)),
+		       gr_cb, 4, "c-simulate");
+	    cb.set_bottleneck_cb(gr_cb);
+	    has_cb = true;
+	}
+
     if (mig_cb != SCM_EOL)
 	{
 	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(mig_cb)),
 		       mig_cb, 4, "c-simulate");
 	    cb.set_migration_cb(mig_cb);
+	    has_cb = true;
+	}
+    if (merge_cb != SCM_EOL)
+	{
+	    SCM_ASSERT(SCM_NFALSEP(scm_procedure_p(merge_cb)),
+		       merge_cb, 4, "c-simulate");
+	    cb.set_pop_merge_cb(merge_cb);
 	    has_cb = true;
 	}
 

@@ -8,6 +8,10 @@
 
 #include "configuration.hh"
 
+#ifndef ALGORITHM_INCLUDED
+# include <algorithm>
+# define ALGORITHM_INCLUDED
+#endif
 
 
 core::Configuration::~Configuration() 
@@ -24,8 +28,33 @@ core::Configuration::~Configuration()
     for (i = i_events.begin(); i != i_events.end(); ++i)
 	delete *i;
 }
+namespace {
+    using std::binary_function;
+    using core::Event;
+
+    struct start_time_less : 
+	public binary_function<const Event*,const Event*,bool> {
+	bool operator () (const Event *e1, const Event *e2) const
+	{ return e1->earliest_event() <= e2->earliest_event(); }
+    };
+}
+
+void
+core::Configuration::sort_events() const
+{
+    sort(i_events.begin(), i_events.end(), start_time_less());
+}
+
+
 
 core::Event::~Event() {}
+
+double 
+core::Event::earliest_event() const
+{
+    return 0.0;
+}
+
 
 core::Scheduler::~Scheduler() 
 {
@@ -66,3 +95,4 @@ core::Scheduler::next_event(State &s, double current_time)
 	}
     return time_event_t(std::max(current_time,minimal_time), earliest_event);
 }
+

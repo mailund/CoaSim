@@ -125,6 +125,12 @@ core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
     if (coa_node->intervals().size() > 0) p.push(coa_node);
 }
 
+void core::CoalescenceEvent::print(std::ostream &os) const
+{
+    os << ":CoalescenceEvent(" << i_population << ')';
+}
+
+
 
 core::Event *
 core::RecombinationEvent::copy() const
@@ -171,6 +177,12 @@ RecombinationEvent::update_state(Scheduler &scheduler, State &s,
 	population.push(child);
     }
 }
+
+void core::RecombinationEvent::print(std::ostream &os) const
+{
+    os << "RecombinationEvent(" << i_rho << ')';
+}
+
 
 core::Event *
 core::GeneConversionEvent::copy() const
@@ -232,6 +244,10 @@ GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
 
 }
 
+void core::GeneConversionEvent::print(std::ostream &os) const
+{
+    os << "GeneConversionEvent(" << i_gamma << ", " << i_Q << ')';
+}
 
 
 
@@ -251,6 +267,11 @@ void
 PopulationMerge::update_state(Scheduler &scheduler, State &s,
 			      double event_time)
 {
+    BuilderMonitor *callbacks = s.callbacks();
+    if (callbacks)
+	callbacks->population_merge_callback(i_populations, event_time,
+					     s.total_population_size());
+
     Population &p1 = s.populations().at(i_populations[0]);
 
     std::vector<int>::const_iterator i;
@@ -268,5 +289,21 @@ PopulationMerge::update_state(Scheduler &scheduler, State &s,
 
     scheduler.remove_event(this);
     delete this;
+}
+
+double
+core::PopulationMerge::earliest_event() const
+{
+    return i_merge_time;
+}
+
+
+void core::PopulationMerge::print(std::ostream &os) const
+{
+    os << "PopulationMerge(";
+    std::vector<int>::const_iterator i = i_populations.begin();
+    for (; i != i_populations.end(); ++i)
+	os << *i << ", ";
+    os << i_merge_time << ')';
 }
 

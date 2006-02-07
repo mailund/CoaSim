@@ -532,7 +532,10 @@
                           (coalescence-callback '())
                           (recombination-callback '())
                           (geneconversion-callback '())
+                          (bottleneck-callback '())
+                          (growth-callback '())
                           (migration-callback '())
+                          (population-merge-callback '())
                           (keep-empty-intervals #f)
                           (random-seed 0))
      (if (number? program)
@@ -542,7 +545,10 @@
                       (list coalescence-callback
                             recombination-callback
                             geneconversion-callback
-			    migration-callback)
+                            bottleneck-callback
+			    growth-callback
+			    migration-callback
+			    population-merge-callback)
                       '() ;; no epochs
                       keep-empty-intervals
                       random-seed)
@@ -555,7 +561,10 @@
 				       (list coalescence-callback
 					     recombination-callback
 					     geneconversion-callback
-					     migration-callback)
+					     bottleneck-callback
+					     growth-callback
+					     migration-callback
+					     population-merge-callback)
 				       real-epochs
 				       keep-empty-intervals
 				       random-seed)))))))
