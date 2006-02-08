@@ -20,7 +20,7 @@
 \authors{Thomas Mailund}
 \contact{mailund@birc.au.dk}
 \company{Bioinformatics ApS}
-\toolversion{CoaSim v4.0}
+\toolversion{CoaSim v4.1}
 
 
 
@@ -69,7 +69,7 @@ and for people not familiar with coalescent theory, the text book
 is recommended.
 
 We also assume that you have successfully installed CoaSim, if not we
-refer to the \emph{Getting Started with CoaSim} manual (\url{http://www.daimi.au.dk/~mailund/CoaSim/download/getting-started-4.0.pdf}).
+refer to the \emph{Getting Started with CoaSim} manual (\url{http://www.daimi.au.dk/~mailund/CoaSim/download/getting-started-4.1.pdf}).
 
 
 \subsection{Running CoaSim}
@@ -1737,6 +1737,23 @@ There are three hooks for callbacks in the simulations:
   that is the result of a gene conversion event, and the number of
   lineages at the time of the gene conversion (i.e.\ the number of
   linages just after the event, moving forward in time).
+\item \texttt{:bottleneck-callback}---called with the number of the
+  affected population, a boolean flag indicating whether the event
+  indicates entering or leaving the bottleneck, the time of the event
+  and the (total) number of lineages left at the time of the event.
+\item \texttt{:growth-callback}---called with the number of the
+  affected population, a boolean flag indicating whether the event
+  indicates entering or leaving the growth perioed, the time of the
+  event and the (total) number of lineages left at the time of the
+  event.
+\item \texttt{:migration-callback}---called with the two populations
+  (their number in the specification tree), the time of the migration,
+  and the number of lineages at the time of the gene conversion
+  (i.e. the number of linages just after the event, moving forward in
+  time).
+\item \texttt{:population-merge-callback}---called with a list of the
+  populations being merged, the time of the merge, and the (total)
+  number of lineages left at the time.
 \end{itemize}
 These are called during the ARG simulation, whenever one of the
 respective events happens.  They can be used to gather information
