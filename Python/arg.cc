@@ -14,6 +14,9 @@
 #ifndef PYTHON__ARG_HH_INCLUDED
 # include "arg.hh"
 #endif
+#ifndef PYTHON__INTERVALS_HH_INCLUDED
+# include "intervals.hh"
+#endif
 
 #ifndef CORE__NODE_HH_INCLUDED
 # include <Core/node.hh>
@@ -37,9 +40,28 @@ sequences(ARGObject *self)
     return sequences_list;
 }
 
+static PyObject *
+intervals(ARGObject *self)
+{
+    const std::vector<core::RetiredInterval> &rintervals
+	= self->arg->retired_intervals();
+    PyObject *interval_list = PyList_New(rintervals.size());
+    std::vector<core::RetiredInterval>::const_iterator i;
+    for (i = rintervals.begin(); i != rintervals.end(); ++i)
+	{
+	    PyObject *interval = wrap_interval(&(*i), self);
+	    PyList_SetItem(interval_list, i - rintervals.begin(), interval);
+	}
+    return interval_list;
+}
+
 static PyGetSetDef ARG_getseters[] = {
     {"sequences", (getter)sequences, NULL,
      "Sequences found in the leaves of the ARG.",
+     NULL /* no closure */
+    },
+    {"intervals", (getter)intervals, NULL,
+     "Intervals sharing the same genealogy in the ARG.",
      NULL /* no closure */
     },
 
@@ -124,11 +146,9 @@ static PyTypeObject ARGType = {
 
 PyObject *wrap_arg(core::ARG *arg)
 {
-    ARGObject *py_arg = (ARGObject*)_PyObject_New((PyTypeObject*)&ARGType);
+    ARGObject *py_arg = (ARGObject*)ARG_new(&ARGType, 0, 0);
     if (!py_arg) return 0;
-
     py_arg->arg = arg;
-
     return (PyObject*)py_arg;
 }
 

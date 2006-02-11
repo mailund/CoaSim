@@ -11,6 +11,15 @@
 #ifndef PYTHON__ARG_HH_INCLUDED
 # include "arg.hh"
 #endif
+#ifndef PYTHON__INTERVALS_HH_INCLUDED
+# include "intervals.hh"
+#endif
+#ifndef PYTHON__TREES_HH_INCLUDED
+# include "trees.hh"
+#endif
+#ifndef PYTHON__NODES_HH_INCLUDED
+# include "nodes.hh"
+#endif
 #ifndef PYTHON__SIMULATE_HH_INCLUDED
 # include "simulate.hh"
 #endif
@@ -45,5 +54,8 @@ initCore(void)
 
     init_markers(m);
     init_arg(m);
+    init_intervals(m);
+    init_trees(m);
+    init_nodes(m);
     init_simulate(m);
 }
