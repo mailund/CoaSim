@@ -22,6 +22,12 @@
 # include <Core/node.hh>
 #endif
 
+#ifndef SSTREAM_INCLUDED
+# include <sstream>
+# define SSTREAM_INCLUDED
+#endif
+
+
 static PyObject *
 interval(TreeObject *self)
 {
@@ -100,14 +106,31 @@ Tree_compare(TreeObject *t1, TreeObject *t2)
     return -1;
 }
 
+static PyObject *
+Tree_str(TreeObject *t)
+{
+    std::ostringstream os; 
+    t->interval->top_node()->print_tree_at_point(os, t->interval->start());
+    return PyString_FromString(os.str().c_str());
+}
+
+static int
+Tree_print(TreeObject *t, FILE *fp, int flags)
+{
+    std::ostringstream os; 
+    t->interval->top_node()->print_tree_at_point(os, t->interval->start());
+    fprintf(fp, os.str().c_str());
+    return 0;
+}
+
 static PyTypeObject TreeType = {
     PyObject_HEAD_INIT(NULL)
     0,				/*ob_size*/
     "CoaSim.Tree",		/*tp_name*/
-    sizeof(TreeObject),	/*tp_basicsize*/
+    sizeof(TreeObject),		/*tp_basicsize*/
     0,				/*tp_itemsize*/
     (destructor)Tree_dealloc, /*tp_dealloc*/
-    0,				/*tp_print*/
+    (printfunc)Tree_print,	/*tp_print*/
     0,				/*tp_getattr*/
     0,				/*tp_setattr*/
     (cmpfunc)Tree_compare,	/*tp_compare*/
@@ -117,7 +140,7 @@ static PyTypeObject TreeType = {
     0,				/*tp_as_mapping*/
     0,				/*tp_hash */
     0,				/*tp_call*/
-    0,				/*tp_str*/
+    (reprfunc)Tree_str,		/*tp_str*/
     0,				/*tp_getattro*/
     0,				/*tp_setattro*/
     0,				/*tp_as_buffer*/

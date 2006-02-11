@@ -13,3 +13,4 @@ assert intervals == [t.interval for t in trees]
 assert [t.branchLength for t in trees] == [6.8694553479721083, 4.8932502412522147]
 assert [t.height for t in trees] == [2.0935405459452552, 1.2403594539408294]
 
+print trees

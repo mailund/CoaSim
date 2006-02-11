@@ -21,6 +21,11 @@ assert m3.K        == 10
 m1.position = 0.5
 assert m1.position == 0.5
 
+# testing strings
+assert str(m1) == 'SNPMarker(0.5,0.1,0.9)'
+assert str(m2) == 'TraitMarker(0.4,0.1,0.9)'
+assert str(m3) == 'MicroSatelliteMarker(0.4,12.2,10)'
+
 
 # testing exceptions on illegal input
 try:

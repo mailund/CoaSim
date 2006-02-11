@@ -13,6 +13,13 @@
 # include <Core/all_markers.hh>
 #endif
 
+#ifndef SSTREAM_INCLUDED
+# include <sstream>
+# define SSTREAM_INCLUDED
+#endif
+
+
+
 static PyObject *
 Marker_position_get(MarkerObject *self)
 {
@@ -202,6 +209,34 @@ SNPMarker_dealloc(SNPMarkerObject *self)
     self->base.ob_type->tp_free((PyObject*)self);
 }
 
+static PyObject *
+SNPMarker_str(SNPMarkerObject *self)
+{
+    core::SNPMarker *core_marker 
+	= dynamic_cast<core::SNPMarker*>(self->base.core_marker);
+    std::ostringstream os; 
+    os << "SNPMarker(" << core_marker->position()
+       << ',' << core_marker->low_freq()
+       << ',' << core_marker->high_freq()
+       << ')';
+    return PyString_FromString(os.str().c_str());
+}
+
+static int
+SNPMarker_print(SNPMarkerObject *self, FILE *fp, int flags)
+{
+    core::SNPMarker *core_marker 
+	= dynamic_cast<core::SNPMarker*>(self->base.core_marker);
+    std::ostringstream os; 
+    os << "SNPMarker(" << core_marker->position()
+       << ',' << core_marker->low_freq()
+       << ',' << core_marker->high_freq()
+       << ')';
+    fprintf(fp, os.str().c_str());
+    return 0;
+}
+
+
 PyTypeObject SNPMarkerType = {
     PyObject_HEAD_INIT(NULL)
     0,				/*ob_size*/
@@ -209,7 +244,7 @@ PyTypeObject SNPMarkerType = {
     sizeof(SNPMarkerObject),	/*tp_basicsize*/
     0,				/*tp_itemsize*/
     (destructor)SNPMarker_dealloc, /*tp_dealloc*/
-    0,				/*tp_print*/
+    (printfunc)SNPMarker_print,	/*tp_print*/
     0,				/*tp_getattr*/
     0,				/*tp_setattr*/
     0,				/*tp_compare*/
@@ -219,7 +254,7 @@ PyTypeObject SNPMarkerType = {
     0,				/*tp_as_mapping*/
     0,				/*tp_hash */
     0,				/*tp_call*/
-    0,				/*tp_str*/
+    (reprfunc)SNPMarker_str,	/*tp_str*/
     0,				/*tp_getattro*/
     0,				/*tp_setattro*/
     0,				/*tp_as_buffer*/
@@ -338,6 +373,33 @@ TraitMarker_dealloc(TraitMarkerObject *self)
     self->base.ob_type->tp_free((PyObject*)self);
 }
 
+static PyObject *
+TraitMarker_str(TraitMarkerObject *self)
+{
+    core::TraitMarker *core_marker 
+	= dynamic_cast<core::TraitMarker*>(self->base.core_marker);
+    std::ostringstream os; 
+    os << "TraitMarker(" << core_marker->position()
+       << ',' << core_marker->low_freq()
+       << ',' << core_marker->high_freq()
+       << ')';
+    return PyString_FromString(os.str().c_str());
+}
+
+static int
+TraitMarker_print(TraitMarkerObject *self, FILE *fp, int flags)
+{
+    core::TraitMarker *core_marker 
+	= dynamic_cast<core::TraitMarker*>(self->base.core_marker);
+    std::ostringstream os; 
+    os << "TraitMarker(" << core_marker->position()
+       << ',' << core_marker->low_freq()
+       << ',' << core_marker->high_freq()
+       << ')';
+    fprintf(fp, os.str().c_str());
+    return 0;
+}
+
 PyTypeObject TraitMarkerType = {
     PyObject_HEAD_INIT(NULL)
     0,				/*ob_size*/
@@ -345,7 +407,7 @@ PyTypeObject TraitMarkerType = {
     sizeof(TraitMarkerObject),	/*tp_basicsize*/
     0,				/*tp_itemsize*/
     (destructor)TraitMarker_dealloc, /*tp_dealloc*/
-    0,				/*tp_print*/
+    (printfunc)TraitMarker_print, /*tp_print*/
     0,				/*tp_getattr*/
     0,				/*tp_setattr*/
     0,				/*tp_compare*/
@@ -355,7 +417,7 @@ PyTypeObject TraitMarkerType = {
     0,				/*tp_as_mapping*/
     0,				/*tp_hash */
     0,				/*tp_call*/
-    0,				/*tp_str*/
+    (reprfunc)TraitMarker_str,	/*tp_str*/
     0,				/*tp_getattro*/
     0,				/*tp_setattro*/
     0,				/*tp_as_buffer*/
@@ -475,6 +537,34 @@ MicroSatelliteMarker_dealloc(MicroSatelliteMarkerObject *self)
     self->base.ob_type->tp_free((PyObject*)self);
 }
 
+static PyObject *
+MicroSatelliteMarker_str(MicroSatelliteMarkerObject *self)
+{
+    core::MicroSatelliteMarker *core_marker 
+	= dynamic_cast<core::MicroSatelliteMarker*>(self->base.core_marker);
+    std::ostringstream os; 
+    os << "MicroSatelliteMarker(" << core_marker->position()
+       << ',' << core_marker->theta()
+       << ',' << core_marker->K()
+       << ')';
+    return PyString_FromString(os.str().c_str());
+}
+
+static int
+MicroSatelliteMarker_print(TraitMarkerObject *self, FILE *fp, int flags)
+{
+    core::MicroSatelliteMarker *core_marker 
+	= dynamic_cast<core::MicroSatelliteMarker*>(self->base.core_marker);
+    std::ostringstream os; 
+    os << "MicroSatelliteMarker(" << core_marker->position()
+       << ',' << core_marker->theta()
+       << ',' << core_marker->K()
+       << ')';
+    fprintf(fp, os.str().c_str());
+    return 0;
+}
+
+
 PyTypeObject MicroSatelliteMarkerType = {
     PyObject_HEAD_INIT(NULL)
     0,				/*ob_size*/
@@ -482,7 +572,7 @@ PyTypeObject MicroSatelliteMarkerType = {
     sizeof(MicroSatelliteMarkerObject),	/*tp_basicsize*/
     0,				/*tp_itemsize*/
     (destructor)MicroSatelliteMarker_dealloc, /*tp_dealloc*/
-    0,				/*tp_print*/
+    (printfunc)MicroSatelliteMarker_print, /*tp_print*/
     0,				/*tp_getattr*/
     0,				/*tp_setattr*/
     0,				/*tp_compare*/
@@ -492,7 +582,7 @@ PyTypeObject MicroSatelliteMarkerType = {
     0,				/*tp_as_mapping*/
     0,				/*tp_hash */
     0,				/*tp_call*/
-    0,				/*tp_str*/
+    (reprfunc)MicroSatelliteMarker_str,	/*tp_str*/
     0,				/*tp_getattro*/
     0,				/*tp_setattro*/
     0,				/*tp_as_buffer*/

@@ -16,6 +16,11 @@
 # include <Core/retired_interval.hh>
 #endif
 
+#ifndef SSTREAM_INCLUDED
+# include <sstream>
+# define SSTREAM_INCLUDED
+#endif
+
 static PyObject *
 start(IntervalObject *self)
 {
@@ -93,6 +98,24 @@ Interval_compare(IntervalObject *i1, IntervalObject *i2)
     return -1;
 }
 
+static PyObject *
+Interval_str(IntervalObject *i)
+{
+    std::ostringstream os; 
+    os << '[' << i->interval->start() << ", " << i->interval->end() << ')';
+    return PyString_FromString(os.str().c_str());
+}
+
+static int
+Interval_print(IntervalObject *i, FILE *fp, int flags)
+{
+    std::ostringstream os; 
+    os << '[' << i->interval->start() << ", " << i->interval->end() << ')';
+    fprintf(fp, os.str().c_str());
+    return 0;
+}
+
+
 static PyTypeObject IntervalType = {
     PyObject_HEAD_INIT(NULL)
     0,				/*ob_size*/
@@ -100,7 +123,7 @@ static PyTypeObject IntervalType = {
     sizeof(IntervalObject),	/*tp_basicsize*/
     0,				/*tp_itemsize*/
     (destructor)Interval_dealloc, /*tp_dealloc*/
-    0,				/*tp_print*/
+    (printfunc)Interval_print,	/*tp_print*/
     0,				/*tp_getattr*/
     0,				/*tp_setattr*/
     (cmpfunc)Interval_compare,	/*tp_compare*/
@@ -110,7 +133,7 @@ static PyTypeObject IntervalType = {
     0,				/*tp_as_mapping*/
     0,				/*tp_hash */
     0,				/*tp_call*/
-    0,				/*tp_str*/
+    (reprfunc)Interval_str,	/*tp_str*/
     0,				/*tp_getattro*/
     0,				/*tp_setattro*/
     0,				/*tp_as_buffer*/
