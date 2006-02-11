@@ -1,11 +1,11 @@
 \documentclass{manual}
 
-\title{Getting Started with CoaSim}
+\title{Getting Started with CoaSim/Guile}
 \subtitle{An introduction to the simulator CoaSim}
 \authors{Thomas Mailund}
 \contact{mailund@birc.au.dk}
 \company{Bioinformatics ApS}
-\toolversion{CoaSim v3.1 (GUI) and v4.1 (Guile)}
+\toolversion{CoaSim/Guile v4.1}
 
 \usepackage{wrapfig}
 
@@ -20,30 +20,25 @@ ancestral recombination graph for a given number of chromosomes and
 uses this to simulate samples of SNP and micro-satellite haplotypes or
 genotypes.
 
+CoaSim comes in two flavours: A graphical user interface version for
+easy use by novice users, and a script based version (using either
+Guile-Scheme or Python) for efficient batch simulations.  This
+document is an introduction to the Guile-Scheme based version.
+
 \subsection{Installing CoaSim}
 
-CoaSim comes in two flavours: A graphical user interface version for
-easy use by novice users, and a guile-scheme based version for
-efficient scripting.  Both versions are distributed as RPM files or as
-source code.  For most users, we recommend installing from the RPM
-files, since building the tool from source requires setting up the
-right build environment and having access to the needed development
-tools.  If you are not familiar with UNIX C++ development, using the
-Automake suite of tools, we do not recommend that you try building
-from source.  If you are not familiar with Qt development, we do not
-recommend that you try to build the GUI version from source.
+CoaSim is distributed as RPM files or as source code.  For most users,
+we recommend installing from the RPM files, since building the tool
+from source requires setting up the right build environment and having
+access to the needed development tools.  If you are not familiar with
+UNIX C++ development---using the Automake suite of tools---we do not
+recommend that you try building from source.
 
 \paragraph{Installing the RPM Files.}
 
-The RPM files (\verb?coasim-gui-x.y.z-r.i386.rpm? and
-\verb?coasim-guile-x.y.z-r.i386.rpm?, respectively) contains binary
-versions of the program, compiled to an Intel x86 Linux platform.  To
-install the graphical user interface version from the RPM package, run
-\begin{code}
-> rpm -Uvh coasim-gui-x.y.z-r.i386.rpm
-\end{code}
-where \texttt{x.y.z-r} is the version number of Coasim.  To install
-the scheme version, run
+The RPM file, \verb?coasim-guile-x.y.z-r.i386.rpm?, contains a binary
+version of the program, compiled to an Intel x86 Linux platform.  To
+install the Scheme version, run
 \begin{code}
 > rpm -Uvh coasim-guile-x.y.z-r.i386.rpm
 \end{code}
@@ -52,79 +47,24 @@ installing the RPM package requires root access.
 
 \paragraph{Installing from the Source Files.}
 
-The source code is distributed in three tar-files:
-\begin{itemize}
-\item \verb?coasim-core-x.y.z.tar.gz?,
-\item \verb?coasim-guile-x.y.z.tar.gz?, and
-\item \verb?coasim-gui-x.y.z.tar.gz?.
-\end{itemize}
-
-The core files are needed for both the guile-scheme version while the
-two remaining tar-balls are for the scheme and GUI version,
-respectively.  To build the source files, first untar the core module
-and place it in a directory called Core:
-
+The source code is distributed in a tar-file:
+\verb?coasim-guile-x.y.z.tar.gz?.  To build the Guile version from
+the source files untar the file, build the Core module
 \begin{code}
-> tar zxf coasim-core-x.y.z.tar.gz
-> mv coasim-core-x.y.z Core
-> cd Core
-> ./configure
-> make
-\end{code}
-
-To build the guile version, untar the source files next to the Core
-module, configure and build:
-
-\begin{code}
-> cd ..
 > tar zxf coasim-guile-x.y.z.tar.gz
-> cd coasim-guile-x.y.z
+> cd coasim-guile-version/Core
 > ./configure
 > make
-> make install
 \end{code}
-
-To build the GUI version, untar the source files next to the Core
-module, install the designer plugins used, then qmake and build:
-
+and then build the Guile module:
 \begin{code}
-> cd ..
-> tar zxf coasim-gui-x.y.z.tar.gz
-> cd coasim-gui-x.y.z/designer_plugins
-> qmake
-> make install
-> cd ..
-> qmake
+> cd ../Guile
+> ./configure
 > make
-> make install
-\end{code}
-
-If you do not have write access to \verb?QTDIR/plugins?, you will need
-to install the plugins locally, e.g. use qtconfig to add
-\verb?$(HOME)/.qt/plugins? to the plugin path and do:
-
-\begin{code}
-> cd ..
-> tar zxf coasim-gui-x.y.z.tar.gz
-> cd coasim-gui-x.y.z/designer_plugins
-> qmake
-> INSTALL_ROOT=~/.qt make install
-> cd ..
-> qmake
-> make
-> make install
 \end{code}
 
 
 \subsection{Running CoaSim}
-
-Installing the graphical user installing version should, on GNOME or
-KDE desktops, add an icon in the start menu for running CoaSim.  If
-this is not the case, the tool can be started on the command-line with
-the command
-\begin{code}
-> coasim_gui
-\end{code}
 
 The scheme based version is started from the command-line; the
 parameters for the simulation or simulations to be run is described in
@@ -138,7 +78,6 @@ documentation.  Starting CoaSim with a configuration script
 Run \verb?coasim_guile --help? to get a complete list of command-line
 options accepted by CoaSim.
 
-
 \section{Using CoaSim}
 
 Running CoaSim will in most cases consist of three steps: Set up the
@@ -149,88 +88,7 @@ needed information from the ARG (\emph{Ancestral Recombination
   Graph}), e.g. the resulting sequences, the timing of the various
 events, or the local coalescent trees embedded in the ARG.
 
-The way these three steps are executed varies between the GUI and the
-scheme-based version.
-
-
-\subsection{Using the Graphical User Interface Based CoaSim}
-\label{sec:using-graphical-user}
-The graphical user interface for CoaSim makes it possible for the
-casual user to perform simple simulations; for more advanced use the
-scripting facilities of the Scheme based version is needed.  
-
-\begin{wrapfigure}{r}{5cm}
-  \centering
-  \includegraphics{figs/coasim-menu}
-  \caption{The CoaSim icon in the menu.}
-  \label{fig:menu}
-\end{wrapfigure}
-
-In future releases we plan to build more power into the GUI version,
-but at this moment limited resources forces us to focus our efforts on
-one of the versions, and therefore the GUI version is limited compared
-to the Guile Scheme version.
-
-Once CoaSim has been install, on most platforms it will appear in the
-menu, as shown in Fig.~\ref{fig:menu}.  If it does not, however, it
-can be started from the command line as
-\begin{code}
-> coasim_gui
-\end{code}
-
-Once started, the main window, shown on Fig.~\ref{fig:main}, appears.
-This window is used to specify the markers to use in a simulation.
-Using the tabs, different kinds of markers can be specified: trait
-markers, used for specifying a trait of interest; SNP markers, similar
-to trait markers, but with a different ascertainment bias; and
-micro-satellite markers, with a different mutation model than the
-other two.  Additional parameters for the simulation can be set in the
-\emph{ARG Simulation Parameters} dialogue, shown in
-Fig.~\ref{fig:arg-parameters}, opened from the \emph{Simulation} menu
-in the main window.
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics{figs/main-window}
-  \caption{The CoaSim main window.  Used to set up markers for simulation.}
-  \label{fig:main}
-\end{figure}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics{figs/arg-parameters}
-  \caption{Dialogue for setting ARG simulation parameters.}
-  \label{fig:arg-parameters}
-\end{figure}
-
-Once the parameters have been set, the simulation can be started from
-the \emph{Simulation} menu.  This opens the simulation monitor, shown
-in Fig.~\ref{fig:monitor} and runs the simulation.  Once the
-simulation has completed, the result is shown in the result dialogue
-shown in Fig.~\ref{fig:results}.  From this dialogue it is possible to
-save the result as a simple text file.
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics{figs/monitor}
-  \caption{Simulation monitor, showing the progress of the monitor and
-  different statistics about the simulation.}
-  \label{fig:monitor}
-\end{figure}
-
-\begin{figure}[tp]
-  \centering
-  \includegraphics{figs/results}
-  \caption{Simulation results.}
-  \label{fig:results}
-\end{figure}
-
-
-
-\subsection{Using the Scheme-based CoaSim}
-\label{sec:using-scheme-based}
-
-Before using the guile-scheme based CoaSim \emph{it is necessary that
+Before using the Guile-Scheme based CoaSim \emph{it is necessary that
   you have installed the program}, not just compiled the program; at
 least if you are using any of the scheme modules distributed with
 CoaSim.  If the tool has not been properly installed, it will not be
@@ -239,7 +97,8 @@ included test scripts, will not be able to run.  If it is not possible
 to install the modules globally, you can install the locally but you
 will then need to set the \verb?GUILE_LOAD_PATH? environment variable
 to let CoaSim know where the modules are installed.  Consult the Guile
-manual for further details (\verb?http://www.gnu.org/software/guile/docs/?).
+manual for further details
+(\verb?http://www.gnu.org/software/guile/docs/?).
 
 Once CoaSim is successfully installed, it can be run with any number
 of files as argument:
