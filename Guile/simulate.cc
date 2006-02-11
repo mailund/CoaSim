@@ -513,6 +513,9 @@ simulate(SCM s_markers,		// 1
 	scm_throw(scm_str2symbol("out-of-sequence"), s_markers);
     } catch(core::Configuration::non_pos_pop_size&) {
 	scm_throw(scm_str2symbol("non-positive-sample-size"), s_pop_size);
+    } catch(core::Configuration::negative_rate &ex) {
+	scm_throw(scm_str2symbol("negative-rate-or-intensity"),
+		  scm_make_real(ex.rate));
     } catch(SchemeException &sex) { // ;-)
 	propagate(sex);
     } catch(exception &ex) {

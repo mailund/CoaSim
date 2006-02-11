@@ -33,6 +33,10 @@
 # include <limits>
 # define LIMITS_INCLUDED
 #endif
+#ifndef SSTREAM_INCLUDED
+# include <sstream>
+# define SSTREAM_INCLUDED
+#endif
 
 namespace core {
     class SimulationMonitor;
@@ -91,6 +95,23 @@ namespace core {
 	    out_of_sequence() : std::logic_error("Marker positions not sorted."){}
 	};
 
+	// Exception thrown if the configuration is initialized with
+	// a negative rate or intensity
+	class negative_rate : public std::logic_error {
+	    inline static std::string mk_err_msg(double r)
+	    {
+		std::ostringstream os;
+		os << "Negative rate or intensity: " << r << '.';
+		return os.str(); 
+	    }
+	public:
+	    double rate;
+	    negative_rate(double r) 
+		: std::logic_error(mk_err_msg(r)), rate(r) 
+	    {}
+	};
+
+
 	// Exception thrown if we try to add to a value set before the type
 	// of the marker has been initialized
 	struct uninitialized_marker : public std::logic_error {
@@ -106,7 +127,7 @@ namespace core {
 		      MarkerItr  m_begin, MarkerItr  m_end,
 		      EpochItr   e_begin, EpochItr   e_end,
 		      double rho, double Q, double gamma, double growth)
-	    throw(out_of_sequence, non_pos_pop_size);
+	    throw(out_of_sequence, non_pos_pop_size, negative_rate);
 	~Configuration();
 
 	typedef std::vector<unsigned int>::const_iterator pop_size_itr_t;
@@ -187,10 +208,15 @@ namespace core {
 				 MarkerItr  m_begin,  MarkerItr  m_end,
 				 EpochItr   e_begin,  EpochItr   e_end,
 				 double rho, double Q, double gamma, 
-				 double growth)
-	throw(out_of_sequence, non_pos_pop_size)
-	: i_rho(rho), i_Q(Q), i_gamma(gamma), i_growth(growth)
+				 double beta)
+	throw(out_of_sequence, non_pos_pop_size, negative_rate)
+	: i_rho(rho), i_Q(Q), i_gamma(gamma), i_growth(beta)
     {
+	if (rho < 0)   throw negative_rate(rho);
+	if (Q < 0)     throw negative_rate(Q);
+	if (gamma < 0) throw negative_rate(gamma);
+	if (beta < 0)  throw negative_rate(beta);
+
 	i_no_markers = m_end - m_begin;
 	i_no_leaves = 0;
 

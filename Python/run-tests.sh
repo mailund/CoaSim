@@ -6,7 +6,7 @@ green="[32m";
 red="[31m";
 reset="[0m"
 
-tests='markersTest.py'
+tests='markersTest.py randomMarkersTest.py'
 
 for t in $tests; do
   echo "Running $bold$underscore$t$reset"

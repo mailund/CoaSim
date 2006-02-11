@@ -40,20 +40,30 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
     std::vector<core::Marker*> markers;
     std::vector<core::Event*> epochs;
 
-    int no_samples;
-    double rho;
-    double Q;
-    double gamma;
-    double beta;
+    int no_samples = 0;
+
+    double rho = 0;
+    double Q = 0;
+    double gamma = 0;
+    double beta = 0;
+
+    PyObject *py_keep_empty = Py_False;
+    long seed = 0;
 
     char *kwd_list[] = {
 	"n", "markers",
-	"rho", "Q", "gamma", "beta", NULL
+	"rho", "Q", "gamma", "beta", 
+	"keepEmptyIntervals",
+	"seed",
+	NULL
     };
-    if (! PyArg_ParseTupleAndKeywords(args, kwds, "O!i|dddd", kwd_list,
+    if (! PyArg_ParseTupleAndKeywords(args, kwds, 
+				      "O!i|ddddO!l", kwd_list,
 				      &PyList_Type, &py_markers,
 				      &no_samples,
-				      &rho, &Q, &gamma, &beta))
+				      &rho, &Q, &gamma, &beta,
+				      &PyBool_Type, &py_keep_empty,
+				      &seed))
         return 0; 		/* rethrow exception */
 
     for (int i = 0; i < PyList_Size(py_markers); ++i)
@@ -69,12 +79,34 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
 	}
 
     sample_sizes.push_back(no_samples);
+    core::ARG *arg = 0;
 
-    core::Configuration conf(sample_sizes.begin(), sample_sizes.end(),
-			     markers.begin(), markers.end(),
-			     epochs.begin(),  epochs.end(),
-			     rho, Q, gamma, beta);
-    core::ARG *arg = core::Simulator::simulate(conf);
+
+    try {
+	core::Configuration conf(sample_sizes.begin(), sample_sizes.end(),
+				 markers.begin(), markers.end(),
+				 epochs.begin(),  epochs.end(),
+				 rho, Q, gamma, beta);
+	//                                callbacks
+	arg = core::Simulator::simulate(conf, 0, py_keep_empty==Py_True, seed);
+
+    } catch(core::Configuration::out_of_sequence&) {
+	PyErr_SetString(PyExc_ValueError, "Marker positions out of sequence.");
+	return 0;
+    } catch(core::Configuration::non_pos_pop_size&) {
+	PyErr_SetString(PyExc_ValueError, "Non-positive sample size.");
+	return 0;
+    } catch(core::Configuration::negative_rate &ex) {
+	PyErr_SetString(PyExc_ValueError, ex.what());
+	return 0;
+#if 0 // FIXME: for callbacks
+    } catch(PyException &pex) {
+	propagate exception;
+#endif 
+    } catch(std::exception &ex) {
+	PyErr_SetString(PyExc_RuntimeError, ex.what());
+	return 0;
+    }
     
     return wrap_arg(arg);
 }

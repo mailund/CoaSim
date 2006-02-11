@@ -2,8 +2,8 @@ __doc__ = '''
 CoaSim/Python -- Python bindings for Coasim
 Copyright (C) 2006 by Thomas Mailund <mailund@mailund.dk>
 
-This module contains functions making random marker configurations.
-'''
+This module contains functions for making random marker
+configurations.  '''
 
 def makeRandomPositions(noPositions, seed=None):
     '''Make a list of noPositions random positions between 0

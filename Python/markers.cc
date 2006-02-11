@@ -171,9 +171,21 @@ SNPMarker_init(SNPMarkerObject *self, PyObject *args)
     if (! PyArg_ParseTuple(args, "ddd", &position, &low_freq, &high_freq))
         return -1; 		/* rethrow exception */
 
-    self->base.core_marker = 
-	new core::SNPMarker(position, low_freq, high_freq);
+    core::SNPMarker *core_marker = 0;
+    try {
+	core_marker = new core::SNPMarker(position, low_freq, high_freq);
+    } catch (core::Marker::illegal_value &ex) {
+	PyErr_SetString(PyExc_ValueError, ex.what());
+	return -1;
+    } catch (core::Marker::illegal_position &ex) {
+	PyErr_SetString(PyExc_ValueError, ex.what());
+	return -1;
+    } catch (std::exception &ex) {
+	PyErr_SetString(PyExc_RuntimeError, ex.what());
+	return -1;
+    }
 
+    self->base.core_marker = core_marker;
     return 0;
 }
 
@@ -295,9 +307,21 @@ TraitMarker_init(TraitMarkerObject *self, PyObject *args)
     if (! PyArg_ParseTuple(args, "ddd", &position, &low_freq, &high_freq))
         return -1; 		/* rethrow exception */
 
-    self->base.core_marker 
-	= new core::TraitMarker(position, low_freq, high_freq);
+    core::TraitMarker *core_marker = 0;
+    try {
+	core_marker = new core::TraitMarker(position, low_freq, high_freq);
+    } catch (core::Marker::illegal_value &ex) {
+	PyErr_SetString(PyExc_ValueError, ex.what());
+	return -1;
+    } catch (core::Marker::illegal_position &ex) {
+	PyErr_SetString(PyExc_ValueError, ex.what());
+	return -1;
+    } catch (std::exception &ex) {
+	PyErr_SetString(PyExc_RuntimeError, ex.what());
+	return -1;
+    }
 
+    self->base.core_marker = core_marker;
     return 0;
 }
 
@@ -420,9 +444,21 @@ MicroSatelliteMarker_init(MicroSatelliteMarkerObject *self, PyObject *args)
     if (! PyArg_ParseTuple(args, "ddl", &position, &mu, &k))
         return -1; 		/* rethrow exception */
 
-    self->base.core_marker 
-	= new core::MicroSatelliteMarker(position, mu, k);
+    core::MicroSatelliteMarker *core_marker = 0;
+    try {
+	core_marker = new core::MicroSatelliteMarker(position, mu, k);
+    } catch (core::Marker::illegal_value &ex) {
+	PyErr_SetString(PyExc_ValueError, ex.what());
+	return -1;
+    } catch (core::Marker::illegal_position &ex) {
+	PyErr_SetString(PyExc_ValueError, ex.what());
+	return -1;
+    } catch (std::exception &ex) {
+	PyErr_SetString(PyExc_RuntimeError, ex.what());
+	return -1;
+    }
 
+    self->base.core_marker = core_marker;
     return 0;
 }
 

@@ -13,14 +13,29 @@
 # include "marker.hh"
 #endif
 
+#ifndef SSTREAM_INCLUDED
+# include <sstream>
+# define SSTREAM_INCLUDED
+#endif
+
 namespace core {
 
     class SNPMarker : public Marker
     {
+	inline static bool check_freq(double f)
+	{ if (f < 0) return false; if (f > 1) return false; return true; }
+	inline std::string d2s(double d)
+	{ std::ostringstream os; os << d; return os.str(); }
     public:
 	SNPMarker(double position, double low_freq, double high_freq) 
 	    : Marker(position), i_low_freq(low_freq), i_high_freq(high_freq)
-	{ i_values.push_back(0); i_values.push_back(1); }
+	{ 
+	    if (!check_freq(low_freq))  throw illegal_value(d2s(low_freq));
+	    if (!check_freq(high_freq)) throw illegal_value(d2s(high_freq));
+	    if (low_freq >= high_freq) 
+		throw illegal_value("low freq >= high freq.");
+	    i_values.push_back(0); i_values.push_back(1); 
+	}
 
 	virtual Marker *copy() const;
 

@@ -56,11 +56,16 @@ namespace core {
 	// Exception thrown if we try to add a value to a value set that
 	// doesn't fit the type of the value set
 	struct illegal_value : public std::logic_error {
-	    illegal_value() : std::logic_error("illegal marker value.") {}
+	    illegal_value(const std::string &e) 
+		: std::logic_error(std::string("Illegal marker value: ")+e) 
+	    {}
+	    illegal_value() 
+		: std::logic_error("Illegal marker value.")
+	    {}
 	};
 	// Exception thrown if a marker is given a position outside [0,1).
 	struct illegal_position : public std::logic_error {
-	    illegal_position() : std::logic_error("illeval position") {}
+	    illegal_position() : std::logic_error("Illegal position") {}
 	};
 
 	// polymorphic copying

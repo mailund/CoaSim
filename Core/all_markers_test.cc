@@ -46,7 +46,7 @@ int main(int argc, const char *argv[])
 	TraitMarker trait_marker(0.0,0.0,1.0);
 
 
-	MicroSatelliteMarker ms_marker(0.0,0.0,3);
+	MicroSatelliteMarker ms_marker(0.0,1.0,3);
 
 	CHECK(ms_marker.K() == 3);
 
