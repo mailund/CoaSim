@@ -51,7 +51,6 @@ void core::Descender::evolve(ARG &arg) const
 		}
 	}
 
-
     // Remaining markers
     m = 0;
     for (ri_itr = ri_begin; ri_itr != ri_end; ++ri_itr)

@@ -78,7 +78,7 @@ State::random_population()
 }
 
 double
-core::CoalescenceEvent::waiting_time(State &s, double current_time)
+core::CoalescenceEvent::delta_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
     Population &p = s.populations().at(i_population);
@@ -87,6 +87,7 @@ core::CoalescenceEvent::waiting_time(State &s, double current_time)
 
     double scale_fraction = p.scale_fraction();
     double delta_time = expdev(nodes_left, double(nodes_left-1)/2);
+
     return scale_fraction * delta_time;
 }
 
@@ -100,7 +101,8 @@ core::CoalescenceEvent::copy() const
 double
 core::CoalescenceEvent::event_time(State &s, double current_time)
 {
-    return current_time + waiting_time(s, current_time);
+    double delta = delta_time(s, current_time);
+    return current_time + delta;
 }
 
 void

@@ -80,7 +80,7 @@ namespace core {
 	double basic_waiting_time(State &s, double current_time)
 	{
 	    assert(i_underlying);
-	    return i_underlying->waiting_time(s, current_time);
+	    return i_underlying->delta_time(s, current_time);
 	}
 
 	// override this to implement the change in waiting time for

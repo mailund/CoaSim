@@ -71,6 +71,7 @@ ARG * Builder::build(BuilderMonitor *callbacks,
     arg->sort_retired_intervals(); // NB! important, since the
 				   // remaining functions rely on the
 				   // retired intervals being sorted!
+
     return arg.release();
 }
 

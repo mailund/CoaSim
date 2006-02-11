@@ -100,7 +100,7 @@ namespace core {
 
 	int population() const { return i_population; }
 
-	virtual double waiting_time(State &s, double current_time);
+	virtual double delta_time(State &s, double current_time);
 	virtual double event_time  (State &s, double current_time);
 	virtual void   update_state(Scheduler &scheduler, State &s,
 				    double event_time);

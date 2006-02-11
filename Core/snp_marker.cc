@@ -78,6 +78,7 @@ namespace
     bool SNPMutator::edge_has_mutation(double parent_time, double child_time) 
     {
 	double edge_length = parent_time - child_time;
+
 	bool mutate = (i_surface_so_far <= i_mutation_point
 		       and
 		       i_mutation_point < i_surface_so_far+edge_length);
