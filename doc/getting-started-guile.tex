@@ -196,7 +196,7 @@ in each is shown here:
 \begin{code}
 (use-modules ((coasim rand)))
 (let* ((markers (make-random-snp-markers 10 0 1))
-       (seqs (simulate-sequences markers 10 :rho 400)))
+       (seqs (simulate-sequences markers 100 :rho 400)))
   (display seqs)(newline))
 \end{code}
 
