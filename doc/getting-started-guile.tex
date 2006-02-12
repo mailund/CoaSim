@@ -69,9 +69,11 @@ and then build the Guile module:
 The scheme based version is started from the command-line; the
 parameters for the simulation or simulations to be run is described in
 one or more configuration scripts, which are written in the Scheme
-programming language, see the \textit{CoaSim Scheme} manual for
-documentation.  Starting CoaSim with a configuration script
-\verb?simulation.scm?---for example---is done as:
+programming language, see the
+\href{http://www.daimi.au.dk/~mailund/CoaSim/download/guile-manual-4.1.pdf}%
+{\emph{CoaSim/Scheme Manual}} for documentation.  Starting CoaSim with
+a configuration script \verb?simulation.scm?---for example---is done
+as:
 \begin{code}
 > coasim_guile simulation.scm
 \end{code}
@@ -98,7 +100,7 @@ to install the modules globally, you can install the locally but you
 will then need to set the \verb?GUILE_LOAD_PATH? environment variable
 to let CoaSim know where the modules are installed.  Consult the Guile
 manual for further details
-(\verb?http://www.gnu.org/software/guile/docs/?).
+(\url{http://www.gnu.org/software/guile/docs/}).
 
 Once CoaSim is successfully installed, it can be run with any number
 of files as argument:
@@ -119,9 +121,11 @@ complex simulation tasks require a bit of knowledge about the Scheme
 programming language and the scheme modules supplied with CoaSim.  To
 keep this `getting started' guide short, we do not attempt to explain
 the scheme interface to CoaSim in detail here---for this we refer to
-the \emph{CoaSim Guile Manual}---instead we give a short introduction
-to running very simple simulations, and give an overview of the
-example scripts distributed with CoaSim.
+the
+\href{http://www.daimi.au.dk/~mailund/CoaSim/download/guile-manual-4.1.pdf}%
+{\emph{CoaSim/Guile Manual}}---instead we give a short introduction to
+running very simple simulations, and give an overview of the example
+scripts distributed with CoaSim.
 
 A very simple use of CoaSim is to simulate coalescent trees.  A script
 for that is shown here:
@@ -148,8 +152,8 @@ The expression
   )
 \end{code}
 defines \texttt{m} to be a SNP marker, positions at the middle of the
-genomic region we consider (position 0.5), with the 0-allele frequency
-to be between 0 and 1, i.e. unrestricted.
+genomic region we consider (position $0.5$), with the $1$-allele
+frequency to be between $0$ and $1$, i.e. unrestricted.
 
 The next line is the simulation phase, it defines the variable
 \texttt{arg} to hold the ARG that is the result of the simulation.
