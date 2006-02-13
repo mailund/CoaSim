@@ -28,6 +28,10 @@
 # include <sys/time.h>
 # define SYS_TIME_H_INCLUDED
 #endif
+#ifndef MEMORY_INCLUDED
+# include <memory>
+# define MEMORY_INCLUDED
+#endif
 
 using namespace core;
 
@@ -39,7 +43,6 @@ core::Simulator::simulate(const Configuration &conf,
 {
     Builder builder(conf);
     Descender descender(conf);
-    ARG *arg = 0;
 
     // set rand seed
     if (!random_seed)
@@ -52,19 +55,17 @@ core::Simulator::simulate(const Configuration &conf,
     std::srand(random_seed);
 
 
+    ARG *arg = 0;
+ retry:
     try {
-
-    retry:
-	try {
-	    arg = builder.build(build_callbacks, keep_empty_intervals);
-	    descender.evolve(*arg);
-	} catch (Mutator::retry_arg&) {
-	    delete arg; arg = 0;
-	    goto retry;
-	}
-
+	std::auto_ptr<ARG> memsafe(builder.build(build_callbacks, 
+						 keep_empty_intervals));
+	descender.evolve(*memsafe.get());
+	arg = memsafe.release();
+    } catch (Mutator::retry_arg&) {
+	goto retry;
     } catch(SimulationMonitor::AbortSimulation&) {
-	if (arg) delete arg; arg = 0;
+	return 0;
     }
 
     return arg;

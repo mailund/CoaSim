@@ -8,9 +8,15 @@
 #ifndef PYTHON__MARKERS_HH_INCLUDED
 # include "markers.hh"
 #endif
+#ifndef PYTHON__EXCEPTIONS_HH_INCLUDED
+# include "exceptions.hh"
+#endif
 
 #ifndef CORE__ALL_MARKERS_HH_INCLUDED
 # include <Core/all_markers.hh>
+#endif
+#ifndef CORE__NODE_HH_INCLUDED
+# include <Core/node.hh>
 #endif
 
 #ifndef SSTREAM_INCLUDED
@@ -168,9 +174,6 @@ SNPMarker_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 SNPMarker_init(SNPMarkerObject *self, PyObject *args)
 {
-    PyObject *string = NULL;
-    PyObject *terminal = NULL;
-
     double position;
     double low_freq;
     double high_freq;
@@ -332,9 +335,6 @@ TraitMarker_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 TraitMarker_init(TraitMarkerObject *self, PyObject *args)
 {
-    PyObject *string = NULL;
-    PyObject *terminal = NULL;
-
     double position;
     double low_freq;
     double high_freq;
@@ -496,9 +496,6 @@ MicroSatelliteMarker_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 MicroSatelliteMarker_init(MicroSatelliteMarkerObject *self, PyObject *args)
 {
-    PyObject *string = NULL;
-    PyObject *terminal = NULL;
-
     double position;
     double mu;
     long k;
@@ -615,7 +612,233 @@ PyTypeObject MicroSatelliteMarkerType = {
     0,				// tp_del
 };
 
-// FIXME: custom marker
+namespace {
+    using namespace core;
+    struct PythonMarker : public core::Marker {
+	PyObject *py_marker;
+	// in simulations we copy markers into the simulator, and in
+	// those cases we cannot let the python object be deallocated
+	// before the simulation is done, so we keep a reference count
+	// to it -- on the other hand, when we creat the object from
+	// python, we *don't* want a reference, 'cause then it would
+	// never be deallocated again, thus we keep track of if it is
+	// a copy (that should be decref'ed) or not.
+	bool py_marker_copied;
+
+	// polymorphic copying
+	virtual Marker *copy() const;
+
+	virtual bool run_first() const;
+	virtual int default_value() const;
+
+	// creates a new mutator -- the mutator must be deleted after use.
+	virtual Mutator *create_mutator(const Configuration &conf,
+					const RetiredInterval &ri) const;
+
+	virtual const char * type() const;
+
+    public:
+
+	PythonMarker(double position, PyObject *py_marker) 
+	    : core::Marker(position), py_marker(py_marker),
+	      py_marker_copied(false)
+	{
+	}
+	PythonMarker(const PythonMarker &pm)
+	    : core::Marker(pm.position()), py_marker(pm.py_marker),
+	      py_marker_copied(true)
+	{
+	    Py_INCREF(py_marker);
+	}
+	~PythonMarker();
+    };
+
+    PythonMarker::~PythonMarker()
+    {
+	if (py_marker_copied)
+	    {
+		Py_DECREF(py_marker);
+	    }
+    }
+
+    class PythonMutator : public core::Mutator {
+	const PythonMarker &i_marker;
+	int mutate(const Node &parent, const Node &child, int parent_allele);
+
+    public:
+	PythonMutator(const PythonMarker &marker) : i_marker(marker) {}
+    };
+
+    Marker *PythonMarker::copy() const
+    {
+	return new PythonMarker(*this);
+    }
+
+    bool PythonMarker::run_first() const
+    {
+	return false;  // FIXME
+    }
+
+    
+    const char *PythonMarker::type() const 
+    {
+	return "PythonMarker"; 
+    }
+
+    int PythonMarker::default_value() const
+    {
+	PyObject *py_value = PyObject_CallMethod(py_marker, "defaultValue", 0);
+	if (!py_value) throw PyException();
+	if (!PyInt_Check(py_value)) 
+	    {
+		PyErr_SetString(PyExc_TypeError,
+				"defaultValue() must return an integer.");
+		throw PyException();
+	    }
+	return PyInt_AS_LONG(py_value);
+    }
+
+    Mutator *PythonMarker::create_mutator(const Configuration &conf,
+					  const RetiredInterval &ri) const
+    {
+	return new PythonMutator(*this);
+    }
+
+    int PythonMutator::mutate(const Node &parent, const Node &child, 
+			      int parent_allele)
+    {
+	double edge_length = parent.time() - child.time();
+	PyObject *py_value = PyObject_CallMethod(i_marker.py_marker, "mutate",
+						 "id", parent_allele, edge_length);
+	if (!py_value) throw PyException();
+	if (!PyInt_Check(py_value)) 
+	    {
+		PyErr_SetString(PyExc_TypeError,
+				"mutate() must return an integer.");
+		throw PyException();
+	    }
+	return PyInt_AS_LONG(py_value);
+    }
+}
+
+
+
+static PyGetSetDef PythonMarker_getseters[] = {
+    {0}				// sentinel
+};
+
+static PyObject *
+PythonMarker_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    PythonMarkerObject *self = (PythonMarkerObject *)type->tp_alloc(type, 0);
+    return (PyObject*)self;
+}
+
+static int
+PythonMarker_init(PythonMarkerObject *self, PyObject *args)
+{
+    double position = 0;
+
+    if (! PyArg_ParseTuple(args, "d", &position))
+        return -1; 		/* rethrow exception */
+
+    PythonMarker *core_marker = 0;
+    try {
+	core_marker = new PythonMarker(position, (PyObject*)self);
+    } catch (core::Marker::illegal_position &ex) {
+	PyErr_SetString(PyExc_ValueError, ex.what());
+	return -1;
+    } catch (std::exception &ex) {
+	PyErr_SetString(PyExc_RuntimeError, ex.what());
+	return -1;
+    }
+
+    self->base.core_marker = core_marker;
+    return 0;
+}
+
+static int
+PythonMarker_clear(PythonMarkerObject *self)
+{
+    return 0;
+}
+
+static void
+PythonMarker_dealloc(PythonMarkerObject *self)
+{
+    PythonMarker_clear(self);
+    self->base.ob_type->tp_free((PyObject*)self);
+}
+
+static PyObject *
+PythonMarker_str(PythonMarkerObject *self)
+{
+    PythonMarker *core_marker = dynamic_cast<PythonMarker*>(self->base.core_marker);
+    std::ostringstream os; 
+    os << "PythonMarker(" << core_marker->position() << ')';
+    return PyString_FromString(os.str().c_str());
+}
+
+static int
+PythonMarker_print(PythonMarkerObject *self, FILE *fp, int flags)
+{
+    PythonMarker *core_marker = dynamic_cast<PythonMarker*>(self->base.core_marker);
+    std::ostringstream os; 
+    os << "PythonMarker(" << core_marker->position() << ')';
+    fprintf(fp, os.str().c_str());
+    return 0;
+}
+
+
+PyTypeObject PythonMarkerType = {
+    PyObject_HEAD_INIT(NULL)
+    0,				/*ob_size*/
+    "CoaSim.PythonMarker", /*tp_name*/
+    sizeof(PythonMarkerObject),	/*tp_basicsize*/
+    0,				/*tp_itemsize*/
+    (destructor)PythonMarker_dealloc, /*tp_dealloc*/
+    (printfunc)PythonMarker_print, /*tp_print*/
+    0,				/*tp_getattr*/
+    0,				/*tp_setattr*/
+    0,				/*tp_compare*/
+    0,				/*tp_repr*/
+    0,				/*tp_as_number*/
+    0,				/*tp_as_sequence*/
+    0,				/*tp_as_mapping*/
+    0,				/*tp_hash */
+    0,				/*tp_call*/
+    (reprfunc)PythonMarker_str,	/*tp_str*/
+    0,				/*tp_getattro*/
+    0,				/*tp_setattro*/
+    0,				/*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
+    "Custom marker.",		/* tp_doc */
+    0,				/* tp_traverse */
+    0,				/* tp_clear */
+    0, 				/* tp_richcompare */
+    0,				// tp_weaklistoffset
+    0,				// tp_iter
+    0,				// tp_iternext
+    0,				// tp_methods
+    0,				// tp_members
+    PythonMarker_getseters,	// tp_getset
+    0, 				// tp_base
+    0,				// tp_dict
+    0,				// tp_descr_get
+    0,				// tp_descr_set
+    0,				// tp_dictoffset
+    (initproc)PythonMarker_init, // tp_init
+    0,				// tp_alloc
+    PythonMarker_new,		// tp_new
+    0,				// tp_free
+    0,				// tp_is_gc
+    0,				// tp_bases
+    0,				// tp_mro
+    0,				// tp_cache
+    0,				// tp_subclasses
+    0,				// tp_weaklist
+    0,				// tp_del
+};
 
 
 
@@ -628,6 +851,7 @@ void init_markers(PyObject *module)
     SNPMarkerType.tp_base = &MarkerType;
     TraitMarkerType.tp_base = &MarkerType;
     MicroSatelliteMarkerType.tp_base = &MarkerType;
+    PythonMarkerType.tp_base = &MarkerType;
 
     if (PyType_Ready(&SNPMarkerType) < 0) return;
     Py_INCREF(&SNPMarkerType);
@@ -635,10 +859,14 @@ void init_markers(PyObject *module)
     Py_INCREF(&TraitMarkerType);
     if (PyType_Ready(&MicroSatelliteMarkerType) < 0) return;
     Py_INCREF(&MicroSatelliteMarkerType);
+    if (PyType_Ready(&PythonMarkerType) < 0) return;
+    Py_INCREF(&PythonMarkerType);
 
 
+    PyModule_AddObject(module, "Marker", (PyObject *)&MarkerType);
     PyModule_AddObject(module, "SNPMarker", (PyObject *)&SNPMarkerType);
     PyModule_AddObject(module, "TraitMarker", (PyObject *)&TraitMarkerType);
     PyModule_AddObject(module, "MicroSatelliteMarker", 
 		       (PyObject *)&MicroSatelliteMarkerType);
+    PyModule_AddObject(module, "CustomMarker", (PyObject *)&PythonMarkerType);
 }

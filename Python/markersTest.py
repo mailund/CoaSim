@@ -108,3 +108,5 @@ try:
     assert False
 except ValueError, e:
     assert str(e) == 'Illegal marker value: -10'
+
+

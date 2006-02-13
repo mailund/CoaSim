@@ -1,0 +1,6 @@
+include *.cc
+include *.hh
+include *Test.py
+recursive-include modules *.py
+recursive-include examples *.py
+include run-tests.sh

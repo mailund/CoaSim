@@ -5,14 +5,9 @@
  *  Copyright (C) 2006 by Thomas Mailund <mailund@mailund.dk>
  */
 
-#ifndef PYTHON__SIMULATE_HH_INCLUDED
-#define PYTHON__SIMULATE_HH_INCLUDED
+#ifndef PYTHON__EXCEPTIONS_HH_INCLUDED
+#define PYTHON__EXCEPTIONS_HH_INCLUDED
 
-// must be included before anything else...
-#ifndef PYTHON_H_INCLUDED
-# include <Python.h>
-# define PYTHON_H_INCLUDED
-#endif
 #ifndef STDEXCEPT_INCLUDED
 # include <stdexcept>
 # define STDEXCEPT_INCLUDED
@@ -23,8 +18,5 @@
 // pulling this handle!
 struct PyException : std::exception {};
 
-void init_simulate(PyObject *module);
-PyObject *simulate(PyObject *self, PyObject *args, PyObject *kwds);
 
-
-#endif // PYTHON__SIMULATE_HH_INCLUDED
+#endif // PYTHON__EXCEPTIONS_HH_INCLUDED

@@ -27,3 +27,103 @@ Please see http://www.daimi.au.dk/~mailund/CoaSim/index.html for more
 details.'''
 
 from CoaSim.Core import *
+
+
+def isSorted(markers):
+    '''A predicate that checks that markers are sorted with respect to
+    their position (and no two markers are at the same position).'''
+    for i in xrange(1,len(markers)):
+        if markers[i-1].position >= markers[i].position:
+            return False
+    return True
+
+def sortMarkers(markers):
+    '''Sort a list of markers according to their positions.'''
+    lst = [(m.position,m) for m in markers]
+    lst.sort()
+    return [x[1] for x in lst]
+
+def _insertSorted(markers, newMarkers):
+    '''Insert a list of newMarkers into a sorted list of markers,
+    returning the new joined list and a list of indices for the
+    positions the newMarkers where inserted in.  The newMarkers list
+    need not be sorted, and the resulting list of indices will be in
+    the same order as the positions the newMarkers got.'''
+    assert isSorted(markers)
+
+    # copy the two lists so we won't destroy them...
+    markers = markers[:]
+    newMarkers = newMarkers[:]
+
+    # sort newMarkers so we can merge the two lists in linear time,
+    # but remember the indices.
+    newList = [(m.position,idx,m) \
+               for idx,m in zip(range(len(newMarkers)),newMarkers)]
+    newList.sort()
+    newList = [(idx,m) for p,idx,m in newList]
+
+    # now merge the two lists and remember the indices.  We start from
+    # the back, since that is the easiest with Pythons pop() function.
+    # Then we just have to reverse once we are done.
+    indices = [None]*len(newMarkers)
+    result = []
+    idx = len(markers)+len(newMarkers)-1
+    while markers != [] and newList != []:
+        if markers[-1].position == newList[-1][1].position:
+            raise 'Two markers at the same position!'
+        if markers[-1].position > newList[-1][1].position:
+            m = markers.pop()
+            result.append(m)
+        else:
+            i,m = newList.pop()
+            result.append(m)
+            indices[i] = idx
+        idx -= 1
+
+    # one of these two deals with the remaining markers
+    while markers != []:
+        result.append(markers.pop())
+    while newList != []:
+        i,m = newList.pop()
+        result.append(m)
+        indices[i] = idx
+        idx -= 1
+        
+    # ...and remember to reverse the list...
+    result.reverse()
+    
+    return result, indices
+
+
+def insertSorted(markers, new):
+    '''Insert a marker or a list of markers (new) into a sorted list
+    of markers (markers), returning the new joined list and the index
+    of the new marker(s).
+
+    If new is a list of markers, they need not be sorted beforehand,
+    and the resulting list of indices will be in the same order as the
+    positions the new markers was.'''
+
+    if isinstance(new,Marker):
+        new = [new]
+        markers, indices = _insertSorted(markers,new)
+        return markers, indices[0]
+    else:
+        return _insertSorted(markers,new)
+
+
+if __name__ == '__main__':
+    markers = [SNPMarker(0.4,0,1),SNPMarker(0.2,0,1),SNPMarker(0.8,0,1)]
+    assert not isSorted(markers)
+    markers = sortMarkers(markers)
+    assert [m.position for m in markers] == [0.2, 0.4, 0.8]
+    assert isSorted(markers)
+
+    new = [TraitMarker(0.3,0,1),TraitMarker(0.1,0,1),TraitMarker(0.5,0,1)]
+    merged, indices = insertSorted(markers,new)
+    assert [m.position for m in merged] == [0.1,0.2,0.3,0.4,0.5,0.8]
+    assert indices == [2,0,4]
+
+    merged, index = insertSorted(markers,TraitMarker(0.5,0,1))
+    assert [m.position for m in merged] == [0.2,0.4,0.5,0.8]
+    assert index == 2

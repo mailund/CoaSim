@@ -75,7 +75,14 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
 				    "arg #1 contains a non-marker");
 		    return 0;
 		}
-	    markers.push_back(((MarkerObject*)py_m)->core_marker);
+	    core::Marker *core_marker = ((MarkerObject*)py_m)->core_marker;
+	    if (!core_marker)
+		{
+		    PyErr_SetString(PyExc_ValueError, 
+				    "arg #1 contains an un-initialized marker");
+		    return 0;
+		}
+	    markers.push_back(core_marker);
 	}
 
     sample_sizes.push_back(no_samples);
@@ -99,10 +106,9 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
     } catch(core::Configuration::negative_rate &ex) {
 	PyErr_SetString(PyExc_ValueError, ex.what());
 	return 0;
-#if 0 // FIXME: for callbacks
     } catch(PyException &pex) {
-	propagate exception;
-#endif 
+	// propagate exception
+	return 0;
     } catch(std::exception &ex) {
 	PyErr_SetString(PyExc_RuntimeError, ex.what());
 	return 0;

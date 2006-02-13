@@ -23,10 +23,12 @@ struct MarkerObject               { PyObject_HEAD core::Marker *core_marker; };
 struct SNPMarkerObject            { MarkerObject base; };
 struct TraitMarkerObject          { MarkerObject base; };
 struct MicroSatelliteMarkerObject { MarkerObject base; };
+struct PythonMarkerObject         { MarkerObject base; };
 extern PyTypeObject MarkerType;
 extern PyTypeObject SNPMarkerType;
 extern PyTypeObject TraitMarkerType;
 extern PyTypeObject MicroSatelliteMarkerType;
+extern PyTypeObject PythonMarkerType;
 
 void init_markers(PyObject *module);
 

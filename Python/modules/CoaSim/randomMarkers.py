@@ -5,6 +5,15 @@ Copyright (C) 2006 by Thomas Mailund <mailund@mailund.dk>
 This module contains functions for making random marker
 configurations.  '''
 
+def randomPosition(seed=None):
+    '''Draws a single random position, uniformly in in the interval
+    (0,1(.'''
+    if seed is not None:
+        from random import seed as setSeed
+        setSeed(seed)
+    from random import uniform
+    return uniform(0.0,1.0)
+
 def makeRandomPositions(noPositions, seed=None):
     '''Make a list of noPositions random positions between 0
     (included) and 1 (excluded).
@@ -17,7 +26,7 @@ def makeRandomPositions(noPositions, seed=None):
     from random import uniform
     positions = []
     for i in xrange(noPositions):
-        positions.append(uniform(0,1))
+        positions.append(uniform(0.0,1.0))
     positions.sort()
     return positions
 
