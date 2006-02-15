@@ -14,9 +14,8 @@ to construct cases and control data sets for association studies.
 To cite CoaSim, please use:
 
     CoaSim: A Flexible Environment for Simulating Genetic Data under
-    Coalescent Models
-    T. Mailund, M.H. Schierup, C.N.S. Pedersen, P.J.M. Mechlenborg,
-    J.N. Madsen, and L. Schauser
+    Coalescent Models.  T. Mailund, M.H. Schierup, C.N.S. Pedersen,
+    P.J.M. Mechlenborg, J.N. Madsen, and L. Schauser.
     BMC Bioinformatics 2005, 6:252. doi:10.1186/1471-2105-6-252.
 
 CoaSim is developed in collaboration between Bioinformatics ApS and
@@ -27,6 +26,29 @@ Please see http://www.daimi.au.dk/~mailund/CoaSim/index.html for more
 details.'''
 
 from CoaSim.Core import *
+
+
+def simulate(markers, popStructSpec, migrationSpec=[],
+             rho=0, Q=0, gamma=0, beta=0, keepEmptyIntervals=False, seed=None):
+    '''Simulate an Ancestral Recombination Graph (ARG).
+
+    '''
+    import CoaSim.Core as Core
+    import popStructure
+    if isinstance(popStructSpec,popStructure.Population):
+        events,sampleSizes = popStructure.compile(popStructSpec)
+    elif isinstance(popStructSpec,int):
+        events,sampleSizes = [],[popStructSpec]
+    else:
+        raise TypeError('Population structure specification of unknown type.')
+
+    # the Core library assumes a seed of 0 means no seed -- but here
+    # we prefer the more conventional None, so we need to translate
+    # it.
+    if seed is None: seed = 0
+
+    return Core.simulate(markers,sampleSizes,events,
+                         rho,Q,gamma,beta,keepEmptyIntervals,seed)
 
 
 def isSorted(markers):
@@ -110,6 +132,13 @@ def insertSorted(markers, new):
         return markers, indices[0]
     else:
         return _insertSorted(markers,new)
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

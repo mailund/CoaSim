@@ -92,7 +92,6 @@ def singleMarkerDisease(markerIndex,
     homozygoteWildTypeRisk, heterozygoteRisk, and homozygoteMutantRisk
     are used.
     '''
-
     class Model(DiseaseModel):
         def __init__(self):
             DiseaseModel.__init__(self,[markerIndex],model)
@@ -104,10 +103,10 @@ def singleMarkerDisease(markerIndex,
             def __call__(self, (a1,a2)):
                 if (a1,a2) == (0,0):
                     return _uniform(0.0,1.0) < homozygoteWildTypeRisk
-                elif (a1,a2) == (1,1):
-                    return _uniform(0.0,1.0) < homozygoteMutantRisk
-                else:
+                elif a1 == 0 or a2 == 0:
                     return _uniform(0.0,1.0) < heterozygoteRisk
+                else:
+                    return _uniform(0.0,1.0) < homozygoteMutantRisk
     return Model()
 
 def dominantModel(markerIndex):

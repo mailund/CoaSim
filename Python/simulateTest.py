@@ -46,3 +46,17 @@ try:
     assert False
 except ValueError, e:
     assert str(e) == 'Negative rate or intensity: -2.'
+
+
+from CoaSim.popStructure import Population as P, Merge as M, Sample as S
+CoaSim.simulate(markers, P(1,M(1.5,[P(1,S(2)),P(1,S(2))])))
+
+from CoaSim.popStructure import Bottleneck as B, Growth as G
+CoaSim.simulate(markers, P(1,M(1.5,[P(1,S(2)),P(1,S(2))]),epochs=[B(.2,1.5,2)]))
+CoaSim.simulate(markers, P(1,M(1.5,[P(1,S(2)),P(1,S(2))]),epochs=[G(20,1.5,2)]))
+CoaSim.simulate(markers, P(1,M(1.5,[P(1,S(2)),P(1,S(2))]),epochs=[B(.2,1.5)]))
+
+from CoaSim.popStructure import Migration as Mi
+CoaSim.simulate(markers,
+                P(1,M(1.5,[P(1,S(2),name='1'),P(1,S(2),name='2')])),
+                [Mi('foo','bar',0.1),Mi('bar','foo',0.2)])
