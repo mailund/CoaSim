@@ -29,7 +29,9 @@ from CoaSim.Core import *
 
 
 def simulate(markers, popStructSpec, migrationSpec=[],
-             rho=0, Q=0, gamma=0, beta=0, keepEmptyIntervals=False, seed=None):
+             rho=0, Q=0, gamma=0, beta=0,
+             callbacks=None,
+             keepEmptyIntervals=False, seed=None):
     '''Simulate an Ancestral Recombination Graph (ARG).
 
     '''
@@ -48,7 +50,8 @@ def simulate(markers, popStructSpec, migrationSpec=[],
     if seed is None: seed = 0
 
     return Core.simulate(markers,sampleSizes,events,
-                         rho,Q,gamma,beta,keepEmptyIntervals,seed)
+                         rho,Q,gamma,beta,callbacks,
+                         keepEmptyIntervals,seed)
 
 
 def isSorted(markers):

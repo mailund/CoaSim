@@ -14,6 +14,12 @@
 #ifndef PYTHON__ARG_HH_INCLUDED
 # include "arg.hh"
 #endif
+#ifndef PYTHON__EXCEPTIONS_HH_INCLUDED
+# include "exceptions.hh"
+#endif
+#ifndef PYTHON__NODES_HH_INCLUDED
+# include "nodes.hh"
+#endif
 
 #ifndef CORE__NODE_HH_INCLUDED
 # include <Core/node.hh>
@@ -29,6 +35,9 @@
 #endif
 #ifndef CORE__SIMULATOR_HH_INCLUDED
 # include <Core/simulator.hh>
+#endif
+#ifndef CORE__BUILDER_HH_INCLUDED
+# include <Core/builder.hh>
 #endif
 
 static core::Event *
@@ -139,6 +148,150 @@ namespace {
 	for (const_iterator i = begin(); i != end(); ++i)
 	    delete *i;
     }
+
+    class Callbacks : public core::BuilderMonitor {
+	PyObject *i_py_callback;
+
+	bool i_has_coa_cb;
+	bool i_has_rc_cb;
+	bool i_has_gc_cb;
+
+	bool i_has_bottleneck_cb;
+	bool i_has_growth_cb;
+
+	bool i_has_migration_cb;
+	bool i_has_pop_merge_cb;
+
+    public:
+	Callbacks(PyObject *py_callback);
+	virtual ~Callbacks();
+	
+	virtual void coalescence_callback(core::CoalescentNode *n, int k);
+	virtual void recombination_callback(core::RecombinationNode *n1,
+					    core::RecombinationNode *n2,
+					    int k);
+	virtual void gene_conversion_callback(core::GeneConversionNode *n1,
+					      core::GeneConversionNode *n2,
+					      int k);
+	
+	virtual void bottleneck_callback(int pop, bool entering,
+					 double time, int k);
+	virtual void growth_callback(int pop, bool entering,
+				     double time, int k);
+	
+	virtual void migration_callback(int pop1, int pop2,
+					double time, int k);
+	virtual void population_merge_callback(const std::vector<int> &pops,
+					       double time, int k);
+    };
+
+    Callbacks::Callbacks(PyObject *py_callback) 
+	: i_py_callback(py_callback),
+	  i_has_coa_cb(PyObject_HasAttrString(py_callback,"coalescentEvent")),
+	  i_has_rc_cb(PyObject_HasAttrString(py_callback,"recombinationEvent")), 
+	  i_has_gc_cb(PyObject_HasAttrString(py_callback,"geneConversionEvent")),
+	  i_has_bottleneck_cb(PyObject_HasAttrString(py_callback,"bottleneckEvent")),
+	  i_has_growth_cb(PyObject_HasAttrString(py_callback,"growthEvent")),
+	  i_has_migration_cb(PyObject_HasAttrString(py_callback,"migrationEvent")),
+	  i_has_pop_merge_cb(PyObject_HasAttrString(py_callback,"mergeEvent"))
+    {
+	Py_INCREF(i_py_callback);
+	// FIXME: set bool flags
+    }
+
+    Callbacks::~Callbacks()
+    {
+	Py_DECREF(i_py_callback);
+    }
+
+    void Callbacks::coalescence_callback(core::CoalescentNode *n, int k)
+    {
+	if (!i_has_coa_cb) return;
+	// fake ARG (which doesn't exist yet) with None
+	PyObject *py_node = wrap_node(n, Py_None);
+	PyObject *py_result = 
+	    PyObject_CallMethod(i_py_callback, "coalescentEvent", "Oi", py_node, k); 
+	Py_DECREF(py_node);
+	if (!py_result) throw PyException();
+    }
+
+    void Callbacks::recombination_callback(core::RecombinationNode *n1,
+					   core::RecombinationNode *n2,
+					   int k)
+    {
+	if (!i_has_rc_cb) return;
+	// fake ARG (which doesn't exist yet) with None
+	PyObject *py_n1 = wrap_node(n1, Py_None);
+	PyObject *py_n2 = wrap_node(n2, Py_None);
+	PyObject *py_result = 
+	    PyObject_CallMethod(i_py_callback, "recombinationEvent", 
+				"OOi", py_n1, py_n2, k); 
+	Py_DECREF(py_n1); Py_DECREF(py_n2);
+	if (!py_result) throw PyException();
+    }
+
+    void Callbacks::gene_conversion_callback(core::GeneConversionNode *n1,
+					     core::GeneConversionNode *n2,
+					     int k)
+    {
+	if (!i_has_gc_cb) return;
+	// fake ARG (which doesn't exist yet) with None
+	PyObject *py_n1 = wrap_node(n1, Py_None);
+	PyObject *py_n2 = wrap_node(n2, Py_None);
+	PyObject *py_result = 
+	    PyObject_CallMethod(i_py_callback, "geneConversionEvent", 
+				"OOi", py_n1, py_n2, k); 
+	Py_DECREF(py_n1); Py_DECREF(py_n2);
+	if (!py_result) throw PyException();
+    }
+
+
+    void Callbacks::bottleneck_callback(int pop, bool entering, double time, int k)
+    {
+	if (!i_has_bottleneck_cb) return;
+	PyObject *py_result = 
+	    PyObject_CallMethod(i_py_callback, "bottleneckEvent", 
+				"iOdi", pop, (entering ? Py_True : Py_False),
+				time, k);
+	if (!py_result) throw PyException();
+    }
+    
+    void Callbacks::growth_callback(int pop, bool entering, double time, int k)
+    {
+	if (!i_has_growth_cb) return;
+	PyObject *py_result = 
+	    PyObject_CallMethod(i_py_callback, "growthEvent", 
+				"iOdi", pop, (entering ? Py_True : Py_False),
+				time, k);
+	if (!py_result) throw PyException();
+    }
+    
+    
+    void Callbacks::migration_callback(int pop1, int pop2, double time, int k)
+    {
+	if (!i_has_migration_cb) return;
+	PyObject *py_result = 
+	    PyObject_CallMethod(i_py_callback, "migrationEvent", 
+				"iidi", pop1, pop2, time, k);
+	if (!py_result) throw PyException();
+    }
+    
+    void Callbacks::population_merge_callback(const std::vector<int> &pops,
+					      double time, int k)
+    {
+	if (!i_has_pop_merge_cb) return;
+	PyObject *py_list = PyList_New(pops.size());
+	if (!py_list) throw PyException();
+	std::vector<int>::const_iterator itr; int i;
+	for (i = 0, itr = pops.begin(); itr != pops.end(); ++itr, ++i)
+	    PyList_SetItem(py_list, i, Py_BuildValue("i", *itr));
+	PyObject *py_result = 
+	    PyObject_CallMethod(i_py_callback, "mergeEvent", 
+				"Odi", py_list, time, k);
+	Py_DECREF(py_list);
+	if (!py_result) throw PyException();
+    }
+
 }
 
 PyObject *
@@ -149,6 +302,7 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
     PyObject *py_markers;
     PyObject *py_sample_sizes;
     PyObject *py_events;
+    PyObject *py_callbacks;
 
     std::vector<int> sample_sizes;
     std::vector<core::Marker*> markers;
@@ -165,16 +319,18 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
     char *kwd_list[] = {
 	"markers", "sampleSizes", "events",
 	"rho", "Q", "gamma", "beta", 
+	"callbacks",
 	"keepEmptyIntervals",
 	"seed",
 	NULL
     };
     if (! PyArg_ParseTupleAndKeywords(args, kwds, 
-				      "O!O!O!|ddddO!l", kwd_list,
+				      "O!O!O!|ddddOO!l", kwd_list,
 				      &PyList_Type, &py_markers,
 				      &PyList_Type, &py_sample_sizes,
 				      &PyList_Type, &py_events,
 				      &rho, &Q, &gamma, &beta,
+				      &py_callbacks,
 				      &PyBool_Type, &py_keep_empty,
 				      &seed))
         return 0; 		/* rethrow exception */
@@ -223,6 +379,8 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
 	    events.push_back(core_event);
 	}
 
+    std::auto_ptr<Callbacks> callbacks(py_callbacks==Py_None ? 0 :
+				       new Callbacks(py_callbacks));
 
     core::ARG *arg = 0;
     try {
@@ -230,8 +388,8 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
 				 markers.begin(), markers.end(),
 				 events.begin(),  events.end(),
 				 rho, Q, gamma, beta);
-	//                                callbacks
-	arg = core::Simulator::simulate(conf, 0, py_keep_empty==Py_True, seed);
+	arg = core::Simulator::simulate(conf, callbacks.get(),
+					py_keep_empty==Py_True, seed);
 
     } catch(core::Configuration::out_of_sequence&) {
 	PyErr_SetString(PyExc_ValueError, "Marker positions out of sequence.");

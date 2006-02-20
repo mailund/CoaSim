@@ -18,10 +18,6 @@
 # define STDEXCEPT_INCLUDED
 #endif
 
-// throw this one to propagate a python exception to outside the
-// simulation -- remember to set the correct python exception before
-// pulling this handle!
-struct PyException : std::exception {};
 
 void init_simulate(PyObject *module);
 PyObject *simulate(PyObject *self, PyObject *args, PyObject *kwds);

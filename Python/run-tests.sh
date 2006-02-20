@@ -6,7 +6,7 @@ green="[32m";
 red="[31m";
 reset="[0m"
 
-tests='markersTest.py randomMarkersTest.py simulateTest.py intervalsTest.py treesTest.py nodesTest.py customMarkerTest.py'
+tests='markersTest.py randomMarkersTest.py simulateTest.py intervalsTest.py treesTest.py nodesTest.py customMarkerTest.py callbackTest.py'
 modules=`ls modules/CoaSim/*.py`
 
 for t in $tests; do
