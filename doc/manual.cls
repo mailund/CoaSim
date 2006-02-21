@@ -48,13 +48,46 @@
 \usepackage{charter}            %for body
 \usepackage{helvet}             %for sf
 \usepackage{euler}              %for math
+\usepackage{courier}            %for tt-font
 
 \bibliographystyle{abbrvnat}
 
-\usepackage{alltt}
-\newenvironment{code}
-  {\vspace*{-.1\baselineskip}\begin{alltt}\small}
-  {\normalsize\end{alltt}\vspace*{-.2\baselineskip}}
+\usepackage[pdftex,usenames]{color}
+\usepackage{pdfcolmk}
+\definecolor{codebg}{rgb}{0.95,.96,1.0}
+\definecolor{codekw}{rgb}{0.2,.2,1.0}
+\definecolor{codetxt}{rgb}{0.1,0.1,.3}
+\definecolor{codestr}{rgb}{0.1,0.6,.1}
+
+\usepackage{listings}
+\lstset{showstringspaces=false,
+        mathescape=true,
+        escapechar=|,
+        frame=tb,
+        backgroundcolor=\color{codebg},
+        basicstyle=\color{codetxt}\small\tt,
+        commentstyle=\color{red}\textsl,
+        stringstyle=\color{codestr},
+        identifierstyle=,
+        keywordstyle=\color{codekw}\bfseries}
+
+\lstnewenvironment{code}{\lstset{numbers=none}}{}
+\lstnewenvironment{ncode}{\lstset{numbers=left,numberstyle=\tiny}}{}
+
+%% \usepackage{fancyvrb}
+%% \DefineVerbatimEnvironment%
+%% {code}{Verbatim}%
+%% {frame=lines,framerule=1pt,framesep=2mm,rulecolor=\color{coderule},%
+%%  formatcom=\color{codetxt},
+%%  %numbers=left,numberblanklines=false,%
+%%  commandchars=\\\{\},
+%%  fontfamily=courier,fontsize=\small}
+
+%%\usepackage{alltt}
+%%\newenvironment{code}
+%%{\begin{alltt}\small\textcolor{blue}{\hrule}\vspace{0.8\baselineskip}}
+%%  {\textcolor{blue}{\hrule}\normalsize\end{alltt}\vspace*{.8\baselineskip}}
+
 
 \usepackage{url}
 \usepackage[pdftex,
@@ -152,6 +185,8 @@
    % AND *FINALLY* MAKING READY FOR THE REAL DOCUMENT...
    \cleardoublepage
    \pagenumbering{arabic}
+   \color{black} % weird but needed to avoid pdflatex giving the
+                 % next page a different colour
  }
 
 

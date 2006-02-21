@@ -53,18 +53,18 @@ CoaSim that should just be un\texttt{tar}ed in the root.  Notice that
 you need to have root access to do this:
 \begin{code}
 > cd /
-> tar zxf /path/to/tarfile/coasim-python-x.y.z.linux-i686.tar.gz
+> tar zxf /path/coasim-python-x.y.z.linux-i686.tar.gz
 \end{code}
 
 If you do not have root access, you can un\texttt{tar} CoaSim in a
 different directory, but in that case it is necessary for you to set
 your PYTHONPATH so Python can locate the CoaSim module, e.g.\ in bash
 \begin{code}
-> export PYTHONPATH=/path/to/CoaSim/Python:\$PYTHONPATH
+> export PYTHONPATH=/path/to/CoaSim/Python:$\$$PYTHONPATH
 \end{code}
 or in csh
 \begin{code}
-> setenv PYTHONPATH /path/to/CoaSim/Python:\$PYTHONPATH
+> setenv PYTHONPATH /path/to/CoaSim/Python:$\$$PYTHONPATH
 \end{code}
 
 
@@ -88,11 +88,11 @@ This will build a module that you can import into your Python scripts.
 You will need to either install it or make sure you have the path to
 it in your PYTHONPATH, e.g.\ in bash
 \begin{code}
-> export PYTHONPATH=/path/to/CoaSim/Python:\$PYTHONPATH
+> export PYTHONPATH=/path/to/CoaSim/Python:$\$$PYTHONPATH
 \end{code}
 or in csh
 \begin{code}
-> setenv PYTHONPATH /path/to/CoaSim/Python:\$PYTHONPATH
+> setenv PYTHONPATH /path/to/CoaSim/Python:$\$$PYTHONPATH
 \end{code}
 
 \subsection{Running CoaSim}
@@ -101,9 +101,6 @@ Once installed, you can load CoaSim into python using the
 \texttt{import} command:
 \begin{code}
 > python
-Python 2.3.4 (#1, Feb  2 2005, 12:11:53)
-[GCC 3.4.2 20041017 (Red Hat 3.4.2-6.fc3)] on linux2
-Type "help", "copyright", "credits" or "license" for more information.
 >>> import CoaSim
 >>>
 \end{code}
@@ -174,11 +171,11 @@ $1$-allele frequency to be between $0$ and $1$, i.e. unrestricted.
 This concludes the setup-phase.  The next line is the simulation
 phase; it calls \texttt{simulate} to obtain an ARG.  From this ARG we
 can, in the third and final phase, extract the list of intervals
-sharing the same genealogy (\texttt{arg.intervals})---these are
-intervals where no recombination has occurred, in this particular case
-there is only one since by default the recombination rate is
-$0$---select the first interval, and extract the genealogy for that
-interval, which we then print.
+sharing the same genealogy (through the property
+\texttt{arg.intervals})---these are intervals where no recombination
+has occurred, in this particular case there is only one since by
+default the recombination rate is $0$---select the first interval, and
+extract the genealogy for that interval, which we then print.
 
 As another simple application, consider simulating a list of SNP
 sequences.  A script for simulating 100 sequences with 10 SNP markers
@@ -255,7 +252,8 @@ To simulate sequence data with a single disease affecting marker, we
 can use:
 \begin{code}
 from CoaSim import simulate, TraitMarker, insertSorted
-from CoaSim.randomMarkers import randomPosition, makeRandomSNPMarkers
+from CoaSim.randomMarkers import randomPosition, \
+                                 makeRandomSNPMarkers
 from CoaSim.diseaseModelling import singleMarkerDisease, split
 
 markers = makeRandomSNPMarkers(10, 0.0, 1.0)
@@ -263,8 +261,9 @@ traitMarker = TraitMarker(randomPosition(), 0.2, 0.4)
 markers,traitIdx = insertSorted(markers, traitMarker)
 
 sequences = simulate(markers, 100, rho=400).sequences
-diseaseModel = \(\backslash\)
-    singleMarkerDisease(traitIdx, wildTypeRisk=0.1, mutantRisk=0.3)
+diseaseModel = \
+    singleMarkerDisease(traitIdx, wildTypeRisk=0.1, 
+                                  mutantRisk=0.3)
 affected, unaffected = split(diseaseModel,sequences)
 \end{code}
 
