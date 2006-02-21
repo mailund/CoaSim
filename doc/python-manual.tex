@@ -1,0 +1,1740 @@
+\documentclass{manual}
+\usepackage{subfigure}
+\usepackage{wrapfig}
+\lstset{language=Python}
+
+% metapost figures
+\usepackage{emp}
+\empTeX{%
+\documentclass{report}
+\usepackage{charter}            %for body
+\usepackage{helvet}             %for sf
+\usepackage{euler}              %for math
+}
+\usepackage{ifpdf}
+\ifpdf\DeclareGraphicsRule{*}{mps}{*}{}\fi
+
+
+
+\title{CoaSim/Python Manual}
+\subtitle{Using the Python-based CoaSim Simulator}
+\authors{Thomas Mailund}
+\contact{mailund@birc.au.dk}
+\company{Bioinformatics ApS}
+\toolversion{CoaSim/Python v1.0}
+
+
+
+
+\begin{document}
+\begin{empfile}
+
+
+\section{About This Manual}
+\label{sec:about-this-manual}
+
+CoaSim is a tool for simulating the coalescent process with
+recombination and geneconversion, under either constant population
+size or exponential population growth.  It effectively constructs the
+ancestral recombination graph for a given number of chromosomes and
+uses this to simulate samples of SNP and micro-satellite haplotypes or
+genotypes.
+
+CoaSim comes in two flavours: A graphical user interface version for
+easy use by novice users, and a script based version---using either
+Guile-Scheme (\url{http://www.gnu.org/software/guile/}) or Python
+(\url{http://www.python.org})---for efficient batch simulations.  This
+document is an introduction to the Python based version and will
+describe how to use CoaSim for various simulation purposes.  The
+manual describes a number of common and more exotic simulation setups
+and shows how CoaSim can be scripted to conduct such simulations.  The
+manual has intentionally a bit of a tutorial flavour, as we wish to
+give a feeling of the kind of simulations CoaSim is suited for, and
+how such simulations are set up and executed in CoaSim, rather than
+giving a detailed description of all the functions available in
+CoaSim.  For the later, we refer to the online documentation in
+Python; to get an overview of the module, use
+\begin{code}
+>>> import CoaSim
+>>> help(CoaSim)
+\end{code}
+or in general
+\begin{code}
+>>> help(|\emph{class-or-function}|)
+\end{code}
+
+Some familiarity with the Python programming language and with
+coalescent theory is assumed.  For people not familiar with Python, an
+excellent tutorial can be found at
+\url{http://www.python.org/doc/2.4.2/tut/tut.html},
+and for people not familiar with coalescent theory, the text book
+\begin{quote}
+  \textbf{Gene Genealogies, Variation and Evolution}\\
+  \textit{A Primer in Coalescent Theory},\\
+  Jotun Hein, Mikkel H.\ Schierup, and Carsten Wiuf,\\
+  Oxford University Press, ISBN 0-19-852996-1  
+\end{quote}
+is recommended.
+
+We also assume that you have successfully installed CoaSim, if not we
+refer to the \emph{Getting Started with CoaSim/Python} manual
+(\url{http://www.daimi.au.dk/~mailund/CoaSim/download/getting-started-python-1.0.pdf}).
+
+
+\subsection{Running CoaSim}
+\label{sec:running-coasim}
+
+The Python based CoaSim tool is available as a Python extension
+module, that is loaded into Python using the import command:
+\begin{code}
+>>> import CoaSim
+\end{code}
+After this, the basic functionallity of CoaSim is available for the
+script.  More features are available through additional modules
+introduced later.  In the rest of this manual we will assume that you
+know how to execute scripts using CoaSim in this way, and concentrate
+on how to write the appropriate scripts.
+
+\section{Simple Sequence Simulations}
+\label{sec:simple-sequ-simul}
+
+We start out with the most common usage of CoaSim: simulating sequence
+data.  All simulations in CoaSim result in an \emph{Ancestral
+  Recombination Graph} (ARG), but in most cases the ARG is not the
+desired end-result, rather, the sequences found at the leaves of the
+ARG are.  To extract these sequences from an ARG, we simply get the
+\texttt{sequences} property of the simulated ARG object.
+
+\subsection{Simulating and Saving Sequences}
+\label{sec:simul-saving-sequ}
+
+
+A simple sequence simulation script could look like this:
+\begin{code}
+from CoaSim import simulate
+from CoaSim.randomMarkers import makeRandomSNPMarkers
+
+markers = makeRandomSNPMarkers(10, 0.0, 1.0)
+sequences = simulate(markers, 10).sequences
+
+print sequences
+\end{code}
+
+\noindent
+The first line
+\begin{code}
+from CoaSim import simulate
+\end{code}
+loads the CoaSim module and imports the \texttt{simulate} function
+into the global namespace.  The second line 
+\begin{code}
+from CoaSim.randomMarkers import makeRandomSNPMarkers
+\end{code}
+includes the \texttt{CoaSim.randomMarkers} module, which is used for
+generating random markers (markers on random positions, in this case).
+The random markers are then used in the next line of the script, where
+we make $10$, randomly positioned SNP markers with allowed
+mutant-frequencies between $0.0$ and $1.0$, created using the
+\texttt{makeRandomSNPMarkers} function.  These are then used in the
+next line, where we simulate $10$  sequences, the second argument to
+\texttt{simulate}, and each sequence contains an allele for
+each marker in \texttt{markers}.
+
+The call to the \texttt{simulate} function really returns an ARG
+object, but here we ignore that completely and immediately extracts
+the sequences from it; the line
+\begin{code}
+sequences = simulate(markers, 10).sequences
+\end{code}
+corresponds to
+\begin{code}
+arg = simulate(markers, 10)
+sequences = arg.sequences
+\end{code}
+except that we never declare a named reference, \texttt{arg}, to the
+simulated ARG, but just extract the sequences.
+
+The sequences are represented as a list of lists of alleles.  This is
+a format that is very easy to manipulate by Python, but not as useful
+for most other programs, so printing the sequences in this format, as
+we do with the \texttt{print} call above, is not that useful.  To
+print the sequences in a more traditional form of a sequence per line,
+with the sequences printed as space-separated numbers, we can use the
+\texttt{(CoaSim.IO)} module like this:
+\begin{code}
+from CoaSim import simulate
+from CoaSim.randomMarkers import makeRandomSNPMarkers
+
+markers = makeRandomSNPMarkers(10, 0.0, 1.0)
+sequences = simulate(markers, 100, rho=400).sequences
+
+from CoaSim.IO import printMarkerPositions, printSequences
+printMarkerPositions(markers, open('positions.txt','w'))
+printSequences(sequences, open('sequences.txt','w'))
+\end{code}
+
+\noindent
+Here, the positions are written to the file \texttt{positions.txt} and
+the sequences to the file \texttt{sequences.txt}.  
+
+
+\subsection{Simulation Parameters}
+\label{sec:simul-param}
+
+As called above, \texttt{simulate} simulate a basic coalescent tree
+over the leaf nodes and then apply mutations on the markers.
+Recombinations, gene conversions and exponential growths can be
+included by setting the appropriate parameters using keyword arguments
+to \texttt{simulate}, e.g.\ to simulate with a scaled recombination
+rate $\rho=4Nr=400$ (see \emph{Hein et al.}\ Sect.~5.5)---which for an
+effective population size of $N=10,000$ means that the region from $0$
+to $1$ simulated correspond roughly to $1cM$---you would need to call
+\begin{code}
+simulate(markers,noSequences,|\textbf{rho=400}|)
+\end{code}
+
+\noindent
+Similarly, to enable gene-conversions with rate $\gamma=4Ng$ and
+intensity $Q=qL$ (see \emph{Hein et al.}\ Sect.~5.10), use the
+keywords \texttt{gamma} and \texttt{Q} as in
+\begin{code}
+simulate(markers,noSequences,|\textbf{gamma=250,Q=100}|)
+\end{code}
+
+\noindent
+These parameters can be combined, so e.g.\ simulating sequences with both
+gene conversions and recombination can be done using:
+\begin{code}
+from CoaSim import simulate
+from CoaSim.randomMarkers import makeRandomSNPMarkers
+
+markers = makeRandomSNPMarkers(10, 0.0, 1.0)
+sequences = simulate(markers,noSequences,
+                     |\textbf{rho=400,gamma=250,Q=100}|).sequences
+\end{code}
+
+
+\subsection{Markers}
+\label{sec:markers}
+
+The first argument to the \texttt{simulate} function is a list of
+markers.  All markers are positioned in the interval $0$--$1$ and to
+simulate different genetic distances you will have to scale the
+simulation parameters above.  The list of markers passed to
+\texttt{simulate} must be sorted with relation to the position.  This
+is guaranteed to be the case when the list is created using one of the
+random-marker functions from the \texttt{CoaSim.randomMarkers} module,
+as in the case of \texttt{makeRandomSNPMarkers} above, but can
+otherwise be ensured by sorting the markers with the
+\texttt{sortMarkers} function from the \texttt{CoaSim} module.
+
+The markers determine how the sequences will be simulated, in the
+sense that they position the polymorphism along the genomic region
+being simulated---the relative distance between markers affects e.g.\ 
+the probability of recombinations occurring between two markers---and
+determine the model of mutations for the polymorphic sites.
+
+So far, we have only used randomly distributed SNP markers, but we
+need not only use SNP markers, nor need we stick to randomly
+positioned markers.  CoaSim supports three types of markers, that
+differs in how mutations are placed on the ARG.  The
+built-in\footnote{Later in this manual we will see how to build our
+  own custom marker types.} marker types are:
+\begin{description}
+\item[Trait markers] are binary polymorphisms (think presence or
+  absence of a trait) with a simple mutation model: after simulating
+  the ARG, a mutation is placed uniformly at random on the tree local
+  to the marker position, nodes below the mutation will have the
+  mutant allele while all others will have the wild-type allele.  A
+  range of accepted mutant-frequencies can be specified and a simple
+  rejection-sampling scheme is used to ensure it: if, after placing
+  the mutation, the number of mutant leaves are not within the range,
+  the ARG is rejected and the simulation restarted.
+  
+\item[SNP markers] resemble trait markers in that they are binary
+  polymorphisms, and use the same mutation model as the trait-markers.
+  The differer from the trait-markers in how the mutant-frequency is
+  ensured: If, after the mutation has been placed, the number of
+  mutant leaves does not fall within the accepted range, the mutation
+  is re-placed, but the ARG is \texttt{not} rejected and
+  re-simulated.  This places a bias on the markers, but one that
+  resembles the ascertainment bias seen in association studies, where
+  SNPs are chosen to have frequencies in certain ranges.
+  
+\item[Micro-satellite markers] are $k$-allele polymorphisms with a
+  different mutation model than the other two.  For micro-satellite
+  markers, each edge in the local tree at the marker is considered in
+  turn, and based on a mutation rate and the length of the edge either
+  a mutation is placed on the edge or it is not.  If it is, a randomly
+  chosen allele from $0$ to $k-1$ is placed on the child node; if no
+  mutation is placed, the child node gets a copy of the allele at the
+  parent node.
+\end{description}
+
+A trait marker can be created using the class constructor
+\texttt{TraitMarker}:
+\begin{code}
+TraitMarker(position, lowMutationFreq, highMutationFreq)
+\end{code}
+so e.g.\
+\begin{code}
+TraitMarker(0.5, 0.18, 0.22)
+\end{code}
+would place a trait marker at position $0.5$ with accepted
+mutant-frequencies in the range $0.18$--$0.22$.  Quite similarly, SNP
+markers can be created with the class \texttt{SNPMarker}
+\begin{code}
+SNPMarker(position, lowMutationFreq, highMutationFreq)
+\end{code}
+while micro-satellite markers can be created with the
+\texttt{MicroSatteliteMarker} class
+\begin{code}
+MicroSatteliteMarker(position, $\theta$, $k$)
+\end{code}
+where $\theta$ is the scaled mutation rate $\theta=4N\mu$ and $k$ the
+number of alleles permitted at the marker (i.e.\ the alleles on that
+marker are numbered from $0$ to $k-1$ and each mutant allele is drawn
+uniformly from this set).
+
+Using these three functions we can explicitly create a list of markers
+for a simulation:
+\begin{code}
+from CoaSim import *
+markers = [SNPMarker(0.1, 0.2, 0.8),
+           SNPMarker(0.2, 0.1, 0.9),
+           TraitMarker(0.5, 0.18, 0.22),
+           SNPMarker(0.7, 0.2, 0.8),
+           MicroSatteliteMarker(0.8, 1.5, 10)]
+seqs = simulate(markers, rho=400).sequences
+\end{code}
+
+\noindent
+Here we create three SNP markers, on positions $0.1$, $0.2$ and $0.7$,
+with mutation frequencies in the range $0.2$--$0.8$ for position
+$0.1$ and $0.7$ and in the range $0.1$--$0.9$ for position $0.2$; a
+single trait marker at position $0.5$, with mutation range
+$0.18$--$0.22$, and a single micro-satellite marker at position $0.8$,
+with mutation rate $1.5$ and with a pool of $10$ alleles.
+
+The three marker classes are all from the module \texttt{CoaSim}, but
+rather than importing them into the global namespace (together with
+\texttt{simulate}), we just include the entire \texttt{CoaSim}
+namespace using the \texttt{from $\ldots$ import *} command.
+
+Explicitly creating the markers in this way can be cumbersome, so
+CoaSim provides functions for generating markers at random positions, as we have
+already seen, in the module \texttt{CoaSim.randomMarkers}.  The three
+functions:
+\begin{code}
+makeRandomTraitMarkers($n$, lowFreq, highFreq)
+makeRandomSNPMarkers  ($n$, lowFreq, highFreq)
+makeRandomMSMarkers   ($n$, $\theta$, $k$)
+\end{code}
+creates $n$ markers of the respective marker types, randomly
+positioned.
+
+A list of markers created with these functions is guaranteed to be
+sorted, but if you choose to combine several lists you must make sure
+that the resulting list is sorted.  This can be done either by calling
+\texttt{sortMarkers} from the module \texttt{CoaSim} on the combined
+list, or by combining the lists using the function
+\texttt{insertSorted}, also from \texttt{CoaSim}, e.g.\
+\begin{code}
+from CoaSim import *
+from CoaSim.randomMarkers import *
+
+SNPMarkers = makeRandomSNPMarkers(10, 0.1, 0.9)
+traitMarkers = makeRandomTraitMarkers(2, 0.2, 0.4)
+
+markers = sortMarkers(SNPMarker+traitMarkers)
+\end{code}
+creates a list by appending two marker-lists and then sort the markers
+using \texttt{sortMarkers}, and is equivalent to
+\begin{lstlisting}
+from CoaSim import *
+from CoaSim.randomMarkers import *
+
+SNPMarkers = makeRandomSNPMarkers(10, 0.1, 0.9)
+traitMarkers = makeRandomTraitMarkers(2, 0.2, 0.4)
+
+markers, traitIndices = insertSorted(SNPMarkers, traitMarkers)
+\end{lstlisting}
+that merges the two sorted lists and returns the resulting list,
+together with the indices in that list containing the markers from the
+second list.  Notice, however, that while \texttt{sortMarkers} will
+work on any list of markers, \texttt{insertSorted} expects the first
+list to be sorted.
+
+\subsection{Disease status: Affected and unaffected sequences}
+\label{sec:cases-controls}
+
+Enough about markers, we will now return to the simulation of
+sequences.  A common setting is simulating a set of sequences and then
+split them into cases and controls based on a trait mutation.  We have
+already seen how to create a trait marker, together with other
+markers, and simulate a set of sequences over these markers; we have
+not, however, considered how to split the sequences into cases and
+controls, based on the allele on the trait marker.
+
+The simplest way to do this is using the disease models and the
+\texttt{split} function from module \texttt{CoaSim.diseaseModelling},
+\begin{code}
+from CoaSim.diseaseModelling import split
+
+# ... simulate sequences and set up disease model ...
+
+affectedSeqs, unaffectedSeqs = split(diseaseModel, sequences)
+\end{code}
+which splits the sequence based on a disease model and the alleles at
+an certain markers determined by the disease model. 
+
+Depending on the disease model---we describe this below---the function
+splits the input sequences into two: the sequences affected by the
+disease, and the sequences that are unaffected.  By default, the
+markers affecting the disease, i.e.\ the markers used by the disease
+model to determine disease status, are removed.  It is possible to
+disable the removal of the these alleles in this function by calling
+the function with the key-word argument \texttt{keepIndices} set to
+\texttt{True}.  In most cases, however, you do not want to keep the
+trait marker after having determined the affected/unaffected phenotype
+from it, so the default is to remove it.
+
+The simplest disease model depends only on a single marker, and
+assigns affected status to all mutants and unaffected status to all
+wild-type sequences.  To create such a disease model, we can use the
+\texttt{singleMarkerDisease} function from
+\texttt{CoaSim.diseaseModelling}:
+\begin{code}
+from CoaSim.diseaseModelling import singleMarkerDisease
+dm = singleMarkerDisease(traitMarkerIndex)
+\end{code}
+where \texttt{traitMarkerIndex} specifies the index in the marker
+list, containing the marker that affects the disease status.
+
+A complete example of splitting the sequences based on a simple
+single-marker disease model can look like this:
+\begin{ncode}
+from CoaSim import *
+from CoaSim.randomMarkers import *
+from CoaSim.diseaseModelling import *
+
+markers = makeRandomSNPMarkers(10, 0.0, 1.0)
+traitMarker = TraitMarker(randomPosition(), 0.2, 0.4)
+markers,idx = insertSorted(markers, traitMarker)
+
+sequences = simulate(markers, 100, rho=400).sequences
+dm = singleMarkerDisease(idx)
+affected, unaffected = split(dm,sequences)
+\end{ncode}
+
+Here we simulate sequences for ten randomly placed SNP markers
+(line~$5$) and a single randomly placed trait marker (line~$6$, where
+the random position is obtained from the function
+\texttt{randomPosition} loaded from the module
+\texttt{CoaSim.randomMarkers)}, remembering, when merging the SNP
+markers and the trait marker in line~$7$, to get the index of the
+trait marker.  This index is given to \texttt{singleMarkerDisease} in
+line~$10$ making this marker the determining maker for disease status.
+ 
+Splitting the sequences into cases and controls based solely on the
+allele at a trait marker is not always appropriate; when e.g.\
+simulating a disease that is not completely penetrant, such as many
+common diseases, we might wish to only select mutants with a certain
+probability.  Similarly, when a disease is affected by environmental
+factors as well as genetic factors, we might select wild-type
+sequences as cases with a certain probability.  Both situations can be
+handled with \texttt{singleMarkerDisease} using the key-word
+parameters \texttt{mutantRisk} and \texttt{wildTypeRisk}, that sets
+the probability of a mutant or wild-type, respectively, is selected as
+affected.  To select about $20\%$ of mutants and only $1\%$ of
+wild-types, for example, you would use:
+\begin{code}
+dm = singleMarkerDisease(idx, |\textbf{mutantRisk=0.2,wildTypeRisk=0.01}|)
+affected,unaffected = split(dm,sequences)
+\end{code}
+
+
+
+\subsection{Genotype Sequences}
+\label{sec:genotype-sequ}
+ 
+CoaSim simulates haplotype sequences, but we can combine these to
+genotype data by pairing sequences.  This pairing is done, simply, by
+taking a even-length list and combining the first two haplotype
+sequences into the first genotype sequence, the next two haplotype
+sequences into the second genotype sequences, and so forth.
+
+The \texttt{singleMarkerDisease} model can also handle this form of
+genotype data, by specifying this using the optional parameter
+\texttt{model}:
+\begin{code}
+singleMarkerDisease(idx,|\textbf{model=DiseaseModel.GENOTYPE\_MODEL}|)
+\end{code}
+
+By default, \texttt{singleMarkerDisease} selects homozygote mutant
+sequences as cases, homozygote wild-type sequences as controls, and
+heterozygote as cases with probability $0.5$ and controls with
+probability $0.5$.  This default can be changed using keyword
+arguments \texttt{homozygoteWildTypeRisk}, setting the probability of
+a homozygote $00$ being affected, \texttt{homozygoteMutantRisk},
+setting the probability of a homozygote $11$\footnote{In general, any
+non-$0$ is considered a mutant by \texttt{singleMarkerDisease}, so
+$11$ is not the only encoding of a homozygote mutant.  Here we just
+use this representation for simpler exposition.} being affected, and
+\texttt{heterozygoteRisk}, setting the probability of a heterozygote
+$01$ or $10$ being affected.  E.g.\ to select as cases homozygote
+mutants with probability $0.5$, heterozygotes with probability $0.1$
+and homozygote wild-types with probability $0.01$, we would use:
+\begin{code}
+singleMarkerDisease(idx,model=DiseaseModel.GENOTYPE_MODEL,
+                    |\textbf{homozygoteMutantRisk=0.5}|,
+                    |\textbf{heterozygoteRisk=0.1}|,
+		    |\textbf{homozygoteWildTypeRisk=0.01}|)
+\end{code}
+
+A disease model created this way is used in the \texttt{split}
+function just as a disease model for haplotype data, except that
+disease status, as mentioned above, depends on pairs of sequences
+rather than the individual sequences.
+
+As a short-cut for common probabilities, the
+\texttt{CoaSim.diseaseModelling} module provides the functions
+\texttt{dominantModel} and \texttt{recessiveModel}.  Using
+\texttt{dominantModel}:
+\begin{code}
+affected, unaffected = split(|\textbf{dominantModel(idx)}|, sequences)
+\end{code}
+will set the probability for both homozygote mutants and heterozygotes
+being affected to $1.0$ and the probability for homozygote wild-types being
+affected to $0.0$, while using the disease model \texttt{recessiveModel}
+\begin{code}
+affected, unaffected = split(|\textbf{recessiveModel(idx)}|, sequences)
+\end{code}
+will set the probability of homozygote mutants being affected to $1.0$ and
+the probability of the other two genotypes being affected to $0.0$.
+
+
+
+\subsection{Complex Disease Models}
+\label{sec:compl-dise-models}
+ 
+Splitting the simulated sequences into affected and unaffected
+sequences, on a single marker, as we have seen now for both haplotype
+and genotype data, is the common case for simulating data for disease
+mapping applications, for candidate-gene approaches, at least.  More
+complex disease models require a bit more programming on the user's
+side, but the \texttt{CoaSim.diseaseModelling} module and the
+\texttt{split} function does support such setups.
+
+To have the disease status determined by multiple markers, it is
+necessary to program a custom disease model.  There are two ways of
+doing this: using the generic \texttt{DiseaseModel} class and a
+predicate function, or sub-classing \texttt{DiseaseModel}.
+
+The \texttt{DiseaseModel} class is the basic disease modelling class,
+underlying the \texttt{singleMarkerDisease} model; its constructor
+takes either a single marker or a list of markers, for determining the
+disease model, and a \texttt{model} argument---similar to
+\texttt{singleMarkerDisease}---that defaults the class to work on
+haplotype data, but can be changed to make a genotype disease model.
+
+Using \texttt{DiseaseModel} together with a predicate function is done
+through a second, optional, parameter, \texttt{predicate}.  This
+argument should be a function that will be called with the alleles at
+the specified indices and should return \texttt{True} if the
+corresponding sequence (or sequence pair, in the case of genotype
+data) should be considered affected, and \texttt{False} otherwise.  A
+simple example could look like this:
+\begin{code}
+from CoaSim.diseaseModelling import split, DiseaseModel
+def pred(a0,a2): return (a0,a2) == (1,1)
+aff, unaf = split(DiseaseModel([0,2],predicate=pred), seqs)
+\end{code}
+
+\noindent
+Here we define a function \texttt{pred} that is called with two
+alleles and return \texttt{True} if they are both $1$, and
+\texttt{False} otherwise.  This is used in the disease model, where
+the two markers $0$ (the first marker in the sequences) and $2$ (the
+third) are used.
+
+When working on genotype data, the setup is similar, but the predicate
+is called with pairs of alleles:
+\begin{ncode}
+from CoaSim.diseaseModelling import split, DiseaseModel
+def pred(p0,p2):
+    a00, a02 = p0
+    a20, a22 = p2
+    return a00!=a20 and a02==a22
+dm = DiseaseModel([0,2],predicate=pred,
+                  model=DiseaseModel.GENOTYPE_MODEL)
+af, unaf = split(dm, seqs)
+\end{ncode}
+Here, \texttt{pred} is called with two pairs, \texttt{p0} and
+\texttt{p2}, that are unpacked (lines~$3$ and~ $4$), and used for
+determining disease status.
+
+In both examples above, the predicate has been deterministic, but
+using the module \texttt{random} from the standard Python library,
+writing randomized versions is quite straightforward.  For example, to
+modify the first version of the predicate, so it only considers two
+$1$s affected with probability $0.5$, we can use:
+\begin{code}
+def pred(a0,a2):
+    from random import uniform
+    if (a0,a2) == (1,1): return uniform(0,1) < 0.5
+    else:                return False
+\end{code}
+
+Sub-classing \texttt{DiseaseModel}, the other approach to specifying
+custom disease models, works very similar to using a predicate; here
+the predicate is simply replaced by the \texttt{\_\_call\_\_} special
+method.  The two examples above, specified this way, would look like:
+\begin{code}
+from CoaSim.diseaseModelling import split, DiseaseModel
+class DM(DiseaseModel):
+    def __call__(self, a0, a2):
+        return (a0,a2) == (1,1)
+af, unaf = split(DM([0,2]), seqs)
+\end{code}
+and:
+\begin{code}
+from CoaSim.diseaseModelling import split, DiseaseModel
+class DM(DiseaseModel):
+    def __init__(self, indices):
+        DiseaseModel.__init__(self,indices,
+                              model=DiseaseModel.GENOTYPE_MODEL)
+    def __call__(self, p0, p2):
+        a00, a02 = p0
+        a20, a22 = p2
+        return a00!=a20 and a02==a22
+
+af, unaf = split(DM([0,2]), seqs)
+\end{code}
+where the later also sets the model to genotypes in the sub-class's
+constructor, the appropriate place to do this, since the
+\texttt{\_\_call\_\_} method expects genotype input.
+
+\section{Population Structure}
+\label{sec:pop-structure}
+
+In the simulations we have seen so far, we have simulated samples from
+a single, constant size, population, but CoaSim contains a powerful
+specification language for demographic structures.  Instead of using
+the form for simulating sequences we have used so far
+\begin{code}
+simulate(markers, noSequences).sequences
+\end{code}
+we use the more general form
+\begin{code}
+simulate(markers, popStructSpec).sequences
+\end{code}
+where \texttt{popStructSpec} (population structure specification) is a
+small program describing the population structure of the sample.
+
+
+\subsection{Epochs: Bottlenecks and Exponential Growth}
+\label{sec:epochs}
+
+Simple extensions to the fixed size population model are bottlenecks
+and periods of exponential growth.  A bottleneck is parameterised with
+the scale factor of the effective population size: $f=N_b/N$, where
+$N$ is the effective population size outside the bottleneck and $N_b$
+the effective population size inside the bottleneck.  To specify a
+bottleneck of $f=0.2$, starting at time $1.5$ (as measured in $2N$),
+see Fig.~\ref{fig:infinite-bottleneck}, we use
+\begin{code}
+from CoaSim.popStructure import Population, Bottleneck, Sample
+popStructSpec = Population(1, Sample(10), 
+                           epochs=[Bottleneck(0.2, 1.5)])
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+
+\begin{figure}[t]
+  \begin{empdef}[bottleneck_infinite](40,60)
+    numeric bot_start, bot_left, bot_right;
+  
+    bot_start = 1.5h/6;
+    bot_left  = w/2-w/10;
+    bot_right = w/2+w/10;
+  
+    fill (0,0)--(0,bot_start)--(bot_left,bot_start)--(bot_left,h)
+         --(bot_right,h)--(bot_right,bot_start)--(w,bot_start)--(w,0)
+         --cycle withcolor (0.5,0.6,0.9);%.2[white,black];
+    draw (0,0)--(0,bot_start)--(bot_left,bot_start)--(bot_left,h);
+    draw (w,0)--(w,bot_start)--(bot_right,bot_start)--(bot_right,h);
+  
+    label.rt(btex $\tau=0$ etex,   (w,0));
+    label.rt(btex $\tau=1.5$ etex, (w,bot_start));
+  \end{empdef}
+  \begin{empdef}[bottleneck_finite](40,60)
+    numeric bot_start, bot_end, bot_left, bot_right;
+
+    bot_start = 1.5h/6;
+    bot_end   = 3  h/6;
+    bot_left  = w/2-w/10;
+    bot_right = w/2+w/10;
+  
+    fill (0,0)--(0,bot_start)--(bot_left,bot_start)--(bot_left,bot_end)
+         --(0,bot_end)--(0,h)--(w,h)--(w,bot_end)--(bot_right,bot_end)
+         --(bot_right,bot_start)--(w,bot_start)--(w,0)--cycle
+         withcolor (0.5,0.6,0.9); %.2[white,black];
+    draw (0,0)--(0,bot_start)--(bot_left,bot_start)--(bot_left,bot_end)
+         --(0,bot_end)--(0,h);
+    draw (w,0)--(w,bot_start)--(bot_right,bot_start)--(bot_right,bot_end)
+         --(w,bot_end)--(w,h);
+  
+    label.rt(btex $\tau=0$ etex,   (w,0));
+    label.rt(btex $\tau=1.5$ etex, (w,bot_start));
+    label.rt(btex $\tau=3$ etex,   (w,bot_end));
+  \end{empdef}
+  
+  \hspace*{.5cm}
+  \subfigure[A bottleneck of size 0.2 starting at time $\tau=1.5$ and
+             extending back in time. \label{fig:infinite-bottleneck}]
+             {\hspace*{1.5cm}\empuse{bottleneck_infinite}\hspace*{1.5cm}}
+  \hfill
+  \subfigure[A bottleneck of size 0.2 starting at time $\tau=1.5$ and
+             and ending at time $\tau=3$. \label{fig:finite-bottleneck}]
+             {\hspace*{1.5cm}\empuse{bottleneck_finite}\hspace*{1.5cm}}
+  \hspace*{.5cm}
+
+  \caption{A bottleneck of size 0.2 starting at time $\tau=1.5$ and
+    extending back in time indefinitely (left) or until time $\tau=3$
+    (right).}
+  \label{fig:bottlenecks}
+\end{figure}
+
+The setup is a tad more complicated than the simple number of samples
+in the simulation, but we will walk through it: Instead of a simple
+number we have a program, \texttt{popStructSpec}.
+
+
+The specification starts with a population
+\texttt{Population($\ldots$)}---it always does---and the next
+parameter specifies the size of the population relative to $N$: it is
+a parameter $f'$, similar to the bottleneck parameter.  In this
+particular case it is not really useful---it is $1$ meaning the
+population size is the same as the global population size---but when
+we add population sub-structure later on, it will be.
+
+The next parameter to \texttt{Population} is another population
+structure---the population structure specification in this way has a
+tree form, allowing us to specify trees of population relationships as
+we will see below---in this case a \texttt{Sample}, a leaf in the
+population specification tree, and representing simply a number of
+samples from this population; in this case $10$ sequences.
+
+The epochs parameter
+\texttt{Population(1,$\ldots$,\textbf{epochs=[$\ldots$]})} specifies
+the periods of different conditions for the population, such as
+bottlenecks.  The \texttt{epochs} parameter takes a list of such
+periods as argument; in this case we have a single epoch, a bottleneck
+\texttt{Bottleneck(0.2,1.5)}.  This specification says that the size
+of the bottleneck is $0.2$ ($f=0.2$) and that the bottleneck starts at
+time $1.5$; there is no end time for this particular bottleneck, so in
+effect it is just a reduction of the effective population size to
+$20\%$ at time 1.5.  To specify a bottleneck of a finite extend, we
+simply add a third, parameter, e.g.\ to have the bottleneck starting
+at time 1.5 and ending at time 3 we use:
+\begin{code}
+from CoaSim.popStructure import Population, Bottleneck, Sample
+popStructSpec = Population(1, Sample(10), 
+                           epochs=[Bottleneck(0.2, 1.5, |\textbf{3}|)])
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+see Fig.~\ref{fig:finite-bottleneck}.
+
+Exponential growth is specified in a similar way, and parameterised by
+the exponential growth factor, $\beta=2Nb$, (see \emph{Hein
+  et al.}\ Sect.~4.3).  To have an exponential growth with $\beta=10$
+starting at time 1.5, we use:
+\begin{code}
+from CoaSim.popStructure import Population, Growth, Sample
+popStructSpec = Population(1, Sample(10), 
+                           epochs=[Growth(10, 1.5)])
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+see Fig.~\ref{fig:infinite-growth}.  Once again, an end time can be
+specified as a third parameter:
+\begin{code}
+from CoaSim.popStructure import Population, Growth, Sample
+popStructSpec = Population(1, Sample(10), 
+                           epochs=[Growth(10, 1.5, |\textbf{3}|)])
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+see Fig.~\ref{fig:finite-growth}.  After a finite period of growth,
+the population size returns to the size outside the epoch, i.e.\ the
+original size before the growth, unless the growth is followed by a
+bottleneck to reduce the population size.
+
+\begin{figure}[t]
+  \begin{empdef}[growth_infinite](40,60)
+    numeric growth_start, growth_left, growth_right;
+  
+    growth_start = 1.5h/6;
+    growth_left  = w/2-w/20;
+    growth_right = w/2+w/20;
+
+    fill (0,0)--(0,growth_start)..{up}(growth_left,h)
+         --(growth_right,h){down}..(w,growth_start)--(w,0)--cycle
+         withcolor (0.5,0.6,0.9); %.2[white,black];
+  
+    draw (0,0)--(0,growth_start)..{up}(growth_left,h);
+    draw (w,0)--(w,growth_start)..{up}(growth_right,h);
+  
+    label.rt(btex $\tau=0$ etex,   (w,0));
+    label.rt(btex $\tau=1.5$ etex, (w,growth_start));
+  \end{empdef}
+  \begin{empdef}[growth_finite](40,60)
+    numeric growth_start, growth_end, growth_left, growth_right;
+
+    growth_start = 1.5h/6;
+    growth_end   = 3  h/6;
+    growth_left  = w/2-w/10;
+    growth_right = w/2+w/10;
+
+    fill (0,0)--(0,growth_start)..{up}(growth_left,growth_end)
+         --(0,growth_end)--(0,h)--(w,h)--(w,growth_end)
+         --(growth_right,growth_end){down}..(w,growth_start)--(w,0)--cycle
+         withcolor (0.5,0.6,0.9); %.2[white,black];
+  
+    draw (0,0)--(0,growth_start)..{up}(growth_left,growth_end)
+         --(0,growth_end)--(0,h);
+    draw (w,0)--(w,growth_start)..{up}(growth_right,growth_end)
+         --(w,growth_end)--(w,h);
+  
+    label.rt(btex $\tau=0$ etex,   (w,0));
+    label.rt(btex $\tau=1.5$ etex, (w,growth_start));
+    label.rt(btex $\tau=3$ etex,   (w,growth_end));
+  \end{empdef}
+  
+  \hspace*{.5cm}
+  \subfigure[Exponential growth starting at time $\tau=1.5$ and
+             extending back in time. \label{fig:infinite-growth}]
+             {\hspace*{1.5cm}\empuse{growth_infinite}\hspace*{1.5cm}}
+  \hfill
+  \subfigure[Exponential growth starting at time $\tau=1.5$ and
+             and ending at time $\tau=3$. \label{fig:finite-growth}]
+             {\hspace*{1.5cm}\empuse{growth_finite}\hspace*{1.5cm}}
+  \hspace*{.5cm}
+
+  \caption{Exponential growth starting at time $\tau=1.5$ and
+    extending back in time indefinitely (left) or until time $\tau=3$
+    (right).}
+  \label{fig:growth}
+\end{figure}
+
+As briefly mentioned, a population can contain a list of epochs, and
+we can use this to, e.g.\ specify an exponential growth followed (back
+in time) by a bottleneck, effectively modeling a smaller effective
+population size before (forward in time) the growth:
+\begin{code}
+from CoaSim.popStructure import Population, Sample, \
+                                Bottleneck, Growth
+popStructSpec = Population(1, Sample(10), 
+                           |\textbf{epochs=[Growth(10, 0, 3),}|
+                                   |\textbf{Bottleneck(0.2, 3)]}|)
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+or somewhat more succinct:
+\begin{code}
+from CoaSim.popStructure import Population as P, Sample as S,\
+                                Bottleneck as B, Growth as G
+popStructSpec = P(1, S(10), epochs=[G(10, 0, 3),B(0.2, 3)])
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+compressing the population structure specification, using shorter
+aliases for the population structure classes.
+
+Epochs must be either nested or non-overlapping; nested epochs combine
+in the obvious way: a bottleneck that scales the effective population
+size with $f_1$, nested inside a bottleneck that scales the effective
+population size with $f_2$ will in effect scale the effective
+population size with $f_1\cdot{}f_2$; a bottleneck inside an
+exponential growth epoch, or vice versa, will model growth in a
+reduced size, and so on.
+
+%%FIXME: figure
+
+
+\subsection{Sub-populations}
+\label{sec:sub-pop}
+
+The population structure in the previous section only contained a
+single population, going through various kinds of epochs, but the
+population structure specification language allows us to specify trees
+of populations, and thus specify the history of a set of populations
+back to their common ancestor population.
+
+The branches on the population tree---describing the period a
+population exist and the epochs it goes through---are specified with
+the \texttt{Population()} structure described above.  The leaves of
+the tree---describing how many samples to simulate from a currently
+(at time 0) existing population---are specified with the
+\texttt{Sample()} construction, also described above.  The
+nodes---describing population merging events (backward in time,
+corresponding to splits of populations forward in time)---are
+specified with a similar \texttt{merge()} construction.
+
+The merge construction takes, as first argument, the time of the
+merge, backward in time in units of $2N$, followed by a list of two or
+more population structure specifications.  The merge must, of course,
+occur further back in time than any epochs or merges in the sub-trees
+specified by the population structures.
+
+Thus, to simulate 20 samples from each of two populations merging at
+time 10, see Fig.~\ref{fig:sub-populations}, we use:
+\begin{code}
+from CoaSim.popStructure import Population as P, Sample as S,\
+                                Merge as M
+popStructSpec = P(1, M(10, [P(1, S(20)), P(1, S(20))]))
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+
+\begin{wrapfigure}{r}{4cm}
+  \vspace*{-.5\baselineskip}
+  \centering
+  \begin{emp}(55,50)
+    fill (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h)--
+         (w/2+w/8,h)--(w/2+w/8,h/2)--(w,0)--
+         (w-w/4,0)--(w/2,h/2)--(w/4,0)--cycle
+         withcolor (0.5,0.6,0.9); %.2[white,black];
+
+    draw (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h);
+    draw (w/4,0)--(w/2,h/2)--(w-w/4,0);
+    draw (w,0)--(w/2+w/8,h/2)--(w/2+w/8,h);
+  
+    label.rt(btex $\tau=0$ etex, (1.1w,0));
+    label.rt(btex $\tau=10$ etex, (1.1w,h/2));
+  \end{emp}
+  \caption{Two populations merging at time $\tau=10$.}
+  \label{fig:sub-populations}
+\end{wrapfigure}
+%% %%
+\noindent
+The outermost \texttt{Population($\ldots$)} specifies the population
+size after (back in time) the merge and the two inner
+\texttt{Population($\ldots$)}s the effective population size and the
+sample size in the sub-populations.  For the simulated sequences, the
+first ``sample size'' (in this case $20$) individuals will be from the
+first population in the population structure specification, the second
+``sample size'' from the next population and so forth.
+
+We now see the use of the population size parameter, the first
+parameter to the \texttt{Population($\ldots$)} construction: to
+specify different effective sizes of the populations.  CoaSim assumes
+a fixed global effective size, $2N$ and scales all populations
+relative to this, using the population size parameter; this works in
+exactly the same way as time is scaled for population bottlenecks (and
+is in fact just syntactic sugar for bottlenecks covering the entire
+population life time).
+
+\begin{figure}[tb]
+  \centering
+  \begin{empdef}[three_populations](55,60)
+
+    fill (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h)--
+         (w/2+w/8,h)--(w/2+w/8,h/2)--(w,0)--
+         (7w/8,0)--(9w/16,h/2)--(6w/8,0)--
+         (5w/8,0)--(w/2,h/2)--(w/4,0)--cycle
+         withcolor (0.5,0.6,0.9); %.2[white,black];
+
+    draw (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h);
+    draw (w,0)--(w/2+w/8,h/2)--(w/2+w/8,h);
+    draw (w/4,0)--(w/2,h/2)--(5w/8,0);
+    draw (6w/8,0)--(9w/16,h/2)--(7w/8,0);
+
+    label.rt(btex $\tau=0$ etex, (1.1w,0));
+    label.rt(btex $\tau=10$ etex, (1.1w,h/2));
+  \end{empdef}
+  \begin{empdef}[three_populations_bottleneck](55,60)
+
+    fill  (0,0)--(w/2-w/8,11h/20)--(w/2-w/16,11h/20)
+         --(w/2-w/16,13h/20)--(w/2-w/8,13h/20)
+         --(w/2-w/8,h)--(w/2+w/8,h)--(w/2+w/8,13h/20)
+         --(w/2+w/16,13h/20)--(w/2+w/16,11h/20)
+         --(w/2+w/8,11h/20)--(w,0)--
+         (7w/8,0)--(9w/16,h/2)--(6w/8,0)--
+         (5w/8,0)--(w/2,h/2)--(w/4,0)--cycle
+         withcolor (0.5,0.6,0.9); %.2[white,black];
+
+    draw (0,0)--(w/2-w/8,11h/20)--(w/2-w/16,11h/20)
+         --(w/2-w/16,13h/20)--(w/2-w/8,13h/20)
+         --(w/2-w/8,h);
+    draw (w,0)--(w/2+w/8,11h/20)--(w/2+w/16,11h/20)
+         --(w/2+w/16,13h/20)--(w/2+w/8,13h/20)
+         --(w/2+w/8,h);
+    draw (w/4,0)--(w/2,h/2)--(5w/8,0);
+    draw (6w/8,0)--(9w/16,h/2)--(7w/8,0);
+
+    label.rt(btex $\tau=0$ etex, (1.1w,0));
+    label.rt(btex $\tau=10$ etex, (1.1w,h/2));
+    label.rt(btex $\tau=12$ etex, (1.1w,13h/20));
+  \end{empdef}
+  \begin{empdef}[three_populations_diff_merge](55,60)
+
+    fill (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h)--
+         (w/2+w/8,h)--(w/2+w/8,h/2)--(w,0)--
+         (7w/8,0)--(10w/16,7h/20)--(6w/8,0)--
+         (5w/8,0)--(w/2,h/2)--(w/4,0)--cycle
+         withcolor (0.5,0.6,0.9); %.2[white,black];
+
+    draw (0,0)--(w/2-w/8,h/2)--(w/2-w/8,h);
+    draw (w,0)--(w/2+w/8,h/2)--(w/2+w/8,h);
+    draw (w/4,0)--(w/2,h/2)--(5w/8,0);
+    draw (6w/8,0)--(10w/16,7h/20)--(7w/8,0);
+
+    label.rt(btex $\tau=0$ etex, (1.1w,0));
+    label.rt(btex $\tau=8$ etex, (1.1w,7h/20));
+    label.rt(btex $\tau=10$ etex, (1.1w,h/2));
+  \end{empdef}
+
+  \hspace*{.2cm}
+  \subfigure[Three populations merging at time $10$.
+             \label{fig:three_populations}]
+            {\hspace*{.2cm}\empuse{three_populations}\hspace*{.2cm}}
+  \hfill
+  \subfigure[Three populations merging followed by a bottleneck.
+             \label{fig:three_populations_bottleneck}]
+            {\hspace*{.2cm}\empuse{three_populations_bottleneck}\hspace*{.2cm}}
+  \hfill
+  \subfigure[Three populations merging at time $8$ and $10$.
+             \label{fig:three_populations_diff_merge}]
+            {\hspace*{.2cm}\empuse{three_populations_diff_merge}\hspace*{.2cm}}
+  \hspace*{.2cm}
+
+  \caption{Three different population structures.}
+  \label{fig:population-structures}
+\end{figure}
+
+As an example we can simulate three subpopulations, one twice the
+effective size of the other two, merging at time 10 back in time to a
+population with the same effective size as the larger sub-population at
+the current time:
+\begin{code}
+from CoaSim.popStructure import Population as P, Sample as S,\
+                                Merge as M
+popStructSpec = P(2,M(10,[P(2,S(20)),P(1,S(20)),P(1,S(20))]))
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+see Fig.~\ref{fig:three_populations}.
+
+The subpopulation size combine with epochs in the expected way,
+considering that they behave similar to bottlenecks, e.g.\ a
+bottleneck with size parameter $f_b$ inside a population with size
+parameter $f_p$ will result in an effective population size of
+$f_b\cdot{}f_p\cdot{}2N$.  Thus, in 
+\begin{code}
+from CoaSim.popStructure import Population as P, Sample as S,\
+                                Merge as M, Bottleneck as B
+popStructSpec = P(2,M(10,[P(2,S(20)),P(1,S(20)),P(1,S(20))]),
+                  epochs=[B(0.25,10,12])
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+the population merge is followed, back in time, by a bottleneck from
+time $10$ to time $12$ that scales the effective size to half that of
+the smaller current subpopulations: $0.25\cdot{}2=0.5$, the $0.25$
+factor from the bottleneck and the $2$ factor from the population
+size, see Fig.~\ref{fig:three_populations_bottleneck}.
+
+A population structure tree does not have to be in only two levels, as
+above, where a merge is followed by an edge to a leaf; each sub-tree
+can be of the general form containing further merges, as for example
+\begin{code}
+from CoaSim.popStructure import Population as P, Sample as S,\
+                                Merge as M
+popStructSpec = P(2,M(10,[P(2,S(20)), 
+                          M(8,[P(1,S(20)),P(1,S(20))])]))
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+where the original population splits in two (forward in time) $10$
+time units ago, one half the size of the other, and where the smaller
+population splits again $8$ time units ago, see
+Fig.~\ref{fig:three_populations_diff_merge}.
+
+The merge times closer to the root must, of course, be larger than the
+merge times further down the tree, since events closer to the root
+represent events further back in time.  For similar reasons, all
+epoch times on an edge must be contained in the time interval between
+the merge events at the end points of the edge; time $0$ for edges to
+leaves; and open ended up for the root-edge.
+
+
+\subsection{Migration}
+\label{sec:migration}
+
+It is also possible to simulate migrations between subpopulations
+existing at the same time.  This is done by specifying the rates of
+migration from one population to another---optionally together with
+the period for which the migration goes, if this period does not span
+the entire period for which both populations exist.
+
+To be able to refer to the individual subpopulations when specifying
+migration rates, we must name them.  This is done by adding a name (a
+string) through the optional \texttt{name} parameter of the
+\texttt{Population($\ldots$)} construction.
+
+We can name the subpopulations in the example in the previous section,
+with two small populations and one large, like this:
+\begin{code}
+from CoaSim.popStructure import Population as P, Sample as S,\
+                                Merge as M, Bottleneck as B
+popStructSpec = P(2,M(10,[P(2,S(20), name="large"),
+                          P(1,S(20), name="small-1"),
+                          P(1,S(20), name="small-2")]))
+seqs = simulate(markers, popStructSpec).sequences
+\end{code}
+giving the larger population the name \texttt{large}, and the two
+smaller populations the names \texttt{small-1} and \texttt{small-2},
+respectively.  The populations after the merge is not named, and thus
+cannot be refereed to in the migration specification---but since it is
+the only population in existing after the merge, this would not be
+meaningful anyway.
+
+With the relevant populations named, we can specify a migration rate
+using the \texttt{Migration} construction which is on the form:
+\begin{code}
+Migration(source, destination, rate, startTime, endtime)
+\end{code}
+where \texttt{startTime} and \texttt{endTime} are optional keyword
+arguments and will default to the total time where both populations
+exist.
+
+The \texttt{destination} parameter is the population that receives the
+immigrants, going back in time, and the \texttt{source} parameter is
+the population from which they emigrate, again going back in time.
+
+The \texttt{rate} parameter is the migration rate $M=4Nm$ (see
+\emph{Hein et al.}\ Sect.~4.6).  Notice that the rate is given in
+units of the \emph{global} effective population size, the global $N$,
+not relative to the individual population sizes.  It is, thus, not
+influenced by bottlenecks or relative subpopulation sizes---to achieve
+such effects it is necessary to specify different periods of migration
+with varying rates.
+
+The migration rates are provided to the simulation function as a list
+through the keyword argument \texttt{migrationSpec}.  To simulate a
+migration rate of $M=0.5$ from each of the two small populations to
+the larger (back in time, and thus from the larger population to the
+smaller forward in time), a rate of $1.0$ in the other direction, and
+a rate of $2.0$ in each direction between the two smaller populations,
+we use:
+\begin{code}
+from CoaSim.popStructure import Population as P, Sample as S,\
+                                Merge as M, Bottleneck as B,\
+                                Migration as Mi
+
+pSpec = P(2,M(10,[P(2,S(20), name="large"),
+                  P(1,S(20), name="small-1"),
+                  P(1,S(20), name="small-2")]))
+mSpec = [Mi('small-1', 'large', 0.5),
+         Mi('small-2', 'large', 0.5),
+         Mi('large', 'small-1', 1.0),
+         Mi('large', 'small-2', 1.0),
+         Mi('small-2', 'small-1', 2.0),
+         Mi('small-1', 'small-2', 2.0)]
+
+seqs = simulate(markers, pSpec, migrationSpec=mSpec).sequences
+\end{code}
+
+To specify that the migration rate between the two smaller populations
+is only $2.0$ for the last half (back in time) of the population
+existence, and $1.5$ before that (back in time), we can use the
+optional start and end time parameters:
+\begin{code}
+from CoaSim.popStructure import Population as P, Sample as S,\
+                                Merge as M, Bottleneck as B,\
+                                Migration as Mi
+
+pSpec = P(2,M(10,[P(2,S(20), name="large"),
+                  P(1,S(20), name="small-1"),
+                  P(1,S(20), name="small-2")]))
+mSpec = [Mi('small-1', 'large', 0.5),
+         Mi('small-2', 'large', 0.5),
+         Mi('large', 'small-1', 1.0),
+         Mi('large', 'small-2', 1.0),
+         Mi('small-2', 'small-1', 2.0, 5, 10),
+         Mi('small-1', 'small-2', 2.0, 5, 10),
+         Mi('small-2', 'small-1', 1.5, 0,  5),
+         Mi('small-1', 'small-2', 1.5, 0,  5)]
+
+seqs = simulate(markers, pSpec, migrationSpec=mSpec).sequences
+\end{code}
+
+
+\section{Simulating the ARG and (Local) Coalescent Trees}
+\label{sec:simul-coal-trees}
+
+Until now we have only considered simulating sequences, but CoaSim
+actually simulates a full ARG in each simulation, we have just so far
+ignored the ARG and immediately extracted the sequences, using
+\begin{code}
+sequences = simulate(markers, noSeqs).sequences
+\end{code}
+rather than
+\begin{code}
+arg = simulate(markers, noLeaves)
+sequences = arg.sequences
+\end{code}
+
+There is one slight complication though: since simulating sequences is
+by far the most common use of CoaSim, it has been optimised for this.
+This optimisation includes discarding the history of ancestral
+material intervals not containing any of the markers specified in the
+simulation parameters.  This reduces the memory usage considerably,
+and speeds up the simulations a bit, but also means that the complete
+ARG is not available after the simulation is completed.  In many cases
+this is not a problem, but if the full ARG is needed after the
+simulation the optimisation can be turned off by using the keyword
+argument \texttt{keepEmptyIntervals} set to \texttt{True}:
+\begin{code}
+arg = simulate(markers, noLeaves, keepEmptyIntervals=True)
+\end{code}
+
+This is usually recommended when you wish to explore the genealogy
+between the specified markers---or when you are not interested in
+markers and only wish to simulate ARGs---but is not needed for e.g.\
+simulating the local coalescent trees at the specified markers.
+
+
+\subsection{Simulating the ARG}
+\label{sec:simulating-arg}
+%% 
+%% As a simple example, we can try simulating an ARG and then extract
+%% some statistics from it.  We will use three functions for
+%% extracting statistics, all from the \texttt{(coasim statistics)} module:
+%% \begin{itemize}
+%% \item \texttt{no-coalescence-events}---returns the number of
+%%   coalescence events that occurred in simulating the ARG.
+%% \item \texttt{no-gene-conversions}---returns the number of gene
+%%   conversions that occurred in simulating the ARG.
+%% \item \texttt{no-recombinations}---returns the number of
+%%   recombinations that occurred in simulating the ARG.
+%% \end{itemize}
+%% 
+%% Using these could look like this:
+%% \begin{code}
+%% (use-modules ((coasim statistics) :select (no-coalescence-events
+%%                                            no-gene-conversions
+%%                                            no-recombinations))
+%%              ((ice-9 format) :select (format)))
+%% (let ((ARG (simulate '() 10
+%%                      :rho 40 :gamma 60 :Q 10
+%%                      :keep-empty-intervals \#t)))
+%%   (format #t "#recomb: ~d, #gene conv.: ~d, #coalescent: ~d\(\backslash\)n"
+%%           (no-recombinations     ARG)
+%%           (no-gene-conversions   ARG)
+%%           (no-coalescence-events ARG)))  
+%% \end{code}
+%% Here we simulate an ARG and print the number of recombination events,
+%% gene conversions and coalescence events.  Notice that we do not
+%% provide any markers to \texttt{simulate}---the marker list is the
+%% empty list \texttt{'()}---but we instead turn off the empty intervals
+%% optimisation using \texttt{:keep-empty-intervals}.
+%% 
+%% We have also introduced one additional new thing in this example: the
+%% \texttt{format} function.  This function is actually not CoaSim
+%% specific, but part of the general Guile library module \texttt{(ice-9
+%%   format)}; it is a convenient way of formatting output, similar to
+%% \texttt{printf} from C.  The first parameter is a port, if the
+%% formatted output should be written to that port, \texttt{\#f} if the
+%% formatted output is to be returned as a string, or \texttt{\#t}---as
+%% in the example above---if the output should be output to the current
+%% output port, standard out.  The second argument is a string describing
+%% the output, and the following are values to be formatted.  The types
+%% and number of these, and the way of formatting them, is determined by
+%% the formatting string.  For learning more about \texttt{format}, we
+%% refer to the Guile documentation.
+%% 
+%% As another example, we can try to extract the local intervals of the
+%% ARG, that is, the intervals of the ARG not broken up by a
+%% recombination event.  To get the list of these intervals, we use the
+%% function \texttt{intervals}, as below:
+%% \begin{code}
+%% (let* ((ARG (simulate '() 10 :rho 40 :keep-empty-intervals #t))
+%%        (inter (intervals ARG))
+%%        ...)
+%%     ...)
+%% \end{code}
+%% Again, we need to turn off the empty intervals optimisation, since
+%% otherwise we would only get the intervals containing markers; in this
+%% case no interval will contain a marker since we have provided no
+%% markers to the \texttt{simulate} function.
+%% 
+%% From the list of intervals, we could, for instance, calculate the
+%% average interval length.  To do this we use functions
+%% \texttt{interval-start} and \texttt{interval-end} to get the start
+%% point and end point of the interval, respectively, and the obtain the
+%% length by subtracting the start point from the end point
+%% \begin{code}
+%% (let* ((ARG (simulate '() 10 :rho 40 :keep-empty-intervals #t))
+%%        (inter (intervals ARG))
+%%        \underline{(len (lambda (i) (- (interval-end i) (interval-start i))))}
+%%        \underline{(interval-lengths (map len inter))}
+%%        ...)
+%%     ...)
+%% \end{code}
+%% add the resulting lengths---here by applying function \texttt{+} to
+%% the length list---and then dividing by the number of intervals:
+%% \begin{code}
+%% (let* ((ARG (simulate '() 10 :rho 40 :keep-empty-intervals #t))
+%%        (inter (intervals ARG))
+%%        (len (lambda (i) (- (interval-end i) (interval-start i))))
+%%        (interval-lengths (map len inter))
+%%        \underline{(mean (/ (apply + interval-lengths) (length interval-lengths))))}
+%%   (display mean)(newline))
+%% \end{code}
+%% 
+%% 
+\subsection{Simulating Trees}
+\label{sec:simulating-trees}
+%% 
+%% Using functions \texttt{interval->tree} and \texttt{tree->interval},
+%% we can switch back and forth between local intervals and the
+%% coalescence tree for that interval.  So to get all the local
+%% coalescence trees in the ARG, we can map \texttt{interval->tree} over
+%% the list of intervals, or alternatively use the function
+%% \texttt{local-trees} which does exactly this:
+%% \begin{code}
+%% (define (local-trees ARG) (map interval->tree (intervals ARG)))
+%% \end{code}
+%% 
+%% To simulate a single coalescence tree, we can use code like this:
+%% \begin{code}
+%% (let* ((ARG (simulate '() 10 :keep-empty-intervals #t))
+%%        (tree (car (local-trees ARG))))
+%%   (display tree))
+%% \end{code}
+%% We simulate the ARG and then extract the list of local trees.  This
+%% will only contain a single tree, since we are simulating without
+%% recombination---we have not set the \texttt{:rho} parameter, which
+%% means that it defaults to $0$---and we take this single tree out of
+%% the list and display it.  Displaying a tree this way will print out
+%% the tree in Newick format.
+%% 
+%% If we add recombination to the simulation, we could also be interested
+%% in knowing the extend of the interval for which the tree is the
+%% genealogy.  We can get this interval together with the tree like this:
+%% \begin{code}
+%% (let* ((m (snp-marker 0.5 0 1))
+%%        (ARG (simulate (list m) 10 :rho 40))
+%%        (i (car (intervals ARG)))
+%%        (t (interval->tree i)))
+%%   (display (interval-start i))(display "-")
+%%   (display (interval-end i))(display ": ")
+%%   (display t))
+%% \end{code}
+%% Here we use a single marker, at the centre of the genomic region---a
+%% SNP marker that will accept any minor allele frequency ($0.0$--$1.0$), which
+%% essentially means that we do not care about the alleles at the marker;
+%% it is the local tree for this marker, and the interval for this tree,
+%% that we extract from the simulation.
+%% 
+%% We simulate \texttt{with} the empty intervals optimisation, which
+%% guarantees that only intervals containing markers will be returned by
+%% the \texttt{intervals} function---in this example it guarantees that
+%% \texttt{intervals} only return the one interval we are interested
+%% in---extract the interval and the corresponding local tree---using the
+%% \texttt{interval->tree} function---and then display the extracted
+%% information.
+%% 
+%% Using the function \texttt{tree-height} we can get the hight of the
+%% tree, and for example compute the average height along the genomic
+%% sequence:
+%% \begin{code}
+%% (let* ((ARG (simulate '() 10 :rho 40 :beta 10 :keep-empty-intervals #t))
+%%        (trees (local-trees ARG))
+%%        (tree-heights (map tree-height trees))
+%%        (mean (/ (apply + tree-heights) (length tree-heights))))
+%%   (display mean)(newline))
+%% \end{code}
+%% or the mean height over a number of simulations
+%% \begin{code}
+%% (use-modules ((coasim batch) :select (tabulate)))
+%% (let* ((no-iterations 10000)
+%%        (tree-heights
+%%         (tabulate no-iterations
+%%                   (let* ((ARG (simulate '() 10
+%%                                         :beta 10
+%%                                         :keep-empty-intervals #t))
+%%                          (tree (car (local-trees ARG))))
+%%                     (tree-height tree)))))
+%%   (display (/ (apply + tree-heights) no-iterations))(newline))
+%% \end{code}
+%% 
+%% In the last example we use the \texttt{tabulate} function described
+%% earlier to run a number of iterations and collect the result in a
+%% list.  We simulate with exponential growth ($\beta=10$); without
+%% growth we have a closed form for the mean tree
+%% height---$E(H_n)=2\left(1-\frac{1}{n}\right)$, see \emph{Hein et al.}
+%% Sect.~1.9---but for $\beta>0$ we it makes sense to use simulations to
+%% get the expected tree height.  In the first example, we simulated with
+%% recombination ($\rho=40$) to get a number of intervals; in the second
+%% example we do not allow recombination ($\rho$ is implicitly $0$) since
+%% we only extract a single local tree any way.
+%% 
+%% Using the function \texttt{total-branch-length}, we can get the sum of
+%% branch lengths of the tree, and we can calculate the mean of those for
+%% varying $\beta$ just as for tree heights as above.
+%% 
+%% 
+\subsection{Exploring the ARG}
+\label{sec:exploring-arg}
+%% 
+%% Aside from the functions mentioned above, for extracting information
+%% about the ARG, it is possible to extract information from the ARG by
+%% explicitly traversing it and extracting the information through
+%% custom-made functions.  Since we rarely have to explicitly traverse
+%% the ARG---most interesting simulation results can be extracted using
+%% other methods---we will not go into details about this general
+%% traversal, but just give short pointers to the relevant functions.
+%% 
+%% The key functions for traversing the ARG are \texttt{root}---which
+%% returns the root node of a tree, or the \emph{Most Recent Common
+%%   Ancestor} (MRCA) of an interval---and \texttt{children}---which
+%% returns a list of the children of a node; this will be two children
+%% nodes for coalescence nodes, one child node for recombination and
+%% gene-conversions nodes, and an empty list for leaf nodes.
+%% 
+%% It is possible to check the type of nodes using the predicates
+%% \texttt{coalescent-node?}, \texttt{gene-conversion-node?},
+%% \texttt{leaf-node?}, and \texttt{recombination-node?} and through
+%% these tread the different nodes differently during a traversal.  Three
+%% additional functions can be used for extracting information about a
+%% node:
+%% \begin{itemize}
+%% \item \texttt{event-time}---returns the time the node was created (in
+%%   scaled coalescence time, $2N$), and
+%% \item \texttt{ancestral?}---predicate that determines if the
+%%   ancestral material in the node contains a given point.
+%% \item \texttt{trapped?}---predicate that determines if the
+%%   a point is trapped between ancestral material in a node.
+%% \end{itemize}
+%% 
+%% To accumulate information about \texttt{all} the ARG nodes, it is
+%% usually more convenient to use the \texttt{fold-nodes} function than
+%% to explicitly traverse the nodes using \texttt{root} and
+%% \texttt{children}.  The function \texttt{fold-nodes} takes as
+%% parameters, in addition to the ARG, a function taking two parameters,
+%% and an initial value for the accumulation.  The function is called,
+%% for each node in the ARG, with the node and the value accumulated so
+%% far, initially the value passed to \texttt{fold-nodes}.  As an
+%% example, to count the total number of nodes in the ARG, we can use:
+%% \begin{code}
+%% (fold-nodes ARG (lambda (n count) (+ count 1)) 0)
+%% \end{code}
+%% or to count the total number of coalescence nodes:
+%% \begin{code}
+%% (fold-nodes ARG 
+%%             (lambda (n count) 
+%%                (if (coalescent-node? n) (+ count 1) count)) 
+%%             0)
+%% \end{code}
+%% 
+%% 
+%% 
+%% 
+%% 
+\section{Advanced Usage}
+\label{sec:advanced-usage}
+%% 
+%% In this section we give a few examples of more advanced usage of
+%% CoaSim.  This should by no mean be considered an exhaustive list of
+%% the possibilities for CoaSim simulations, but only give a taste of the
+%% possibilities that are available when programming scripts for the
+%% simulator.  Through the functions described in the reference manual,
+%% CoaSim is highly programmable, and very flexible in the kinds of
+%% simulations it can run.
+%% 
+%% 
+%% \subsection{Scaling Parameters}
+%% \label{sec:scaling-parameters}
+%% 
+%% If we wish to run simulations under various growth parameters, but the
+%% same effective recombination rate---and mutation rate in case of
+%% micro-satellites---we need to scale $\rho$ and $\theta$ for $\beta>0$
+%% such that e.g.\ 
+%% $\rho_{\beta=0}\cdot{}E(L_{n,\beta=0})=\rho_\beta\cdot{}E(L_{n,\beta})$,
+%% where $\rho_\beta$ and$\rho_{\beta=0}$ are the recombination rates
+%% with and without growth, respectively, and $E(L_{n,\beta})$ and
+%% $E(L_{n,\beta=0})$ are the expected total branch lengths with and
+%% without growth, respectively, see \emph{Hein et al.} Sect.~1.9.
+%% 
+%% For $E(L_{n,\beta=0})$ we have a formula:
+%% \begin{equation}
+%%   \label{eq:1}
+%%   E(L_{n,\beta=0})=2\sum_{j=1}^{n-1}\frac{1}{j}
+%% \end{equation}
+%% but for $E(L_{n,\beta})$ we need to calculate the average total branch
+%% lengths over a number of simulations.  Given the simulated expected
+%% value, we can then rescale $\rho$ and $\theta$ accordingly: 
+%% \[\rho_\beta=\rho_{\beta=0}\cdot\frac{E(L_{n,\beta=0})}{E(L_{n,\beta})}
+%%   \quad\quad\quad
+%%   \theta_\beta=\theta_{\beta=0}\cdot\frac{E(L_{n,\beta=0})}{E(L_{n,\beta})}
+%% \]
+%% 
+%% In CoaSim, we can calculate the rescaling like this:
+%% \begin{code}
+%% (use-modules (coasim batch))
+%% (define no-leaves    20)
+%% 
+%% (define (calc-scale-factor beta)
+%%   (if (= beta 0) 1 ; no need to simulate this one...
+%%       (let ((zero-growth-tree-length
+%%              ;; calculating the tree length without growth from closed
+%%              ;; term formula
+%%              (let loop ((j 1) (sum 0))
+%%                (if (< j no-leaves)
+%%                    (loop (+ j 1) (+ sum (/ 1 j)))
+%%                    (* 2 sum))))
+%%             (growth-tree-length
+%%              ;; simulating the tree length with growth
+%%              (let* ((no-iterations 10000)
+%%                     (branch-sum
+%%                      (fold no-iterations (lambda (val sum) (+ val sum)) 0
+%%                            (let* ((ARG (simulate '() no-leaves :beta beta
+%%                                                  :keep-empty-intervals #t))
+%%                                   (tree (car (local-trees ARG))))
+%%                              (total-branch-length tree)))))
+%%                (/ branch-sum no-iterations))))
+%%         (/ zero-growth-tree-length growth-tree-length))))
+%% 
+%% (define (scaled-simulate beta rho theta)
+%%   (let* ((scale-factor   (calc-scale-factor beta))
+%%          (scaled-rho     (* scale-factor rho))
+%%          (scaled-theta   (* scale-factor theta))
+%%          ...)
+%%     ...))
+%% \end{code}
+%% Here we calculate $E(L_{n,\beta=0})$ using~(\ref{eq:1}) and simulate
+%% $E(L_{n,\beta})$ by calculating the average branch length over
+%% $10,000$ iterations.  To calculate the average length, we use the
+%% function \texttt{fold} from module \texttt{(coasim batch)}, which
+%% works similar to the function \texttt{fold-nodes} we saw earlier;
+%% given a number of iterations, \texttt{no-iterations}, a function for
+%% accumulating results 
+%% \begin{code}
+%%   (lambda (val sum) (+ val sum))
+%% \end{code}
+%% an initial value, $0$, and a piece of code for producing the results,
+%% we can accumulate results from a number of iterations.
+%% 
+%% If we run many simulations with the same $\beta$, the solution above
+%% will be inefficient since we re-calculate the scale factor each time,
+%% but it is easy to build a preprocessed table of scale factors and use
+%% that:
+%% \begin{code}
+%% (define (calc-scale-factor beta)
+%%   (if (= beta 0) \underline{(cons 0 1)} ; no need to simulate this one...
+%%       (let ((zero-growth-tree-length
+%%               ...))
+%%         \underline{(cons beta} (/ zero-growth-tree-length growth-tree-length)))))
+%% 
+%% (define betas '(0 10 100))
+%% (define scale-factors (map calc-scale-factor betas))
+%% 
+%% (define (scaled-simulate beta rho theta)
+%%   (let* ((scale-factor   (assoc-ref scale-factors beta))
+%%          (scaled-rho     (* scale-factor rho))
+%%          (scaled-theta   (* scale-factor theta))
+%%          ...)
+%%     ...))
+%% \end{code}
+%% Here we change \texttt{calc-scale-factor} to return pairs of $\beta$
+%% and the corresponding scale factor, from which we build an association
+%% list---a list of pairs that can be thought of as a mapping form the
+%% first elements in the pairs to the second elements---and we look up
+%% the scale factors in this association list using the built-in function
+%% \texttt{assoc-ref}.
+%%   
+%% 
+\subsection{Rejection Sampling}
+\label{sec:rejection-sampling}
+%% 
+%% There are seven hooks for callbacks in the simulations:
+%% \begin{itemize}
+%% \item \texttt{:coalescence-callback}---called with the single node
+%%   that is the result of a coalescent event, and the number of lineages
+%%   at the time of the coalescent (i.e.\ the number of linages just after
+%%   the event, moving forward in time).
+%% \item \texttt{:recombination-callback}---called with the two nodes
+%%   that is the result of a recombination event, and the number of
+%%   lineages at the time of the recombination (i.e.\ the number of
+%%   linages just after the event, moving forward in time).
+%% \item \texttt{:geneconversion-callback}---called with the two nodes
+%%   that is the result of a gene conversion event, and the number of
+%%   lineages at the time of the gene conversion (i.e.\ the number of
+%%   linages just after the event, moving forward in time).
+%% \item \texttt{:bottleneck-callback}---called with the number of the
+%%   affected population, a boolean flag indicating whether the event
+%%   indicates entering or leaving the bottleneck, the time of the event
+%%   and the (total) number of lineages left at the time of the event.
+%% \item \texttt{:growth-callback}---called with the number of the
+%%   affected population, a boolean flag indicating whether the event
+%%   indicates entering or leaving the growth perioed, the time of the
+%%   event and the (total) number of lineages left at the time of the
+%%   event.
+%% \item \texttt{:migration-callback}---called with the two populations
+%%   (their number in the specification tree), the time of the migration,
+%%   and the number of lineages at the time of the gene conversion
+%%   (i.e. the number of linages just after the event, moving forward in
+%%   time).
+%% \item \texttt{:population-merge-callback}---called with a list of the
+%%   populations being merged, the time of the merge, and the (total)
+%%   number of lineages left at the time.
+%% \end{itemize}
+%% These are called during the ARG simulation, whenever one of the
+%% respective events happens.  They can be used to gather information
+%% from the simulation---although the same information can be obtained by
+%% traversing the ARG after the simulation---but also used for aborting a
+%% running simulation in a rejection sampling setup.
+%% 
+%% Say we want to simulate $10,000$ coalescent trees simulated under
+%% recombination rate $\rho=2$, but conditional on no recombination in
+%% fact did happen.  We could, of course, simulate ARGs till completion
+%% and reject ARGs containing recombination nodes, but it is much more
+%% efficient to abort the simulation once the first recombination occurs.
+%% 
+%% To reject a simulation when the first recombination event occurs, we
+%% can install a callback for recombination events that just throws an
+%% exception.  We can then wrap the simulation in a function that tries
+%% to perform the simulation, and if the exception is throw just restarts
+%% with another try:
+%% \begin{code}
+%% (define (try-simulate)
+%%   ;; keep trying to simulate until a simulation is NOT aborted
+%%   (let* ((reject-recomb (lambda (n1 n2 k) (throw 'reject)))
+%%          (try (lambda ()
+%%                 ;; simulate an ARG, but reject the simulation if a
+%%                 ;; recombination occurred
+%%                 (simulate '() 10 :rho 2
+%%                           :recombination-callback reject-recomb
+%%                           :keep-empty-intervals   #t)))
+%%          (except (lambda (ex-key . ex-args) #f)))
+%%     (let ((res (catch 'reject try except)))
+%%       (if res res (try-simulate)))))
+%% \end{code}
+%% Here we use the callback \texttt{reject-recomb} to throw the exception
+%% \texttt{'reject} when a recombination occurs---since
+%% \texttt{reject-recomb} is installed as the recombination callback
+%% through the \texttt{:recombination-callback} keyword parameter.  The
+%% function \texttt{try} runs a simulation and returns the ARG if the
+%% simulation is not rejected, and the exception handler \texttt{except}
+%% reports a rejection by returning \texttt{\#f}.  We then evaluate the
+%% whole thing using the \texttt{catch} function, that wraps the try and
+%% exception handling, and retry if the result was \texttt{\#f} rather
+%% than an ARG.\footnote{The reason that we cannot simply try again in
+%%   the exception handler---which would be the obvious way of doing
+%%   this---is that we need \texttt{try-simulate} to be tail-recursive to
+%%   avoid stack overflows if many simulations are rejected.}
+%% 
+%% By using \texttt{try-simulate} we are guaranteed to only obtain ARGs
+%% without recombinations, despite the recombination rate $\rho=5$, and
+%% we can run our $10,000$ simulations to, say, extract the average tree
+%% height, using a loop:
+%% \begin{code}
+%% (let ((sum-of-heights
+%%        (let loop ((n 0) (sum 0))
+%%          (if (= n 10000) sum ; done
+%%              (let* ((ARG (try-simulate))
+%%                     (h   (tree-height (car (local-trees ARG)))))
+%%                (loop (+ n 1) (+ sum h)))))))
+%%   (display (/ sum-of-heights 10000))
+%%   (newline))
+%% \end{code}
+%% or using \texttt{fold} from \texttt{(coasim batch)} again:
+%% \begin{code}
+%% (use-modules (coasim batch))
+%% (let ((sum-of-heights
+%%        (fold 10000 (lambda (val sum) (+ val sum)) 0
+%%              (tree-height (car (local-trees (try-simulate)))))))
+%%   (display (/ sum-of-heights 10000))
+%%   (newline))
+%% \end{code}
+%% 
+%% 
+
+\subsection{Writing Custom Markers}
+\label{sec:writ-cust-mark}
+%% 
+%% We have seen the three types of built-in markers supported by CoaSim
+%% earlier, but it is also possible to define new marker types yourself.
+%% To create a custom marker, you call the function
+%% \texttt{custom-marker} with a position, an ancestral allele value (or
+%% a function for creating it, if the ancestral allele should be random),
+%% and a function for handling mutations:
+%% \begin{code}
+%% (custom-marker pos allele-value mutate)
+%% \end{code}
+%% The ancestral allele value, \texttt{allele-value}, should either be an
+%% integer, or a function taking no arguments and returning an integer
+%% value.  The \texttt{mutate} function is called with three parameters
+%% for each edge in the ARG: the parent node of the edge, the child node
+%% of the edge, and the parent allele of the edge.  It is then responsible
+%% for returning the allele for the child; this will be the same as for
+%% the parent if no mutation occurs on the edge.
+%% 
+%% Below is shown how the \texttt{custom-marker} function can be used to
+%% define a step-wise mutation model for micro-satellite markers.  Here,
+%% the initial allele value is always set to 0 and the whole piece of
+%% code is an implementation of the mutation model.  The \texttt{mutate}
+%% function uses two helper functions, one for selecting the waiting time
+%% for the next mutation, and one for, conditional on a mutation
+%% occurring, mutating an allele into another.  Waiting times are
+%% selected from an exponential distribution, and \texttt{mutate}
+%% iteratively selects waiting times and apply mutations until the next
+%% waiting time moves past the length of the edge being processed.
+%% 
+%% \begin{code}
+%% (define (step-ms-marker pos theta)
+%%   (let* ((msec (cdr (gettimeofday)))
+%%          (random-state (seed->random-state msec))
+%% 
+%%          (waiting-time
+%%           ;; waiting time for next mutation
+%%           (lambda ()
+%%             (let ((mean (/ 2 theta)));mean is 1/i where the
+%%                                      ;intensity i is theta/2
+%%               (* mean (random:exp random-state)))))
+%% 
+%%          (mutate-to
+%%           ;; randomly mutating up or down
+%%           (lambda (parent-allele)
+%%             (if (< (random 1.0 random-state) 0.5)
+%%                 (- parent-allele 1)
+%%                 (+ parent-allele 1))))
+%% 
+%%          (mutate
+%%           ;; mutation function to use in the custom marker
+%%           (lambda (parent child parent-allele)
+%%             (let loop ((allele parent-allele)
+%%                        (time-left 
+%%                         (- (- (event-time parent) (event-time child))
+%%                            (waiting-time))))
+%%               (if (< time-left 0)
+%%                   allele
+%%                   (let ((new-allele (mutate-to allele))
+%%                         (next-time (waiting-time)))
+%%                     (loop new-allele (- time-left next-time))))))))
+%% 
+%%     (custom-marker pos 0 mutate)))
+%% \end{code}
+%% 
+%% The step-wise model, as implemented above, is also available in the
+%% module \texttt{(coasim stepwise)}, implemented similar to above.
+%% 
+
+\section{Contact}
+\label{sec:contact}
+
+For any comments or questions regarding CoaSim, please contact Thomas
+Mailund, at \href{mailto:mailund@mailund.dk}{mailund@mailund.dk} or
+\href{mailund@birc.au.dk}{mailund@birc.au.dk}.
+
+
+\end{empfile}
+\end{document}
+
+% LocalWords:   CoaSim geneconversion haplotype haplotypes SNP Unphased indices
+% LocalWords:  ARG namespace
