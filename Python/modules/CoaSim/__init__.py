@@ -95,7 +95,7 @@ def _insertSorted(markers, newMarkers):
     idx = len(markers)+len(newMarkers)-1
     while markers != [] and newList != []:
         if markers[-1].position == newList[-1][1].position:
-            raise 'Two markers at the same position!'
+            raise ValueError('Two markers at the same position!')
         if markers[-1].position > newList[-1][1].position:
             m = markers.pop()
             result.append(m)

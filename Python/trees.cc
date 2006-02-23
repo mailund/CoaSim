@@ -86,7 +86,7 @@ Tree_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 Tree_clear(TreeObject *self)
 {
-    Py_DECREF(self->py_arg);
+    Py_XDECREF(self->py_arg);
     self->py_arg = 0;
     self->interval = 0;
     return 0;

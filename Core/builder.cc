@@ -43,7 +43,9 @@ ARG * Builder::build(BuilderMonitor *callbacks,
         {
 	    scheduler.add_event(j->coalescence_event());
 	    if (i_conf.growth() > 0)
-		scheduler.add_event(new Growth(pop_no,i_conf.growth(), 0));
+		{
+		    scheduler.add_event(new Growth(pop_no,i_conf.growth(), 0));
+		}
 	}
 	
     if (i_conf.rho() > 0)

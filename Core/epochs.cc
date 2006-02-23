@@ -139,7 +139,7 @@ CoalescenceEpoch::earliest_event() const
 }
 
 double
-BottleNeck::waiting_time(State &s, double c_time)
+BottleNeck::delta_time(State &s, double c_time)
 {
     return i_scale_fraction * basic_waiting_time(s, c_time);
 }
@@ -180,7 +180,7 @@ BottleNeck::print(std::ostream &os) const
 }
 
 double
-Growth::waiting_time(State &s, double current_time)
+Growth::delta_time(State &s, double current_time)
 {
     using namespace Distribution_functions;
     double t_k_star = basic_waiting_time(s, current_time);

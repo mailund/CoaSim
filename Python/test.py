@@ -1,11 +1,23 @@
-import CoaSim
+from exceptions import Exception
+from CoaSim import *
 
-markers = [CoaSim.SNPMarker(0.2, 0.1, 0.9),
-           CoaSim.SNPMarker(0.3, 0.1, 0.9),
-           CoaSim.TraitMarker(0.5, 0.2, 0.4),
-           CoaSim.SNPMarker(0.6, 0.1, 0.9),
-           CoaSim.MicroSatelliteMarker(0.7, 1e-3, 10),
-           CoaSim.SNPMarker(0.8, 0.1, 0.9)]
+class reject(Exception): pass
+class RejectionSampler(object):
+    def recombinationEvent(self,n1,n2,k):
+        raise reject()
+rejectionSampler = RejectionSampler()
 
-arg = CoaSim.simulate(markers, 10, rho=40, seed=10)
-print arg.sequences
+noSamples = 0
+heights = []
+
+while noSamples < 1000:
+    try:
+        arg = simulate([], 5, rho=2, keepEmptyIntervals=True,
+                       callbacks=rejectionSampler)
+        tree = arg.intervals[0].tree
+        heights.append(tree.height)
+        noSamples += 1
+    except reject:
+        pass
+
+print 'Average tree height:', sum(heights)/len(heights)

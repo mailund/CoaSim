@@ -85,7 +85,7 @@ namespace core {
 
 	// override this to implement the change in waiting time for
 	// this epoch.
-	virtual double waiting_time(State &s, double current_time) = 0;
+	virtual double delta_time(State &s, double current_time) = 0;
 
 	// these are overridden to compose the waiting times and
 	// perform a basic coalescence event
@@ -121,7 +121,7 @@ namespace core {
 
     class BottleNeck : public CoalescenceEpoch {
 	double i_scale_fraction;
-	virtual double waiting_time(State &s, double current_time);
+	virtual double delta_time(State &s, double current_time);
 
     public:
 	BottleNeck(int population, double scale_fraction, 
@@ -146,7 +146,7 @@ namespace core {
     class Growth : public CoalescenceEpoch {
 	double i_beta;
 
-	virtual double waiting_time(State &s, double current_time);
+	virtual double delta_time(State &s, double current_time);
 
     public:
 	Growth(int population, double beta, 

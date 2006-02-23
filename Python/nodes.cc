@@ -36,6 +36,7 @@ Node_children(NodeObject *self)
     return 0;
 }
 
+
 static PyGetSetDef Node_getseters[] = {
     {"eventTime", (getter)event_time, NULL,
      "The time of the event represented by the node (measured in units of "
@@ -92,9 +93,18 @@ Node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 static int
+Node_init(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    PyErr_SetString(PyExc_RuntimeError, 
+		    "Nodes should not be explicitly initialized!");
+    return -1;
+}
+
+
+static int
 Node_clear(NodeObject *self)
 {
-    Py_DECREF(self->py_arg);
+    Py_XDECREF(self->py_arg);
     self->py_arg = 0;
     self->core_node = 0;
     return 0;
@@ -153,7 +163,7 @@ static PyTypeObject NodeType = {
     0,				// tp_descr_get
     0,				// tp_descr_set
     0,				// tp_dictoffset
-    0,				// tp_init
+    Node_init,			// tp_init
     0,				// tp_alloc
     Node_new,			// tp_new
     0,				// tp_free
@@ -523,4 +533,11 @@ init_nodes(PyObject *module)
     Py_INCREF(&RecombinationNodeType);
     if (PyType_Ready(&GeneConversionNodeType) < 0) return;
     Py_INCREF(&GeneConversionNodeType);
+
+    PyModule_AddObject(module, "LeafNode", (PyObject *)&LeafNodeType);
+    PyModule_AddObject(module, "CoalescentNode", (PyObject *)&CoalescentNodeType);
+    PyModule_AddObject(module, "RecombinationNode",
+		       (PyObject *)&RecombinationNodeType);
+    PyModule_AddObject(module, "GeneConversionNode",
+		       (PyObject *)&GeneConversionNodeType);
 }

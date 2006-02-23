@@ -78,7 +78,7 @@ Interval_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 Interval_clear(IntervalObject *self)
 {
-    Py_DECREF(self->py_arg);
+    Py_XDECREF(self->py_arg);
     self->py_arg = 0;
     self->interval = 0;
     return 0;

@@ -62,13 +62,26 @@ class DiseaseModel(object):
     HAPLOTYPE_MODEL = 1
     GENOTYPE_MODEL = 2
 
-    def __init__(self, indices, model=HAPLOTYPE_MODEL):
+    def __init__(self, indices, model=HAPLOTYPE_MODEL, predicate=None):
         '''Creates a disease model where the indices determines the
         disease affecting markers and the mode is either
         HAPLOTYPE_MODEL (for haploid data) or GENOTYPE_MODEL (for
-        diploid data).'''
-        self.indices = indices
+        diploid data).
+
+        If predicate is given, it must be a function that determines
+        disease status (returns True or False), dependent on the
+        alleles (or pairs of alleles for GENOTYPE_MODEL) passed to it
+        for each sequence.'''
+        if isinstance(indices,int): self.indices = [indices]
+        else:                       self.indices = indices
         self.model = model
+        self.predicate = predicate
+
+    def __call__(self, *args):
+        if self.predicate is not None:
+            return self.predicate(*args)
+        raise NotImplementedError()
+
 
 def singleMarkerDisease(markerIndex,
                         wildTypeRisk=0.0, mutantRisk=1.0,
@@ -190,3 +203,54 @@ if __name__ == '__main__':
     lst1,lst2 = split(recessiveModel(3),seqs,True)
     assert lst1 == seqs[:2]
     assert lst2 == seqs[2:]
+
+
+    try:
+        split(DiseaseModel(0), seqs)
+        assert False
+    except NotImplementedError:
+        pass
+
+    af, unaf = split(DiseaseModel(0,predicate=lambda a: True), seqs, True)
+    assert af == seqs
+    assert unaf == []
+
+    af, unaf = split(DiseaseModel([0,1],predicate=lambda a,b: True), seqs, True)
+    assert af == seqs
+    assert unaf == []
+
+    def pred(a0,a2): return (a0,a2) == (1,1)
+    af, unaf = split(DiseaseModel([0,2],predicate=pred), seqs)
+    assert af == [[0,1]]
+    assert unaf == [[0,1],[0,0],[0,0]]
+
+    class DM(DiseaseModel):
+        def __call__(self, a0, a2):
+            return (a0,a2) == (1,1)
+    af, unaf = split(DM([0,2]), seqs)
+    assert af == [[0,1]]
+    assert unaf == [[0,1],[0,0],[0,0]]
+
+
+    def pred(p0,p2):
+        a00, a02 = p0
+        a20, a22 = p2
+        return a00!=a20 and a02==a22
+    dm = DiseaseModel([0,2],predicate=pred,
+                      model=DiseaseModel.GENOTYPE_MODEL)
+    af, unaf = split(dm, seqs)
+    assert af == [[0,1],[0,1]]
+    assert unaf == [[0,0],[0,0]]
+
+    class DM(DiseaseModel):
+        def __init__(self, indices):
+            DiseaseModel.__init__(self,indices,
+                                  model=DiseaseModel.GENOTYPE_MODEL)
+        def __call__(self, p0, p2):
+            a00, a02 = p0
+            a20, a22 = p2
+            return a00!=a20 and a02==a22
+
+    af, unaf = split(DM([0,2]), seqs)
+    assert af == [[0,1],[0,1]]
+    assert unaf == [[0,0],[0,0]]
