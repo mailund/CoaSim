@@ -103,7 +103,7 @@ data.  All simulations in CoaSim result in an \emph{Ancestral
   Recombination Graph} (ARG), but in most cases the ARG is not the
 desired end-result, rather, the sequences found at the leaves of the
 ARG are.  To extract these sequences from an ARG, we simply get the
-\texttt{sequences} property of the simulated ARG object.
+\texttt{sequences} attribute of the simulated ARG object.
 
 \subsection{Simulating and Saving Sequences}
 \label{sec:simul-saving-sequ}
@@ -1198,256 +1198,200 @@ markers and only wish to simulate ARGs---but is not needed for e.g.\
 simulating the local coalescent trees at the specified markers.
 
 
-\subsection{Simulating the ARG}
-\label{sec:simulating-arg}
-%% 
-%% As a simple example, we can try simulating an ARG and then extract
-%% some statistics from it.  We will use three functions for
-%% extracting statistics, all from the \texttt{(coasim statistics)} module:
-%% \begin{itemize}
-%% \item \texttt{no-coalescence-events}---returns the number of
-%%   coalescence events that occurred in simulating the ARG.
-%% \item \texttt{no-gene-conversions}---returns the number of gene
-%%   conversions that occurred in simulating the ARG.
-%% \item \texttt{no-recombinations}---returns the number of
-%%   recombinations that occurred in simulating the ARG.
-%% \end{itemize}
-%% 
-%% Using these could look like this:
-%% \begin{code}
-%% (use-modules ((coasim statistics) :select (no-coalescence-events
-%%                                            no-gene-conversions
-%%                                            no-recombinations))
-%%              ((ice-9 format) :select (format)))
-%% (let ((ARG (simulate '() 10
-%%                      :rho 40 :gamma 60 :Q 10
-%%                      :keep-empty-intervals \#t)))
-%%   (format #t "#recomb: ~d, #gene conv.: ~d, #coalescent: ~d\(\backslash\)n"
-%%           (no-recombinations     ARG)
-%%           (no-gene-conversions   ARG)
-%%           (no-coalescence-events ARG)))  
-%% \end{code}
-%% Here we simulate an ARG and print the number of recombination events,
-%% gene conversions and coalescence events.  Notice that we do not
-%% provide any markers to \texttt{simulate}---the marker list is the
-%% empty list \texttt{'()}---but we instead turn off the empty intervals
-%% optimisation using \texttt{:keep-empty-intervals}.
-%% 
-%% We have also introduced one additional new thing in this example: the
-%% \texttt{format} function.  This function is actually not CoaSim
-%% specific, but part of the general Guile library module \texttt{(ice-9
-%%   format)}; it is a convenient way of formatting output, similar to
-%% \texttt{printf} from C.  The first parameter is a port, if the
-%% formatted output should be written to that port, \texttt{\#f} if the
-%% formatted output is to be returned as a string, or \texttt{\#t}---as
-%% in the example above---if the output should be output to the current
-%% output port, standard out.  The second argument is a string describing
-%% the output, and the following are values to be formatted.  The types
-%% and number of these, and the way of formatting them, is determined by
-%% the formatting string.  For learning more about \texttt{format}, we
-%% refer to the Guile documentation.
-%% 
-%% As another example, we can try to extract the local intervals of the
-%% ARG, that is, the intervals of the ARG not broken up by a
-%% recombination event.  To get the list of these intervals, we use the
-%% function \texttt{intervals}, as below:
-%% \begin{code}
-%% (let* ((ARG (simulate '() 10 :rho 40 :keep-empty-intervals #t))
-%%        (inter (intervals ARG))
-%%        ...)
-%%     ...)
-%% \end{code}
-%% Again, we need to turn off the empty intervals optimisation, since
-%% otherwise we would only get the intervals containing markers; in this
-%% case no interval will contain a marker since we have provided no
-%% markers to the \texttt{simulate} function.
-%% 
-%% From the list of intervals, we could, for instance, calculate the
-%% average interval length.  To do this we use functions
-%% \texttt{interval-start} and \texttt{interval-end} to get the start
-%% point and end point of the interval, respectively, and the obtain the
-%% length by subtracting the start point from the end point
-%% \begin{code}
-%% (let* ((ARG (simulate '() 10 :rho 40 :keep-empty-intervals #t))
-%%        (inter (intervals ARG))
-%%        \underline{(len (lambda (i) (- (interval-end i) (interval-start i))))}
-%%        \underline{(interval-lengths (map len inter))}
-%%        ...)
-%%     ...)
-%% \end{code}
-%% add the resulting lengths---here by applying function \texttt{+} to
-%% the length list---and then dividing by the number of intervals:
-%% \begin{code}
-%% (let* ((ARG (simulate '() 10 :rho 40 :keep-empty-intervals #t))
-%%        (inter (intervals ARG))
-%%        (len (lambda (i) (- (interval-end i) (interval-start i))))
-%%        (interval-lengths (map len inter))
-%%        \underline{(mean (/ (apply + interval-lengths) (length interval-lengths))))}
-%%   (display mean)(newline))
-%% \end{code}
-%% 
-%% 
+As a simple example, we can try simulating an ARG and then compute
+some statistics about it:
+\begin{code}
+from CoaSim import *
+
+arg = simulate([], 5, rho=20, gamma=10, Q=2,
+               keepEmptyIntervals=True) # remember this!
+
+counter = dict()
+for node in arg.nodes:
+    try:
+        counter[type(node)] += 1
+    except KeyError:
+        counter[type(node)] = 1
+
+print 'coalescent events:',      counter[CoalescentNode]
+print 'recombination events:',   counter[RecombinationNode]/2
+print 'gene-conversion events:', counter[GeneConversionNode]/2
+\end{code}
+
+\noindent
+Here we simulate an ARG and print the number of recombination events,
+gene conversions and coalescence events.  
+
+Notice that we do not provide any markers to \texttt{simulate}---the
+marker list is the empty list \texttt{[]}---but we instead turn off
+the empty intervals optimisation using
+\texttt{keepEmptyIntervals=True}.  We then iterate through the nodes
+of the ARG---accessed through its \texttt{nodes} attribute---and count
+the different types of nodes (see below).  For calculating the the
+number of recombination and gene-conversion events, we divide the
+number of corresponding nodes with two, since each recombination and
+gene-conversion event produces two nodes; for the recombination these
+correspond to the ancestral material to the left and to the right of
+the recombination point, and for gene-conversions they correspond to
+the gene-conversion tract and the remaining ancestral material.
+
+As another example, we can try to extract the local intervals of the
+ARG, that is, the intervals of the ARG not broken up by a
+recombination event.  To get the list of these intervals, we access
+the ARG's \texttt{intervals} attribute, similar to how we get the
+nodes and sequences:
+\begin{code}
+from CoaSim import *
+arg = simulate([], 5, rho=20, gamma=10, Q=2,
+               keepEmptyIntervals=True) # remember this!
+intervals = arg.intervals
+\end{code}
+Again, we need to turn off the empty intervals optimisation, since
+otherwise we would only get the intervals containing markers; in this
+case no interval will contain a marker since we have provided no
+markers to the \texttt{simulate} function.
+
+From the list of intervals, we could, for instance, calculate the
+average interval length.  To do this we use functions
+\texttt{interval-start} and \texttt{interval-end} to get the start
+point and end point of the interval, respectively, and the obtain the
+length by subtracting the start point from the end point:
+\begin{code}
+lengths = [i.end - i.start for i in intervals]
+print 'average interval length:', sum(lengths) / len(lengths)
+\end{code}
+
+
 \subsection{Simulating Trees}
 \label{sec:simulating-trees}
-%% 
-%% Using functions \texttt{interval->tree} and \texttt{tree->interval},
-%% we can switch back and forth between local intervals and the
-%% coalescence tree for that interval.  So to get all the local
-%% coalescence trees in the ARG, we can map \texttt{interval->tree} over
-%% the list of intervals, or alternatively use the function
-%% \texttt{local-trees} which does exactly this:
-%% \begin{code}
-%% (define (local-trees ARG) (map interval->tree (intervals ARG)))
-%% \end{code}
-%% 
-%% To simulate a single coalescence tree, we can use code like this:
-%% \begin{code}
-%% (let* ((ARG (simulate '() 10 :keep-empty-intervals #t))
-%%        (tree (car (local-trees ARG))))
-%%   (display tree))
-%% \end{code}
-%% We simulate the ARG and then extract the list of local trees.  This
-%% will only contain a single tree, since we are simulating without
-%% recombination---we have not set the \texttt{:rho} parameter, which
-%% means that it defaults to $0$---and we take this single tree out of
-%% the list and display it.  Displaying a tree this way will print out
-%% the tree in Newick format.
-%% 
-%% If we add recombination to the simulation, we could also be interested
-%% in knowing the extend of the interval for which the tree is the
-%% genealogy.  We can get this interval together with the tree like this:
-%% \begin{code}
-%% (let* ((m (snp-marker 0.5 0 1))
-%%        (ARG (simulate (list m) 10 :rho 40))
-%%        (i (car (intervals ARG)))
-%%        (t (interval->tree i)))
-%%   (display (interval-start i))(display "-")
-%%   (display (interval-end i))(display ": ")
-%%   (display t))
-%% \end{code}
-%% Here we use a single marker, at the centre of the genomic region---a
-%% SNP marker that will accept any minor allele frequency ($0.0$--$1.0$), which
-%% essentially means that we do not care about the alleles at the marker;
-%% it is the local tree for this marker, and the interval for this tree,
-%% that we extract from the simulation.
-%% 
-%% We simulate \texttt{with} the empty intervals optimisation, which
-%% guarantees that only intervals containing markers will be returned by
-%% the \texttt{intervals} function---in this example it guarantees that
-%% \texttt{intervals} only return the one interval we are interested
-%% in---extract the interval and the corresponding local tree---using the
-%% \texttt{interval->tree} function---and then display the extracted
-%% information.
-%% 
-%% Using the function \texttt{tree-height} we can get the hight of the
-%% tree, and for example compute the average height along the genomic
-%% sequence:
-%% \begin{code}
-%% (let* ((ARG (simulate '() 10 :rho 40 :beta 10 :keep-empty-intervals #t))
-%%        (trees (local-trees ARG))
-%%        (tree-heights (map tree-height trees))
-%%        (mean (/ (apply + tree-heights) (length tree-heights))))
-%%   (display mean)(newline))
-%% \end{code}
-%% or the mean height over a number of simulations
-%% \begin{code}
-%% (use-modules ((coasim batch) :select (tabulate)))
-%% (let* ((no-iterations 10000)
-%%        (tree-heights
-%%         (tabulate no-iterations
-%%                   (let* ((ARG (simulate '() 10
-%%                                         :beta 10
-%%                                         :keep-empty-intervals #t))
-%%                          (tree (car (local-trees ARG))))
-%%                     (tree-height tree)))))
-%%   (display (/ (apply + tree-heights) no-iterations))(newline))
-%% \end{code}
-%% 
-%% In the last example we use the \texttt{tabulate} function described
-%% earlier to run a number of iterations and collect the result in a
-%% list.  We simulate with exponential growth ($\beta=10$); without
-%% growth we have a closed form for the mean tree
-%% height---$E(H_n)=2\left(1-\frac{1}{n}\right)$, see \emph{Hein et al.}
-%% Sect.~1.9---but for $\beta>0$ we it makes sense to use simulations to
-%% get the expected tree height.  In the first example, we simulated with
-%% recombination ($\rho=40$) to get a number of intervals; in the second
-%% example we do not allow recombination ($\rho$ is implicitly $0$) since
-%% we only extract a single local tree any way.
-%% 
-%% Using the function \texttt{total-branch-length}, we can get the sum of
-%% branch lengths of the tree, and we can calculate the mean of those for
-%% varying $\beta$ just as for tree heights as above.
-%% 
-%% 
+
+To each interval there correspond a local tree-genealogy.  This tree
+can be obtained from the interval through the interval's \texttt{tree}
+attribute:
+\begin{code}
+trees = [i.tree for i in intervals]
+\end{code}
+and likewise the interval for a tree can be reached from the tree's
+\texttt{interval} attribute:
+\begin{code}
+intervals = [t.interval for t in trees]
+\end{code}
+
+\noindent
+To simulate a list of local genealogies across the simulated genomic
+region, and printing intervals and trees, we could then use:
+\begin{code}
+from CoaSim import *
+arg = simulate([], 5, rho=1, keepEmptyIntervals=True)
+intervals = arg.intervals
+for i in intervals:
+    print i, ':', i.tree
+\end{code}
+Printing a tree this way will print out the tree in Newick format.  To
+simulate a single coalescence tree, we can use code like this:
+\begin{code}
+arg = simulate([], 5, keepEmptyIntervals=True)
+tree = arg.intervals[0].tree
+print tree
+\end{code}
+We simulate the ARG and then extract the list of intervals.  This will
+only contain a single interval, since we are simulating without
+recombination---we have not set the \texttt{rho} parameter, which
+means that it defaults to $0$---and we take the corresponding single
+tree out of the list and prints it.
+
+Through the attribute \texttt{height} of the tree we can get its
+height , and for example compute the average height along the genomic
+sequence:
+\begin{code}
+from CoaSim import *
+arg = simulate([], 5, rho=20, keepEmptyIntervals=True)
+trees = [i.tree for i in arg.intervals]
+heights = [t.height for t in trees]
+print 'average tree height:', sum(heights) / len(heights)
+\end{code}
+or the mean height over a number of simulations:
+\begin{code}
+from CoaSim import *
+noIterations = 1000
+heights = []
+for i in xrange(noIterations):
+    arg = simulate([], 5, keepEmptyIntervals=True)
+    tree = arg.intervals[0].tree
+    heights.append(tree.height)
+print 'Average tree height:', sum(heights) / len(heights)
+\end{code}
+
+\noindent
+Using the attribute \texttt{branchLength}, we can instead get the sum
+of branch lengths of the tree, and we can calculate the mean of those
+just as for tree heights as above.
+
+
 \subsection{Exploring the ARG}
 \label{sec:exploring-arg}
-%% 
-%% Aside from the functions mentioned above, for extracting information
-%% about the ARG, it is possible to extract information from the ARG by
-%% explicitly traversing it and extracting the information through
-%% custom-made functions.  Since we rarely have to explicitly traverse
-%% the ARG---most interesting simulation results can be extracted using
-%% other methods---we will not go into details about this general
-%% traversal, but just give short pointers to the relevant functions.
-%% 
-%% The key functions for traversing the ARG are \texttt{root}---which
-%% returns the root node of a tree, or the \emph{Most Recent Common
-%%   Ancestor} (MRCA) of an interval---and \texttt{children}---which
-%% returns a list of the children of a node; this will be two children
-%% nodes for coalescence nodes, one child node for recombination and
-%% gene-conversions nodes, and an empty list for leaf nodes.
-%% 
-%% It is possible to check the type of nodes using the predicates
-%% \texttt{coalescent-node?}, \texttt{gene-conversion-node?},
-%% \texttt{leaf-node?}, and \texttt{recombination-node?} and through
-%% these tread the different nodes differently during a traversal.  Three
-%% additional functions can be used for extracting information about a
-%% node:
-%% \begin{itemize}
-%% \item \texttt{event-time}---returns the time the node was created (in
-%%   scaled coalescence time, $2N$), and
-%% \item \texttt{ancestral?}---predicate that determines if the
-%%   ancestral material in the node contains a given point.
-%% \item \texttt{trapped?}---predicate that determines if the
-%%   a point is trapped between ancestral material in a node.
-%% \end{itemize}
-%% 
-%% To accumulate information about \texttt{all} the ARG nodes, it is
-%% usually more convenient to use the \texttt{fold-nodes} function than
-%% to explicitly traverse the nodes using \texttt{root} and
-%% \texttt{children}.  The function \texttt{fold-nodes} takes as
-%% parameters, in addition to the ARG, a function taking two parameters,
-%% and an initial value for the accumulation.  The function is called,
-%% for each node in the ARG, with the node and the value accumulated so
-%% far, initially the value passed to \texttt{fold-nodes}.  As an
-%% example, to count the total number of nodes in the ARG, we can use:
-%% \begin{code}
-%% (fold-nodes ARG (lambda (n count) (+ count 1)) 0)
-%% \end{code}
-%% or to count the total number of coalescence nodes:
-%% \begin{code}
-%% (fold-nodes ARG 
-%%             (lambda (n count) 
-%%                (if (coalescent-node? n) (+ count 1) count)) 
-%%             0)
-%% \end{code}
-%% 
-%% 
-%% 
-%% 
-%% 
+
+It is possible to explicitly traversing the and extracting the
+information through custom-made functions.  Since we rarely have to
+explicitly traverse the ARG---most interesting simulation results can
+be extracted using other methods---we will not go into details about
+this general traversal, but just give short pointers to the relevant
+functions.
+
+We have already seen how to iteration through all nodes in the ARG,
+using the \texttt{nodes} attribute.  This gives access to the nodes in
+an arbitrary order; see below for how to access local graph structure
+from the nodes.  The nodes can be of four different types:
+\texttt{LeafNode}, \texttt{CoalescentNode},
+\texttt{RecombinationNode}, and \texttt{GeneConversionNode}, and we
+have already seen how this information can be used above.
+
+In addition to checking the type of a node, we can get the time of the
+event producing the node through the \texttt{evenTime} attribute:
+\begin{ncode}
+from CoaSim import *
+
+arg = simulate([], 5, keepEmptyIntervals=True)
+coalescenceTimes = []
+for n in arg.nodes:
+    if isinstance(n,CoalescentNode):
+        coalescenceTimes.append(|\textbf{n.eventTime}|)
+
+coalescenceTimes.sort()
+for ct in coalescenceTimes:
+    print ct
+\end{ncode}
+Here, we collect the coalescence times by iterating through the nodes
+(lines~5--7), considering all coalescent nodes (line~6), and
+collecting their event times (line~7).
+
+For all node types, two predicates, \texttt{isAncestral} and
+\texttt{isTrapped} can be used to check if a given position is
+ancestral, or (non-ancestral and) trapped between ancestral material,
+respectively.  For recombination nodes, the attribute
+\texttt{recombinationPoint} gives the recombination point, and for
+gene-conversion nodes, the attribute \texttt{conversionInterval} gives
+the start and end-point of the gene-conversion.
+
+For a more structured exploration of the ARG, the attribute
+\texttt{children} can be used to get the children of a node, between
+$0$ (for leaf nodes) and $2$ (for coalescent nodes).  For a tree, the
+attribute \texttt{root} gives root node of a tree, or the \emph{Most
+  Recent Common Ancestor} (MRCA) of the tree.
+
+
 \section{Advanced Usage}
 \label{sec:advanced-usage}
-%% 
-%% In this section we give a few examples of more advanced usage of
-%% CoaSim.  This should by no mean be considered an exhaustive list of
-%% the possibilities for CoaSim simulations, but only give a taste of the
-%% possibilities that are available when programming scripts for the
-%% simulator.  Through the functions described in the reference manual,
-%% CoaSim is highly programmable, and very flexible in the kinds of
-%% simulations it can run.
-%% 
-%% 
+
+In this section we give a few examples of more advanced usage of
+CoaSim.  This should by no mean be considered an exhaustive list of
+the possibilities for CoaSim simulations, but only give a taste of the
+possibilities that are available when programming scripts for the
+simulator.  Through the functions described in the reference manual,
+CoaSim is highly programmable, and very flexible in the kinds of
+simulations it can run.
+
+
 %% \subsection{Scaling Parameters}
 %% \label{sec:scaling-parameters}
 %% 
@@ -1549,186 +1493,223 @@ simulating the local coalescent trees at the specified markers.
 %% \texttt{assoc-ref}.
 %%   
 %% 
-\subsection{Rejection Sampling}
+\subsection{Simulation Callbacks (and their use in e.g.\ Rejection Sampling)}
 \label{sec:rejection-sampling}
-%% 
-%% There are seven hooks for callbacks in the simulations:
-%% \begin{itemize}
-%% \item \texttt{:coalescence-callback}---called with the single node
-%%   that is the result of a coalescent event, and the number of lineages
-%%   at the time of the coalescent (i.e.\ the number of linages just after
-%%   the event, moving forward in time).
-%% \item \texttt{:recombination-callback}---called with the two nodes
-%%   that is the result of a recombination event, and the number of
-%%   lineages at the time of the recombination (i.e.\ the number of
-%%   linages just after the event, moving forward in time).
-%% \item \texttt{:geneconversion-callback}---called with the two nodes
-%%   that is the result of a gene conversion event, and the number of
-%%   lineages at the time of the gene conversion (i.e.\ the number of
-%%   linages just after the event, moving forward in time).
-%% \item \texttt{:bottleneck-callback}---called with the number of the
-%%   affected population, a boolean flag indicating whether the event
-%%   indicates entering or leaving the bottleneck, the time of the event
-%%   and the (total) number of lineages left at the time of the event.
-%% \item \texttt{:growth-callback}---called with the number of the
-%%   affected population, a boolean flag indicating whether the event
-%%   indicates entering or leaving the growth perioed, the time of the
-%%   event and the (total) number of lineages left at the time of the
-%%   event.
-%% \item \texttt{:migration-callback}---called with the two populations
-%%   (their number in the specification tree), the time of the migration,
-%%   and the number of lineages at the time of the gene conversion
-%%   (i.e. the number of linages just after the event, moving forward in
-%%   time).
-%% \item \texttt{:population-merge-callback}---called with a list of the
-%%   populations being merged, the time of the merge, and the (total)
-%%   number of lineages left at the time.
-%% \end{itemize}
-%% These are called during the ARG simulation, whenever one of the
-%% respective events happens.  They can be used to gather information
-%% from the simulation---although the same information can be obtained by
-%% traversing the ARG after the simulation---but also used for aborting a
-%% running simulation in a rejection sampling setup.
-%% 
-%% Say we want to simulate $10,000$ coalescent trees simulated under
-%% recombination rate $\rho=2$, but conditional on no recombination in
-%% fact did happen.  We could, of course, simulate ARGs till completion
-%% and reject ARGs containing recombination nodes, but it is much more
-%% efficient to abort the simulation once the first recombination occurs.
-%% 
-%% To reject a simulation when the first recombination event occurs, we
-%% can install a callback for recombination events that just throws an
-%% exception.  We can then wrap the simulation in a function that tries
-%% to perform the simulation, and if the exception is throw just restarts
-%% with another try:
-%% \begin{code}
-%% (define (try-simulate)
-%%   ;; keep trying to simulate until a simulation is NOT aborted
-%%   (let* ((reject-recomb (lambda (n1 n2 k) (throw 'reject)))
-%%          (try (lambda ()
-%%                 ;; simulate an ARG, but reject the simulation if a
-%%                 ;; recombination occurred
-%%                 (simulate '() 10 :rho 2
-%%                           :recombination-callback reject-recomb
-%%                           :keep-empty-intervals   #t)))
-%%          (except (lambda (ex-key . ex-args) #f)))
-%%     (let ((res (catch 'reject try except)))
-%%       (if res res (try-simulate)))))
-%% \end{code}
-%% Here we use the callback \texttt{reject-recomb} to throw the exception
-%% \texttt{'reject} when a recombination occurs---since
-%% \texttt{reject-recomb} is installed as the recombination callback
-%% through the \texttt{:recombination-callback} keyword parameter.  The
-%% function \texttt{try} runs a simulation and returns the ARG if the
-%% simulation is not rejected, and the exception handler \texttt{except}
-%% reports a rejection by returning \texttt{\#f}.  We then evaluate the
-%% whole thing using the \texttt{catch} function, that wraps the try and
-%% exception handling, and retry if the result was \texttt{\#f} rather
-%% than an ARG.\footnote{The reason that we cannot simply try again in
-%%   the exception handler---which would be the obvious way of doing
-%%   this---is that we need \texttt{try-simulate} to be tail-recursive to
-%%   avoid stack overflows if many simulations are rejected.}
-%% 
-%% By using \texttt{try-simulate} we are guaranteed to only obtain ARGs
-%% without recombinations, despite the recombination rate $\rho=5$, and
-%% we can run our $10,000$ simulations to, say, extract the average tree
-%% height, using a loop:
-%% \begin{code}
-%% (let ((sum-of-heights
-%%        (let loop ((n 0) (sum 0))
-%%          (if (= n 10000) sum ; done
-%%              (let* ((ARG (try-simulate))
-%%                     (h   (tree-height (car (local-trees ARG)))))
-%%                (loop (+ n 1) (+ sum h)))))))
-%%   (display (/ sum-of-heights 10000))
-%%   (newline))
-%% \end{code}
-%% or using \texttt{fold} from \texttt{(coasim batch)} again:
-%% \begin{code}
-%% (use-modules (coasim batch))
-%% (let ((sum-of-heights
-%%        (fold 10000 (lambda (val sum) (+ val sum)) 0
-%%              (tree-height (car (local-trees (try-simulate)))))))
-%%   (display (/ sum-of-heights 10000))
-%%   (newline))
-%% \end{code}
-%% 
-%% 
+
+There are seven hooks for callbacks in the simulations:
+\begin{itemize}
+\item \texttt{coalescenceEvent}---called with the single node
+  that is the result of a coalescent event, and the number of lineages
+  at the time of the coalescent (i.e.\ the number of linages just after
+  the event, moving forward in time).
+\item \texttt{recombinationEvent}---called with the two nodes
+  that is the result of a recombination event, and the number of
+  lineages at the time of the recombination (i.e.\ the number of
+  linages just after the event, moving forward in time).
+\item \texttt{geneConversionEvent}---called with the two nodes
+  that is the result of a gene conversion event, and the number of
+  lineages at the time of the gene conversion (i.e.\ the number of
+  linages just after the event, moving forward in time).
+\item \texttt{bottleneckEvent}---called with the number of the
+  affected population, a boolean flag indicating whether the event
+  indicates entering or leaving the bottleneck, the time of the event
+  and the (total) number of lineages left at the time of the event.
+\item \texttt{growthEvent}---called with the number of the
+  affected population, a boolean flag indicating whether the event
+  indicates entering or leaving the growth perioed, the time of the
+  event and the (total) number of lineages left at the time of the
+  event.
+\item \texttt{migrationEvent}---called with the two populations
+  (their number in the specification tree), the time of the migration,
+  and the number of lineages at the time of the gene conversion
+  (i.e. the number of linages just after the event, moving forward in
+  time).
+\item \texttt{mergeEvent}---called with a list of the
+  populations being merged, the time of the merge, and the (total)
+  number of lineages left at the time.
+\end{itemize}
+
+These are called during the ARG simulation, whenever one of the
+respective events happens.  They can be used to gather information
+from the simulation---although much of the same information can be
+obtained by traversing the ARG after the simulation---but also used
+for aborting a running simulation in a rejection sampling setup.
+
+To get a callback, we pass an object implementing a method with the
+corresponding name to the \texttt{callbacks} parameter of
+\texttt{simulate}.  For example, to count the different types of
+events, we can use:
+\begin{ncode}
+class callbacks(object):
+    def __init__(self):
+        self.counts = {'coa':0, 'rec':0, 'gc':0,
+                       'bn_enter':0, 'bn_leave':0,
+                       'g_enter':0, 'g_leave':0,
+                       'mig':0, 'me': 0}
+    def coalescentEvent(self, n, k):
+        self.counts['coa'] += 1
+    def recombinationEvent(self, n1, n2, k):
+        self.counts['rec'] += 1
+    def geneConversionEvent(self, n1, n2, k):
+        self.counts['gc'] += 1
+    def bottleneckEvent(self, pop, entering, t, k):
+        if entering:
+            self.counts['bn_enter'] += 1
+        else:
+            self.counts['bn_leave'] += 1
+    def growthEvent(self, pop, entering, t, k):
+        if entering:
+            self.counts['g_enter'] += 1
+        else:
+            self.counts['g_leave'] += 1
+    def migrationEvent(self, pop1, pop2, t, k):
+        self.counts['mig'] += 1
+    def mergeEvent(self, pops, t, k):
+        self.counts['me'] += 1
+
+import CoaSim
+from CoaSim.popStructure import Population as P, Merge as M,\
+                                Sample as S, Bottleneck as B,\
+                                Growth as G, Migration as Mi
+
+popSpec = P(1,M(1.5,[P(1,S(2),name='1'),P(1,S(2),name='2')]),
+            epochs=[B(.2,1.5,2),G(10,2)])
+migSpec = [Mi('1','2',0.1),Mi('2','1',0.2)]
+cb = callbacks()
+
+CoaSim.simulate([], popSpec, migSpec, rho=40,Q=10,gamma=2,
+                keepEmptyIntervals=True, # NB!
+                callbacks=cb)
+\end{ncode}
+We specify the callbacks in class \texttt{callbacks}, lines~1--26, and
+pass it to \texttt{simulate} in line~40.  In this particular example,
+the callback object implements all callback types.  In general this is
+not necessary; any subset of the callbacks can be implemented.
+
+Say we want to simulate $10,000$ coalescent trees simulated under
+recombination rate $\rho=2$, but conditional on no recombination in
+fact did happen.  We could, of course, simulate ARGs till completion
+and reject ARGs containing recombination nodes, but it is much more
+efficient to abort the simulation once the first recombination occurs.
+
+To reject a simulation when the first recombination event occurs, we
+can install a callback for recombination events that just throws an
+exception.  We can then wrap the simulation in a function that tries
+to perform the simulation, and if the exception is throw just restarts
+with another try:
+\begin{ncode}
+from exceptions import Exception
+from CoaSim import *
+
+class reject(Exception): pass
+class RejectionSampler(object):
+    def recombinationEvent(self,n1,n2,k):
+        raise reject()
+rejectionSampler = RejectionSampler()
+
+noSamples = 0
+heights = []
+
+while noSamples < 10000:
+    try:
+        arg = simulate([], 5, rho=2, keepEmptyIntervals=True,
+                       callbacks=rejectionSampler)
+        tree = arg.intervals[0].tree
+        heights.append(tree.height)
+        noSamples += 1
+    except reject:
+        pass
+
+print 'Average tree height:', sum(heights)/len(heights)
+\end{ncode}
+
+\noindent
+We define a rejection exception and a callback to throw it in case of
+a recombination in lines~4--8.  We then wrap the simulation in a
+\texttt{try:$\ldots$except:$\ldots$} block and sample only trees where
+the \texttt{reject} exception were not raised, i.e.\ where no
+recombination occurred.
 
 \subsection{Writing Custom Markers}
 \label{sec:writ-cust-mark}
-%% 
-%% We have seen the three types of built-in markers supported by CoaSim
-%% earlier, but it is also possible to define new marker types yourself.
-%% To create a custom marker, you call the function
-%% \texttt{custom-marker} with a position, an ancestral allele value (or
-%% a function for creating it, if the ancestral allele should be random),
-%% and a function for handling mutations:
-%% \begin{code}
-%% (custom-marker pos allele-value mutate)
-%% \end{code}
-%% The ancestral allele value, \texttt{allele-value}, should either be an
-%% integer, or a function taking no arguments and returning an integer
-%% value.  The \texttt{mutate} function is called with three parameters
-%% for each edge in the ARG: the parent node of the edge, the child node
-%% of the edge, and the parent allele of the edge.  It is then responsible
-%% for returning the allele for the child; this will be the same as for
-%% the parent if no mutation occurs on the edge.
-%% 
-%% Below is shown how the \texttt{custom-marker} function can be used to
-%% define a step-wise mutation model for micro-satellite markers.  Here,
-%% the initial allele value is always set to 0 and the whole piece of
-%% code is an implementation of the mutation model.  The \texttt{mutate}
-%% function uses two helper functions, one for selecting the waiting time
-%% for the next mutation, and one for, conditional on a mutation
-%% occurring, mutating an allele into another.  Waiting times are
-%% selected from an exponential distribution, and \texttt{mutate}
-%% iteratively selects waiting times and apply mutations until the next
-%% waiting time moves past the length of the edge being processed.
-%% 
-%% \begin{code}
-%% (define (step-ms-marker pos theta)
-%%   (let* ((msec (cdr (gettimeofday)))
-%%          (random-state (seed->random-state msec))
-%% 
-%%          (waiting-time
-%%           ;; waiting time for next mutation
-%%           (lambda ()
-%%             (let ((mean (/ 2 theta)));mean is 1/i where the
-%%                                      ;intensity i is theta/2
-%%               (* mean (random:exp random-state)))))
-%% 
-%%          (mutate-to
-%%           ;; randomly mutating up or down
-%%           (lambda (parent-allele)
-%%             (if (< (random 1.0 random-state) 0.5)
-%%                 (- parent-allele 1)
-%%                 (+ parent-allele 1))))
-%% 
-%%          (mutate
-%%           ;; mutation function to use in the custom marker
-%%           (lambda (parent child parent-allele)
-%%             (let loop ((allele parent-allele)
-%%                        (time-left 
-%%                         (- (- (event-time parent) (event-time child))
-%%                            (waiting-time))))
-%%               (if (< time-left 0)
-%%                   allele
-%%                   (let ((new-allele (mutate-to allele))
-%%                         (next-time (waiting-time)))
-%%                     (loop new-allele (- time-left next-time))))))))
-%% 
-%%     (custom-marker pos 0 mutate)))
-%% \end{code}
-%% 
-%% The step-wise model, as implemented above, is also available in the
-%% module \texttt{(coasim stepwise)}, implemented similar to above.
-%% 
+
+We have seen the three types of built-in markers supported by CoaSim
+earlier, but it is also possible to define new marker types yourself.
+To create a custom marker, we sub-class \texttt{CustomMarker} from the
+\texttt{CoaSim} module.  The class should implement two methods:
+\texttt{defaultValue} and \texttt{mutate}.  The \texttt{defaultValue}
+method determines the ancestral value for the marker; typically this
+is a fixed value, but depending on the implementation it can be drawn
+from some distribution.  The \texttt{mutate} method is called with the
+parent allele and the length of an edge, and should return the child
+allele based on this.
+
+A very simple marker, where the ancestral allele is always $0$, each
+edge contains a mutation (irregardless of edge length) changing
+alleles $0$ to $1$ and $1$ to $0$ would look like this:
+\begin{code}
+from CoaSim import CustomMarker
+class MyMarker(CustomMarker):
+    def __init__(self,pos):
+        CustomMarker.__init__(self,pos) # don't forget this!
+    def defaultValue(self):
+        return 0
+    def mutate(self, parentAllele, edgeLength):
+        if parentAllele == 0: return 1
+        else:                 return 0
+\end{code}
+
+Below is shown how a custom marker can be used to define a step-wise
+mutation model for micro-satellite markers.  Here, the initial allele
+value is always set to $0$ and the whole piece of code is an
+implementation of the mutation model.  The \texttt{mutate} function
+uses two helper functions, one for selecting the waiting time for the
+next mutation, and one for, conditional on a mutation occurring,
+mutating an allele into another.  Waiting times are selected from an
+exponential distribution, and \texttt{mutate} iteratively selects
+waiting times and apply mutations until the next waiting time moves
+past the length of the edge being processed.
+
+\begin{code}
+from random import uniform, expovariate
+class StepWise(CustomMarker):
+    '''The step-wise mutation model for micro-satellites.'''
+
+    def __init__(self, pos, theta):
+        '''Initialize marker at position pos with mutation
+        rate theta -- the intensity of the waiting time for
+        the next mutation event will be theta/2.'''
+        CustomMarker.__init__(self,pos) # don't forget!
+        self.lambd = float(theta)/2
+
+    def _mutateTo(self, allele):
+        '''Choose a new allele -- randomly one step up
+        or one step down.'''
+        if uniform(0.0,1.0) < 0.5: return allele-1
+        else:                      return allele+1
+
+    def _wait(self):
+        '''Draw the waiting time for the next mutation.'''
+        return expovariate(self.lambd)
+
+    def defaultValue(self):
+        '''Initial value -- here always 0.'''
+        return 0
+
+    def mutate(self, parentAllele, edgeLength):
+        '''Step-wise mutations...'''
+        time = self._wait()
+        allele = parentAllele
+        while time < edgeLength: # mutate till end of the edge
+            allele = self._mutateTo(allele)
+            time += self._wait()
+        return allele
+\end{code}
 
 \section{Contact}
 \label{sec:contact}
 
-For any comments or questions regarding CoaSim, please contact Thomas
+For comments or questions regarding CoaSim, please contact Thomas
 Mailund, at \href{mailto:mailund@mailund.dk}{mailund@mailund.dk} or
 \href{mailund@birc.au.dk}{mailund@birc.au.dk}.
 
