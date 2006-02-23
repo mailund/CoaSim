@@ -39,7 +39,7 @@ CoaSim_Core = Extension('CoaSim.Core', ['markers.cc', 'arg.cc',
                         libraries=['coasim', 'stdc++'])
 
 setup(name="coasim-python",
-      version="0.4",
+      version="0.5",
 
       author="Thomas Mailund",
       author_email="mailund@birc.au.dk",
