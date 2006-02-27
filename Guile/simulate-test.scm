@@ -8,6 +8,7 @@
 
 (define arg (simulate markers 10 :rho 50 :random-seed 100))
 
+
 (define seqs (sequences arg))
 (display seqs)(newline)
 (newline)

@@ -82,12 +82,13 @@ namespace core {
 	void print_tree_at_point(std::ostream &os, double point) const
 	    throw(std::out_of_range) 
 	{
-	    print_tree_at_point(os, point, 0.0,false);
+	    print_tree_at_point(os, point, 0.0, "", false);
 	    os << ';';
 	}
 	// Prints the local tree to a stream
 	virtual void print_tree_at_point(std::ostream &os, double point,
 					 double edge_length,
+					 std::string edge_annotation,
 					 bool print_edge) const
 	    throw(std::out_of_range) = 0;
 
@@ -128,6 +129,7 @@ namespace core {
     class CoalescentNode;
     class RecombinationNode;
     class GeneConversionNode;
+    class MigrationNode;
 
     class ARG
     {
@@ -145,8 +147,12 @@ namespace core {
 
 
 	// -- Initialization and book-keeping -----------------------------------
-	ARG(const Configuration &conf, bool keep_empty_intervals = false)
-	    : i_conf(conf), i_keep_empty(keep_empty_intervals),
+	ARG(const Configuration &conf, 
+	    bool keep_empty_intervals = false,
+	    bool keep_migration_events = false)
+	    : i_conf(conf),
+	      i_keep_empty(keep_empty_intervals),
+	      i_keep_migration_events(keep_migration_events),
 	      i_no_leaves(0)
 	{}
 
@@ -176,6 +182,8 @@ namespace core {
 					      double conversion_end)
 	    throw(null_event, null_child,
 		  Interval::interval_out_of_range,Interval::empty_interval);
+	Node *migration(double time, Node *child, int src_pop, int dst_pop)
+	    throw(null_event);
 
 
 
@@ -199,6 +207,7 @@ namespace core {
 
 	const Configuration &i_conf;
 	bool i_keep_empty;
+	bool i_keep_migration_events;
 	size_t i_no_leaves;
 
 	// pools of nodes -- FIXME: can be handled more efficiently...
@@ -222,6 +231,7 @@ namespace core {
 	    throw(std::out_of_range);
 	virtual void print_tree_at_point(std::ostream &os, double point,
 					 double edge_length,
+					 std::string edge_annotation,
 					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
@@ -267,6 +277,7 @@ namespace core {
 
 	virtual void print_tree_at_point(std::ostream &os, double point,
 					 double edge_length,
+					 std::string edge_annotation,
 					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
@@ -297,6 +308,7 @@ namespace core {
 	    throw(std::out_of_range);
 	virtual void print_tree_at_point(std::ostream &os, double point,
 					 double edge_length,
+					 std::string edge_annotation,
 					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
@@ -329,6 +341,7 @@ namespace core {
 	    throw(std::out_of_range);
 	virtual void print_tree_at_point(std::ostream &os, double point,
 					 double edge_length,
+					 std::string edge_annotation,
 					 bool print_edge) const
 	    throw(std::out_of_range);
 	virtual void mutate_marker(unsigned int idx, Mutator &m);
@@ -336,6 +349,34 @@ namespace core {
 	Node *const i_child;
 	double i_conversion_start, i_conversion_end;
 	bool i_is_inside;
+    };
+
+    class MigrationNode : public Node
+    {
+    public:
+	const Node * const child() const { return i_child; }
+
+    private:
+	friend Node * ARG::migration(double,Node*,int,int);
+	MigrationNode(const Configuration &conf,
+		      double time, Node *child, const Intervals &is,
+		      int src_pop, int dst_pop)
+	    : Node(conf,time,is), i_child(child),
+	      i_src_pop(src_pop), i_dst_pop(dst_pop)
+	{}
+
+	virtual double surface_at_point(double point) const
+	    throw(std::out_of_range);
+	virtual void print_tree_at_point(std::ostream &os, double point,
+					 double edge_length,
+					 std::string edge_annotation,
+					 bool print_edge) const
+	    throw(std::out_of_range);
+	virtual void mutate_marker(unsigned int idx, Mutator &m);
+
+	Node *const i_child;
+	int i_src_pop;
+	int i_dst_pop;
     };
 
 }

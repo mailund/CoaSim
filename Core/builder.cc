@@ -25,11 +25,13 @@ using namespace core;
 
 
 ARG * Builder::build(BuilderMonitor *callbacks,
-		     bool keep_empty_intervals) const
+		     bool keep_empty_intervals,
+		     bool keep_migration_events) const
 {
     using namespace Distribution_functions;
 
-    std::auto_ptr<ARG> arg(new ARG(i_conf, keep_empty_intervals));
+    std::auto_ptr<ARG> arg(new ARG(i_conf, keep_empty_intervals,
+				   keep_migration_events));
 
     double time = 0.0;
     State state(*arg, callbacks, 

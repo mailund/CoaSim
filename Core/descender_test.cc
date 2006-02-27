@@ -33,7 +33,7 @@ using namespace core;
 
 static ARG *build_arg(Configuration &conf)
 {
-    ARG *arg = new ARG(conf);
+    ARG *arg = new ARG(conf,false);
 
     Node *l1 = arg->leaf();
     Node *l2 = arg->leaf();

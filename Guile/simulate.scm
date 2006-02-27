@@ -537,6 +537,7 @@
                           (migration-callback '())
                           (population-merge-callback '())
                           (keep-empty-intervals #f)
+                          (keep-migration-events #f)
                           (random-seed 0))
      (if (number? program)
          ;; simple simulation run...
@@ -551,6 +552,7 @@
 			    population-merge-callback)
                       '() ;; no epochs
                       keep-empty-intervals
+                      keep-migration-events
                       random-seed)
 	 ;; otherwise, compile the program to get epochs and samples
 	 (let ((pop-structure (compile program migration)))
@@ -567,4 +569,5 @@
 					     population-merge-callback)
 				       real-epochs
 				       keep-empty-intervals
+				       keep-migration-events
 				       random-seed)))))))

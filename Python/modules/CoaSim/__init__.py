@@ -31,15 +31,19 @@ from CoaSim.Core import *
 def simulate(markers, popStructSpec, migrationSpec=[],
              rho=0, Q=0, gamma=0, beta=0,
              callbacks=None,
-             keepEmptyIntervals=False, seed=None):
+             keepEmptyIntervals=False,
+             keepMigrationEvents=False,
+             seed=None):
     '''Simulate an Ancestral Recombination Graph (ARG).
 
     '''
     import CoaSim.Core as Core
     import popStructure
     if isinstance(popStructSpec,popStructure.Population):
-        events,sampleSizes = popStructure.compile(popStructSpec)
+        events,sampleSizes = popStructure.compile(popStructSpec,migrationSpec)
     elif isinstance(popStructSpec,int):
+        if migrationSpec != []:
+            raise ValueError("Migration specifications requires non-trivial population structure.")
         events,sampleSizes = [],[popStructSpec]
     else:
         raise TypeError('Population structure specification of unknown type.')
@@ -51,7 +55,8 @@ def simulate(markers, popStructSpec, migrationSpec=[],
 
     return Core.simulate(markers,sampleSizes,events,
                          rho,Q,gamma,beta,callbacks,
-                         keepEmptyIntervals,seed)
+                         keepEmptyIntervals,keepMigrationEvents,
+                         seed)
 
 
 def isSorted(markers):

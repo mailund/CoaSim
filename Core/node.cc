@@ -68,13 +68,18 @@ core::LeafNode::surface_at_point(double point) const
 void
 core::LeafNode::print_tree_at_point(std::ostream &os, double point,
 				    double edge_length,
+				    std::string edge_annotation,
 				    bool print_edge) const
     throw(std::out_of_range)
 {
     if (point < 0 or 1.0 <= point) 
 	throw std::out_of_range("Point out of range [0,1).");
     os << '\'' << i_id << '\'';
-    if (print_edge) os << " : " << edge_length;
+    if (print_edge) 
+	if (edge_annotation != "")
+	    os << " : [" << edge_annotation << "}] " << edge_length;
+	else
+	    os << " : " << edge_length;
 }
 
 void
@@ -110,6 +115,7 @@ core::CoalescentNode::surface_at_point(double point) const
 void
 core::CoalescentNode::print_tree_at_point(std::ostream &os, double point,
 					  double edge_length,
+					  std::string edge_annotation,
 					  bool print_edge) const
     throw(std::out_of_range)
 {
@@ -120,11 +126,15 @@ core::CoalescentNode::print_tree_at_point(std::ostream &os, double point,
 	and i_right->intervals().contains_point(point))
 	{
 	    os << '(';
-	    i_left->print_tree_at_point(os, point, left_dist, true);
+	    i_left->print_tree_at_point(os, point, left_dist, "", true);
 	    os << ',';
-	    i_right->print_tree_at_point(os, point, right_dist, true);
+	    i_right->print_tree_at_point(os, point, right_dist, "", true);
 	    os << ')';
- 	    if (print_edge) os << " : " << edge_length;
+ 	    if (print_edge) 
+		if (edge_annotation != "")
+		    os << " : [" << edge_annotation << "}] " << edge_length;
+		else
+		    os << " : " << edge_length;
 
 	}
     else
@@ -132,10 +142,12 @@ core::CoalescentNode::print_tree_at_point(std::ostream &os, double point,
 	    if (i_left->intervals().contains_point(point))
 		i_left->print_tree_at_point(os, point, 
 					    edge_length+left_dist,
+					    "",
 					    print_edge);
 	    if (i_right->intervals().contains_point(point))
 		i_right->print_tree_at_point(os, point,
 					     edge_length+right_dist,
+					     "",
 					     print_edge);
 	}
 }
@@ -168,10 +180,6 @@ double
 core::RecombinationNode::surface_at_point(double point) const
     throw(std::out_of_range)
 {
-    // no need to check here, it is the parents responsibility to
-    //check that
-    //if (! intervals().contains_point(point)) return 0.0;
-    
     double surface = 0.0;
     if (i_child->intervals().contains_point(point))
 	{
@@ -184,11 +192,13 @@ core::RecombinationNode::surface_at_point(double point) const
 void
 core::RecombinationNode::print_tree_at_point(std::ostream &os, double point,
 					     double edge_length,
+					     std::string edge_annotation,
 					     bool print_edge) const
     throw(std::out_of_range)
 {
     double d = time() - i_child->time();
-    i_child->print_tree_at_point(os, point, edge_length+d, print_edge);
+    i_child->print_tree_at_point(os, point, edge_length+d,
+				 edge_annotation, print_edge);
 }
 
 
@@ -208,10 +218,6 @@ double
 core::GeneConversionNode::surface_at_point(double point) const
     throw(std::out_of_range)
 {
-    // no need to check here, it is the parents responsibility to
-    //check that
-    //if (! intervals().contains_point(point)) return 0.0;
-    
     double surface = 0.0;
     if (i_child->intervals().contains_point(point))
 	{
@@ -224,11 +230,13 @@ core::GeneConversionNode::surface_at_point(double point) const
 void
 core::GeneConversionNode::print_tree_at_point(std::ostream &os, double point,
 					      double edge_length,
+					      std::string edge_annotation,
 					      bool print_edge) const
     throw(std::out_of_range)
 {
     double d = time() - i_child->time();
-    i_child->print_tree_at_point(os, point, edge_length+d, print_edge);
+    i_child->print_tree_at_point(os, point, edge_length+d,
+				 edge_annotation, print_edge);
 }
 
 
@@ -241,6 +249,54 @@ core::GeneConversionNode::mutate_marker(unsigned int idx, Mutator &m)
     set_state(i_child, idx, m.mutate(*this,*i_child,state(idx)));
     i_child->mutate_marker(idx,m);
 }
+
+
+
+
+double
+core::MigrationNode::surface_at_point(double point) const
+    throw(std::out_of_range)
+{
+    double surface = 0.0;
+    if (i_child->intervals().contains_point(point))
+	{
+	    surface += i_child->surface_at_point(point);
+	    surface += time() - i_child->time();
+	}
+    return surface;
+}
+
+void
+core::MigrationNode::print_tree_at_point(std::ostream &os, double point,
+					 double edge_length,
+					 std::string edge_annotation,
+					 bool print_edge) const
+    throw(std::out_of_range)
+{
+    double d = time() - i_child->time();
+    std::ostringstream annotation;
+    if (edge_annotation == "")
+	annotation << "&migration={"
+		   << i_dst_pop << ',' << time() << ',' << i_src_pop;
+    else
+	annotation << edge_annotation 
+		   << ',' << time() << ',' << i_src_pop;
+	    
+    i_child->print_tree_at_point(os, point, edge_length+d, 
+				 annotation.str(), print_edge);
+}
+
+
+void
+core::MigrationNode::mutate_marker(unsigned int idx, Mutator &m)
+{
+    if (! (idx < no_states()) )
+	throw std::out_of_range("marker index out of range");
+
+    set_state(i_child, idx, m.mutate(*this,*i_child,state(idx)));
+    i_child->mutate_marker(idx,m);
+}
+
 
 
 
@@ -402,6 +458,23 @@ ARG::gene_conv_node_pair_t ARG::gene_conversion(double time, Node *child,
 
 }
 
+Node *
+ARG::migration(double time, Node *child, int src_pop, int dst_pop)
+    throw(null_event)
+{
+    if (i_keep_migration_events)
+	{
+	    MigrationNode *n =
+		new MigrationNode(i_conf, time, child, child->intervals(),
+				  src_pop, dst_pop);
+	    i_node_pool.push_back(n);
+	    return n;
+	}
+    else
+	return child;
+}
+
+
 namespace {
     using std::binary_function;
     struct starts_before : 
@@ -446,3 +519,5 @@ void ARG::to_text(std::ostream &os) const
     // body...
     for_each(i_leaf_pool.begin(), i_leaf_pool.end(), state_printer(os));
 }
+
+

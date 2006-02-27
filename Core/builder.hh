@@ -60,7 +60,8 @@ namespace core {
 	// Builds an ARG.  The ARG is dynamically allocated and must be
 	// deleted after use.
 	ARG *build(BuilderMonitor    *callbacks = 0,
-		   bool keep_empty_intervals = false) const;
+		   bool keep_empty_intervals = false,
+		   bool keep_migration_events = false) const;
 
     private:
 	const Configuration &i_conf;

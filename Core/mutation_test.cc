@@ -56,7 +56,7 @@ int main(int argc, const char *argv[])
 	markers.resize(0);
 
 
-	ARG arg(conf);
+	ARG arg(conf,false);
 
 	Node *l1 = arg.leaf();
 	Node *l2 = arg.leaf();

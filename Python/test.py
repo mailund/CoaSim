@@ -1,23 +1,41 @@
-from exceptions import Exception
 from CoaSim import *
 
-class reject(Exception): pass
-class RejectionSampler(object):
-    def recombinationEvent(self,n1,n2,k):
-        raise reject()
-rejectionSampler = RejectionSampler()
 
-noSamples = 0
-heights = []
+from random import uniform, expovariate 
+class StepWise(CustomMarker):
+    '''The step-wise mutation model for micro-satellites.'''
 
-while noSamples < 1000:
-    try:
-        arg = simulate([], 5, rho=2, keepEmptyIntervals=True,
-                       callbacks=rejectionSampler)
-        tree = arg.intervals[0].tree
-        heights.append(tree.height)
-        noSamples += 1
-    except reject:
-        pass
+    def __init__(self, pos, theta):
+        '''Initialize marker at position pos with mutation rate theta
+        -- the intensity of the exponetial waiting time for the next
+        mutation event will be theta/2.'''
+        CustomMarker.__init__(self,pos) # don't forget!
+        self.lambd = float(theta)/2
 
-print 'Average tree height:', sum(heights)/len(heights)
+    def _mutateTo(self, allele):
+        '''Choose a new allele -- randomly one step up or one step
+        down.'''
+        if uniform(0.0,1.0) < 0.5: return allele-1
+        else:                      return allele+1
+
+    def _wait(self):
+        '''Draw the waiting time for the next mutation.'''
+        return expovariate(self.lambd)
+
+    def defaultValue(self):
+        '''Initial value -- here always 0.'''
+        return 0
+
+    def mutate(self, parentAllele, edgeLength):
+        '''Step-wise mutations...'''
+        time = self._wait()
+        allele = parentAllele
+        while time < edgeLength: # mutate till end of the edge
+            allele = self._mutateTo(allele)
+            time += self._wait()
+        return allele
+
+
+markers = [StepWise(0,3), StepWise(0.5,3), StepWise(0.9999999,300)]
+
+print simulate(markers, 5).sequences

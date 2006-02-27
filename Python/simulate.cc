@@ -105,7 +105,7 @@ parse_event(PyObject *py_tuple)
 	}
     else if (_PyString_Eq(handle,migration_handle))
 	{
-	    if (PyTuple_Size(py_tuple) != 5) goto error;
+	    if (PyTuple_Size(py_tuple) != 6) goto error;
 	    PyObject *py_src   = PyTuple_GetItem(py_tuple,1);
 	    PyObject *py_dst   = PyTuple_GetItem(py_tuple,2);
 	    PyObject *py_r     = PyTuple_GetItem(py_tuple,3);
@@ -314,6 +314,7 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
     double beta = 0;
 
     PyObject *py_keep_empty = Py_False;
+    PyObject *py_keep_migration_events = Py_False;
     long seed = 0;
 
     char *kwd_list[] = {
@@ -321,17 +322,19 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
 	"rho", "Q", "gamma", "beta", 
 	"callbacks",
 	"keepEmptyIntervals",
+	"keepMigrationEvents",
 	"seed",
 	NULL
     };
     if (! PyArg_ParseTupleAndKeywords(args, kwds, 
-				      "O!O!O!|ddddOO!l", kwd_list,
+				      "O!O!O!|ddddOO!O!l", kwd_list,
 				      &PyList_Type, &py_markers,
 				      &PyList_Type, &py_sample_sizes,
 				      &PyList_Type, &py_events,
 				      &rho, &Q, &gamma, &beta,
 				      &py_callbacks,
 				      &PyBool_Type, &py_keep_empty,
+				      &PyBool_Type, &py_keep_migration_events,
 				      &seed))
         return 0; 		/* rethrow exception */
 
@@ -389,7 +392,9 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
 				 events.begin(),  events.end(),
 				 rho, Q, gamma, beta);
 	arg = core::Simulator::simulate(conf, callbacks.get(),
-					py_keep_empty==Py_True, seed);
+					py_keep_empty==Py_True,
+					py_keep_migration_events==Py_True,
+					seed);
 
     } catch(core::Configuration::out_of_sequence&) {
 	PyErr_SetString(PyExc_ValueError, "Marker positions out of sequence.");

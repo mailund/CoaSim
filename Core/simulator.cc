@@ -39,6 +39,7 @@ ARG *
 core::Simulator::simulate(const Configuration &conf,
 			  BuilderMonitor *build_callbacks,
 			  bool keep_empty_intervals,
+			  bool keep_migration_events,
 			  unsigned int random_seed)
 {
     Builder builder(conf);
@@ -59,7 +60,8 @@ core::Simulator::simulate(const Configuration &conf,
  retry:
     try {
 	std::auto_ptr<ARG> memsafe(builder.build(build_callbacks, 
-						 keep_empty_intervals));
+						 keep_empty_intervals,
+						 keep_migration_events));
 	descender.evolve(*memsafe.get());
 	arg = memsafe.release();
     } catch (Mutator::retry_arg&) {

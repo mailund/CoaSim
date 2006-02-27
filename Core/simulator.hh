@@ -20,6 +20,7 @@ namespace core {
 	ARG *simulate(const Configuration &conf, 
 		      BuilderMonitor *build_callbacks = 0,
 		      bool keep_empty_intervals = false,
+		      bool keep_migration_events = false,
 		      unsigned int random_seed = 0);
     }
 

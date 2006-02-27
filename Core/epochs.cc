@@ -17,6 +17,9 @@
 #ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
 # include "dist_funcs.hh"
 #endif
+#ifndef CORE__NODE_HH_INCLUDED
+# include "node.hh"
+#endif
 
 
 #ifndef IOSTREAM_INCLUDED
@@ -265,7 +268,10 @@ Migration::nested_update_state(Scheduler &scheduler, State &s,
 
     Population &src = s.populations()[i_source];
     Population &dst = s.populations()[i_destination];
-    dst.push(src.pop_random());
+    ARG &arg = s.arg();
+    Node *n_src = src.pop_random();
+    Node *n_dst = arg.migration(event_time, n_src, i_source, i_destination);
+    dst.push(n_dst);
 
 }
 

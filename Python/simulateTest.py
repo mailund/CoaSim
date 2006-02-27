@@ -58,5 +58,5 @@ CoaSim.simulate(markers, P(1,M(1.5,[P(1,S(2)),P(1,S(2))]),epochs=[B(.2,1.5)]))
 
 from CoaSim.popStructure import Migration as Mi
 CoaSim.simulate(markers,
-                P(1,M(1.5,[P(1,S(2),name='1'),P(1,S(2),name='2')])),
+                P(1,M(1.5,[P(1,S(2),name='foo'),P(1,S(2),name='bar')])),
                 [Mi('foo','bar',0.1),Mi('bar','foo',0.2)])

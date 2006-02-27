@@ -170,6 +170,10 @@ namespace {
           This option is useful when the simulation is concerned with ARG
           properties rather than just the resulting sequences.
       </li>
+      <li><b>keep-migration-events:</b> Store migration events as nodes in
+          the ARG.  These will not affect the sequences and so are not stored
+          unless this is explicitly specified here.
+      </li>
       <li><b>random-seed:</b> an integer used as random seed for the
           simulation.  In most cases, this argument will not be used, but
           it is useful for regression testing of scheme modules for CoaSim.
@@ -361,7 +365,8 @@ simulate(SCM s_markers,		// 1
 	 SCM s_callbacks,       // 4
 	 SCM s_epochs,          // 5
 	 SCM s_keep_empty,	// 6
-	 SCM s_random_seed)	// 7
+	 SCM s_keep_mig,	// 7
+	 SCM s_random_seed)	// 8
 {
     using namespace std;
 
@@ -484,7 +489,8 @@ simulate(SCM s_markers,		// 1
 	}
 
     bool keep_empty = SCM_NFALSEP(s_keep_empty);
-    unsigned int seed = scm_num2int(s_random_seed, 7, "c-simulate");
+    bool keep_mig   = SCM_NFALSEP(s_keep_mig);
+    unsigned int seed = scm_num2int(s_random_seed, 8, "c-simulate");
 
     try {
 	using core::Configuration;
@@ -501,7 +507,7 @@ simulate(SCM s_markers,		// 1
 						       beta));
 	auto_ptr<ARG> arg(core::Simulator::simulate(*conf, 
 						    has_cb ? &cb : 0,
-						    keep_empty,
+						    keep_empty, keep_mig,
 						    seed));
 
 	void *mem = scm_must_malloc(sizeof(ARGData), "simulate");
@@ -631,7 +637,7 @@ guile::install_simulate()
     guile::arg_tag = scm_make_smob_type("arg", sizeof(ARGData));
     scm_set_smob_free(guile::arg_tag, free_arg);
 
-    scm_c_define_gsubr("c-simulate", 7, 0, 0, 
+    scm_c_define_gsubr("c-simulate", 8, 0, 0, 
 		       (scm_unused_struct*(*)())simulate);
     scm_c_eval_string(SIMULATE_SCM_INCLUDE);
 
