@@ -355,6 +355,8 @@ namespace core {
     {
     public:
 	const Node * const child() const { return i_child; }
+	int source_population() const { return i_src_pop; }
+	int destination_population() const { return i_dst_pop; }
 
     private:
 	friend Node * ARG::migration(double,Node*,int,int);

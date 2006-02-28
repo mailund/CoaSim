@@ -484,6 +484,105 @@ static PyTypeObject GeneConversionNodeType = {
 
 
 
+// Migration nodes --------------------------------------------
+static PyObject *
+MigrationNode_children(NodeObject *self)
+{
+    const core::MigrationNode *n
+	= dynamic_cast<const core::MigrationNode*>(self->core_node);
+    assert(n);
+    return Py_BuildValue("(O)", wrap_node(n->child(),self->py_arg));
+}
+
+static PyObject *
+MigrationNode_source_population(NodeObject *self)
+{
+    const core::MigrationNode *n
+	= dynamic_cast<const core::MigrationNode*>(self->core_node);
+    assert(n);
+    return Py_BuildValue("i", n->source_population());
+}
+
+static PyObject *
+MigrationNode_destination_population(NodeObject *self)
+{
+    const core::MigrationNode *n
+	= dynamic_cast<const core::MigrationNode*>(self->core_node);
+    assert(n);
+    return Py_BuildValue("i", n->destination_population());
+}
+
+
+static PyGetSetDef MigrationNode_getseters[] = {
+    {"children", (getter)MigrationNode_children, NULL,
+     "The children of this node.",
+     NULL /* no closure */
+    },
+    {"sourcePopulation", (getter)MigrationNode_source_population, NULL,
+     "The source population of the migration event (backwards in time).",
+     NULL /* no closure */
+    },
+    {"destinationPopulation", (getter)MigrationNode_destination_population, NULL,
+     "The destination population of the migration event (backwards in time).",
+     NULL /* no closure */
+    },
+    {0}				// sentinel
+};
+
+static PyTypeObject MigrationNodeType = {
+    PyObject_HEAD_INIT(NULL)
+    0,				/*ob_size*/
+    "CoaSim.MigrationNode",	/*tp_name*/
+    sizeof(MigrationNodeObject), /*tp_basicsize*/
+    0,				/*tp_itemsize*/
+    (destructor)Node_dealloc,	/*tp_dealloc*/
+    0,				/*tp_print*/
+    0,				/*tp_getattr*/
+    0,				/*tp_setattr*/
+    0,				/*tp_compare*/
+    0,				/*tp_repr*/
+    0,				/*tp_as_number*/
+    0,				/*tp_as_sequence*/
+    0,				/*tp_as_mapping*/
+    0,				/*tp_hash */
+    0,				/*tp_call*/
+    0,				/*tp_str*/
+    0,				/*tp_getattro*/
+    0,				/*tp_setattro*/
+    0,				/*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT,		/*tp_flags*/
+    "A migration event node in the ARG.", /* tp_doc */
+    0,				/* tp_traverse */
+    0,				/* tp_clear */
+    0, 				/* tp_richcompare */
+    0,				// tp_weaklistoffset
+    0,				// tp_iter
+    0,				// tp_iternext
+    0,				// tp_methods
+    0,				// tp_members
+    MigrationNode_getseters, // tp_getset
+    0, 				// tp_base
+    0,				// tp_dict
+    0,				// tp_descr_get
+    0,				// tp_descr_set
+    0,				// tp_dictoffset
+    0,				// tp_init
+    0,				// tp_alloc
+    Node_new,			// tp_new
+    0,				// tp_free
+    0,				// tp_is_gc
+    0,				// tp_bases
+    0,				// tp_mro
+    0,				// tp_cache
+    0,				// tp_subclasses
+    0,				// tp_weaklist
+    0,				// tp_del
+};
+
+
+
+
+
 
 
 static PyTypeObject *
@@ -498,6 +597,8 @@ node_type(const core::Node *core_node)
 	return &RecombinationNodeType;
     if (dynamic_cast<const GeneConversionNode*>(core_node)) 
 	return &GeneConversionNodeType;
+    if (dynamic_cast<const MigrationNode*>(core_node)) 
+	return &MigrationNodeType;
     assert(false);
     return 0;
 }
@@ -524,6 +625,7 @@ init_nodes(PyObject *module)
     CoalescentNodeType.tp_base = &NodeType;
     RecombinationNodeType.tp_base = &NodeType;
     GeneConversionNodeType.tp_base = &NodeType;
+    MigrationNodeType.tp_base = &NodeType;
     
     if (PyType_Ready(&LeafNodeType) < 0) return;
     Py_INCREF(&LeafNodeType);
@@ -533,6 +635,8 @@ init_nodes(PyObject *module)
     Py_INCREF(&RecombinationNodeType);
     if (PyType_Ready(&GeneConversionNodeType) < 0) return;
     Py_INCREF(&GeneConversionNodeType);
+    if (PyType_Ready(&MigrationNodeType) < 0) return;
+    Py_INCREF(&MigrationNodeType);
 
     PyModule_AddObject(module, "LeafNode", (PyObject *)&LeafNodeType);
     PyModule_AddObject(module, "CoalescentNode", (PyObject *)&CoalescentNodeType);
@@ -540,4 +644,5 @@ init_nodes(PyObject *module)
 		       (PyObject *)&RecombinationNodeType);
     PyModule_AddObject(module, "GeneConversionNode",
 		       (PyObject *)&GeneConversionNodeType);
+    PyModule_AddObject(module, "MigrationNode", (PyObject *)&MigrationNodeType);
 }

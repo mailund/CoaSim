@@ -28,6 +28,7 @@ struct LeafNodeObject           { NodeObject base; };
 struct CoalescentNodeObject     { NodeObject base; };
 struct RecombinationNodeObject  { NodeObject base; };
 struct GeneConversionNodeObject { NodeObject base; };
+struct MigrationNodeObject      { NodeObject base; };
 
 void 
 init_nodes(PyObject *module);

@@ -21,6 +21,7 @@ namespace core {
     class CoalescentNode;
     class RecombinationNode;
     class GeneConversionNode;
+    class MigrationNode;
 }
 
 namespace guile {
@@ -30,6 +31,7 @@ namespace guile {
     extern scm_t_bits coalescent_node_tag;
     extern scm_t_bits recombination_node_tag;
     extern scm_t_bits gene_conversion_node_tag;
+    extern scm_t_bits migration_node_tag;
 
     SCM wrap_leaf_node            (SCM arg, const core::LeafNode *node);
     SCM wrap_coalescent_node      (SCM arg, const core::CoalescentNode *node);
@@ -37,6 +39,8 @@ namespace guile {
 				   const core::RecombinationNode *node);
     SCM wrap_gene_conversion_node (SCM arg, 
 				   const core::GeneConversionNode *node);
+    SCM wrap_migration_node       (SCM arg, 
+				   const core::MigrationNode *node);
 
     SCM wrap_node                 (SCM arg, const core::Node *node);
     const core::Node *unwrap_node (SCM node_smob);

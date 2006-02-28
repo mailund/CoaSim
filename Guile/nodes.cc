@@ -21,6 +21,7 @@ scm_t_bits guile::leaf_node_tag;
 scm_t_bits guile::coalescent_node_tag;
 scm_t_bits guile::recombination_node_tag;
 scm_t_bits guile::gene_conversion_node_tag;
+scm_t_bits guile::migration_node_tag;
 
 using namespace guile;
 
@@ -154,6 +155,42 @@ namespace {
 	return sizeof(GeneConversionNode);
     }
 
+
+    struct MigrationNode {
+	SCM arg;
+	const core::MigrationNode *node;
+
+	MigrationNode(SCM arg, const core::MigrationNode *node)
+	    : arg(arg), node(node)
+	{
+	}
+	~MigrationNode()
+	{
+	}
+    };
+
+
+    SCM
+    mark_migration_node (SCM s_migration_node)
+    {
+	MigrationNode *migration_node =
+	    (MigrationNode*) SCM_SMOB_DATA(s_migration_node);
+	if (migration_node->arg != SCM_EOL) 
+	    scm_gc_mark(migration_node->arg);
+	return SCM_BOOL_F;
+    }
+
+    size_t
+    free_migration_node(SCM s_migration_node)
+    {
+	MigrationNode *migration_node =
+	    (MigrationNode*) SCM_SMOB_DATA(s_migration_node);
+	migration_node->~MigrationNode();
+	scm_must_free(migration_node);
+	return sizeof(MigrationNode);
+    }
+
+
 }
 
 SCM
@@ -185,9 +222,18 @@ SCM
 guile::wrap_gene_conversion_node(SCM arg, const core::GeneConversionNode *node)
 {
     void *mem = scm_must_malloc(sizeof(GeneConversionNode),
-				"*gene_conversion-node*");
+				"*gene-conversion-node*");
     GeneConversionNode *n = new(mem)GeneConversionNode(arg,node);
     SCM_RETURN_NEWSMOB(guile::gene_conversion_node_tag, n);
+}
+
+SCM
+guile::wrap_migration_node(SCM arg, const core::MigrationNode *node)
+{
+    void *mem = scm_must_malloc(sizeof(MigrationNode),
+				"*migration-node*");
+    MigrationNode *n = new(mem)MigrationNode(arg,node);
+    SCM_RETURN_NEWSMOB(guile::migration_node_tag, n);
 }
 
 SCM
@@ -205,6 +251,9 @@ guile::wrap_node(SCM arg, const core::Node *node)
     else if (const core::GeneConversionNode *gnode
 	     = dynamic_cast<const core::GeneConversionNode*>(node))
 	return wrap_gene_conversion_node(arg, gnode);
+    else if (const core::MigrationNode *gnode
+	     = dynamic_cast<const core::MigrationNode*>(node))
+	return wrap_migration_node(arg, gnode);
     assert(false); // shouldn't be reached
     return SCM_BOOL_F;
 }
@@ -235,6 +284,12 @@ guile::unwrap_node(SCM node_smob)
 	    GeneConversionNode *gnode 
 		= (GeneConversionNode*)SCM_SMOB_DATA(node_smob);
 	    core_node = gnode->node;
+	}
+    else if (SCM_SMOB_PREDICATE(guile::migration_node_tag, node_smob))
+	{
+	    MigrationNode *mnode 
+		= (MigrationNode*)SCM_SMOB_DATA(node_smob);
+	    core_node = mnode->node;
 	}
 
     if (!core_node)
@@ -502,6 +557,28 @@ namespace {
 	return SCM_BOOL(SCM_SMOB_PREDICATE(gene_conversion_node_tag, smob));
     }
 
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="migration-node?">
+  <brief>A predicate recognising migration nodes.</brief>
+  <prototype>(migration-node? node)</prototype>
+  <example>(if (migration-node? n) (event-time n))</example>
+  <description>
+    <p>Returns #t if `node` is a migration node, #f otherwise.
+    </p>
+    <p>Remember: the ARG will only contain migration nodes if it was simulated with 
+       option :keep-migration-events set to #t.
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM migration_node_p(SCM smob)
+    {
+	return SCM_BOOL(SCM_SMOB_PREDICATE(migration_node_tag, smob));
+    }
+
 
 
 /* --<GUILE COMMENT>---------------------------------------------
@@ -590,6 +667,73 @@ namespace {
 
 /* --<GUILE COMMENT>---------------------------------------------
 
+<method name="source-population">
+  <brief>Returns the source population of a migration.</brief>
+  <prototype>(source-population migration-node)</prototype>
+  <example>(define mig-sources
+  (fold-nodes ARG
+	      (lambda (node lst)
+		(if (migration-node? node)
+                    (cons (source-population node) lst)
+                    lst))
+	      '())) </example>
+  <description>
+    <p>
+      Returns the source population of a migration event (back in time, that is, 
+      the population the lineage belongs to below the migration event).
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM source_population(SCM node_smob)
+    {
+	SCM_ASSERT(SCM_SMOB_PREDICATE(migration_node_tag, node_smob),
+		   node_smob, SCM_ARG1, "source-population");
+	
+	MigrationNode *node = (MigrationNode*)SCM_SMOB_DATA(node_smob);
+	return scm_long2num(node->node->source_population());
+    }
+
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
+<method name="destination-population">
+  <brief>Returns the destination population of a migration.</brief>
+  <prototype>(destination-population migration-node)</prototype>
+  <example>(define mig-destinations
+  (fold-nodes ARG
+	      (lambda (node lst)
+		(if (migration-node? node)
+                    (cons (destination-population node) lst)
+                    lst))
+	      '())) </example>
+  <description>
+    <p>
+      Returns the destination population of a migration event (back in time, that is, 
+      the population the lineage belongs to above the migration event).
+    </p>
+  </description>
+</method>
+
+-----</GUILE COMMENT>-------------------------------------------- */
+
+    SCM destination_population(SCM node_smob)
+    {
+	SCM_ASSERT(SCM_SMOB_PREDICATE(migration_node_tag, node_smob),
+		   node_smob, SCM_ARG1, "destination-population");
+	
+	MigrationNode *node = (MigrationNode*)SCM_SMOB_DATA(node_smob);
+	return scm_long2num(node->node->destination_population());
+    }
+
+
+
+
+/* --<GUILE COMMENT>---------------------------------------------
+
 <method name="fold-nodes">
   <brief>Calculate a value from all ARG nodes.</brief>
   <prototype>(fold-nodes arg f init)</prototype>
@@ -659,6 +803,13 @@ guile::install_nodes()
     scm_set_smob_free(guile::gene_conversion_node_tag,
 		      free_gene_conversion_node);
 
+    guile::migration_node_tag
+	= scm_make_smob_type("migration-node", sizeof(MigrationNode));
+    scm_set_smob_mark(guile::migration_node_tag,
+		      mark_migration_node);
+    scm_set_smob_free(guile::migration_node_tag,
+		      free_migration_node);
+
 
     scm_c_define_gsubr("leaf-node?", 1, 0, 0, 
 		       (scm_unused_struct*(*)())leaf_node_p);
@@ -668,6 +819,8 @@ guile::install_nodes()
 		       (scm_unused_struct*(*)())recombination_node_p);
     scm_c_define_gsubr("gene-conversion-node?", 1, 0, 0, 
 		       (scm_unused_struct*(*)())gene_conversion_node_p);
+    scm_c_define_gsubr("migration-node?", 1, 0, 0, 
+		       (scm_unused_struct*(*)())migration_node_p);
 
     scm_c_define_gsubr("event-time", 1, 0, 0, 
 		       (scm_unused_struct*(*)())event_time);
@@ -685,6 +838,11 @@ guile::install_nodes()
 		       (scm_unused_struct*(*)())gene_conversion_start);
     scm_c_define_gsubr("gene-conversion-end", 1, 0, 0, 
 		       (scm_unused_struct*(*)())gene_conversion_end);
+
+    scm_c_define_gsubr("source-population", 1, 0, 0, 
+		       (scm_unused_struct*(*)())source_population);
+    scm_c_define_gsubr("destination-population", 1, 0, 0, 
+		       (scm_unused_struct*(*)())destination_population);
 
     scm_c_define_gsubr("fold-nodes", 3, 0, 0, 
 		       (scm_unused_struct*(*)())fold_nodes);
