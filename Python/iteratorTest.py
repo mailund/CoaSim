@@ -58,4 +58,4 @@ for node in arg.nodes:
         counter[type(node)] = 1
 
 # but now there should be!
-print counter[CoaSim.MigrationNode]
+# print counter[CoaSim.MigrationNode]
