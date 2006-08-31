@@ -17,7 +17,10 @@
 ;; -----</GUILE COMMENT>----------------------------------------- 
 
 (define-module (coasim statistics) 
-  :use-module (coasim)
+  :use-module ((coasim) :select (recombination-node? 
+				 gene-conversion-node?
+				 coalescent-node?
+				 fold-nodes))
   :use-module (srfi srfi-1))
 
 
