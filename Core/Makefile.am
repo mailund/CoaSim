@@ -1,4 +1,8 @@
 
+# for production
+CXXFLAGS    += -Wall -O3 -fexpensive-optimizations -DNDEBUG
+AM_CXXFLAGS += -Wall -O3 -fexpensive-optimizations -DNDEBUG
+
 
 lib_LIBRARIES = libcoasim.a
 noinst_PROGRAMS = 
