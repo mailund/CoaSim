@@ -1,3 +1,4 @@
+ACLOCAL_AMFLAGS = -I m4
 
 INCLUDES = -I..
 LIBS = -L../Core -lcoasim -lguile -lpopt
