@@ -27,12 +27,12 @@ using namespace core;
 
 
 Population::Population(ARG &arg, int initial_population_size,
-		       CoalescenceEvent *coal_event,
-		       double scale_fraction)
-    : i_coal_event(coal_event), i_scale_fraction(scale_fraction)
+                       CoalescenceEvent *coal_event,
+                       double scale_fraction)
+: i_coal_event(coal_event), i_scale_fraction(scale_fraction)
 {
     for (int i = 0; i < initial_population_size; ++i)
-	push(arg.leaf());
+        push(arg.leaf());
 }
 
 Node *Population::pop_random()
@@ -56,7 +56,7 @@ State::total_population_size() const
     std::vector<Population>::const_iterator i;
     size_t total = 0;
     for (i = i_populations.begin(); i != i_populations.end(); ++i)
-	total += i->size();
+        total += i->size();
     return total;
 }
 
@@ -71,10 +71,10 @@ State::random_population()
 	{
 	    total += i->size();
 	    if (individual <= total)
-		return *i;
+            return *i;
 	}
     assert(false); // we should not reach this point since we must
-		   // select an individual in one of the populations
+    // select an individual in one of the populations
 }
 
 double
@@ -84,10 +84,10 @@ core::CoalescenceEvent::delta_time(State &s, double current_time)
     Population &p = s.populations().at(i_population);
     unsigned int nodes_left = p.size();
     if (nodes_left < 2) return std::numeric_limits<double>::max();
-
+    
     double scale_fraction = p.scale_fraction();
     double delta_time = expdev(nodes_left, double(nodes_left-1)/2);
-
+    
     return scale_fraction * delta_time;
 }
 
@@ -107,21 +107,21 @@ core::CoalescenceEvent::event_time(State &s, double current_time)
 
 void
 core::CoalescenceEvent::update_state(Scheduler &scheduler, State &s,
-				     double event_time)
+                                     double event_time)
 {
     ARG &arg = s.arg();
     BuilderMonitor *callbacks = s.callbacks();
     Population &p = s.populations().at(i_population);
     assert(p.size() >= 2);
-
+    
     unsigned int nodes_left = s.total_population_size();
-
+    
     Node *child1 = p.pop_random();
     Node *child2 = p.pop_random();
-
+    
     assert(child1);
     assert(child2);
-
+    
     CoalescentNode *coa_node = arg.coalescence(event_time, child1, child2);
     if (callbacks) callbacks->coalescence_callback(coa_node, nodes_left);
     if (coa_node->intervals().size() > 0) p.push(coa_node);
@@ -150,33 +150,33 @@ RecombinationEvent::event_time(State &s, double current_time)
 
 void
 RecombinationEvent::update_state(Scheduler &scheduler, State &s,
-				 double event_time)
+                                 double event_time)
 {
     using namespace Distribution_functions;
-
+    
     ARG &arg = s.arg();
     BuilderMonitor *callbacks = s.callbacks();
-
+    
     double cross_over_point = uniform();
     Population &population = s.random_population();
     assert(population.size() > 0);
-
+    
     unsigned int nodes_left = s.total_population_size();
     Node *child = population.pop_random();
-
+    
     try {
-	ARG::recomb_node_pair_t pair
+        ARG::recomb_node_pair_t pair
 	    = arg.recombination(event_time, child, cross_over_point);
-
-	if (pair.first->intervals().size() > 0)  population.push(pair.first); 
-	if (pair.second->intervals().size() > 0) population.push(pair.second); 
-
-	if (callbacks)
-	    callbacks->recombination_callback(pair.first, pair.second,
-					      nodes_left);
-
+        
+        if (pair.first->intervals().size() > 0)  population.push(pair.first); 
+        if (pair.second->intervals().size() > 0) population.push(pair.second); 
+        
+        if (callbacks)
+            callbacks->recombination_callback(pair.first, pair.second,
+                                              nodes_left);
+        
     } catch (ARG::null_event&) {
-	population.push(child);
+        population.push(child);
     }
 }
 
@@ -203,19 +203,19 @@ GeneConversionEvent::event_time(State &s, double current_time)
 
 void
 GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
-				  double event_time)
+                                  double event_time)
 {
     using namespace Distribution_functions;
-
+    
     ARG &arg = s.arg();
     BuilderMonitor *callbacks = s.callbacks();
-
+    
     double point = uniform();
     double length = random_sign()*expdev(i_Q);
-
+    
     double start = std::max(0.0, (length < 0) ? point+length : point);
     double stop  = std::min(1.0, (length < 0) ? point : point+length);
-
+    
     // it *is* technically possible to randomly choose an
     // empty length or hit one of the endpoints with the lengh
     // reaching outside the interval -- although very
@@ -223,27 +223,27 @@ GeneConversionEvent::update_state(Scheduler &scheduler, State &s,
     // move on -- this is the same effect as if we select a
     // gene conversion outside an active interval.
     if (stop-start <= 0.0) return;
-
+    
     Population &population = s.random_population();
     assert(population.size() > 0);
     unsigned int nodes_left = s.total_population_size();
-
+    
     Node *child = population.pop_random();
     try {
-	ARG::gene_conv_node_pair_t pair = 
+        ARG::gene_conv_node_pair_t pair = 
 	    arg.gene_conversion(event_time, child, start, stop);
-
-	if (pair.first->intervals().size() > 0)  population.push(pair.first); 
-	if (pair.second->intervals().size() > 0) population.push(pair.second); 
-
-	if (callbacks)
-	    callbacks->gene_conversion_callback(pair.first, pair.second,
-						nodes_left);
-
+        
+        if (pair.first->intervals().size() > 0)  population.push(pair.first); 
+        if (pair.second->intervals().size() > 0) population.push(pair.second); 
+        
+        if (callbacks)
+            callbacks->gene_conversion_callback(pair.first, pair.second,
+                                                nodes_left);
+        
     } catch (ARG::null_event&) {
-	population.push(child);
+        population.push(child);
     }
-
+    
 }
 
 void core::GeneConversionEvent::print(std::ostream &os) const
@@ -267,15 +267,15 @@ PopulationMerge::event_time(State &s, double current_time)
 
 void
 PopulationMerge::update_state(Scheduler &scheduler, State &s,
-			      double event_time)
+                              double event_time)
 {
     BuilderMonitor *callbacks = s.callbacks();
     if (callbacks)
-	callbacks->population_merge_callback(i_populations, event_time,
-					     s.total_population_size());
-
+        callbacks->population_merge_callback(i_populations, event_time,
+                                             s.total_population_size());
+    
     Population &p1 = s.populations().at(i_populations[0]);
-
+    
     std::vector<int>::const_iterator i;
     for (i = i_populations.begin() + 1; i != i_populations.end(); ++i)
 	{
@@ -284,11 +284,11 @@ PopulationMerge::update_state(Scheduler &scheduler, State &s,
 	    while (p2.size() > 0) p1.push(p2.pop_last());
 	    Event *pop_2_coal = p2.coalescence_event();
 	    p2.coalescence_event(0);// null the event
-
+        
 	    scheduler.remove_event(pop_2_coal);
 	    delete pop_2_coal;
 	}
-
+    
     scheduler.remove_event(this);
     delete this;
 }
@@ -305,7 +305,7 @@ void core::PopulationMerge::print(std::ostream &os) const
     os << "PopulationMerge(";
     std::vector<int>::const_iterator i = i_populations.begin();
     for (; i != i_populations.end(); ++i)
-	os << *i << ", ";
+        os << *i << ", ";
     os << i_merge_time << ')';
 }
 

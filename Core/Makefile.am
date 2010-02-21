@@ -1,4 +1,7 @@
 
+CXXFLAGS =
+AM_CXXFLAGS =
+
 # for production
 CXXFLAGS    += -Wall -O3 -fexpensive-optimizations -DNDEBUG
 AM_CXXFLAGS += -Wall -O3 -fexpensive-optimizations -DNDEBUG

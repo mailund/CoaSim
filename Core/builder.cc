@@ -25,24 +25,24 @@ using namespace core;
 
 
 ARG * Builder::build(BuilderMonitor *callbacks,
-		     bool keep_empty_intervals,
-		     bool keep_migration_events) const
+                     bool keep_empty_intervals,
+                     bool keep_migration_events) const
 {
     using namespace Distribution_functions;
-
+    
     std::auto_ptr<ARG> arg(new ARG(i_conf, keep_empty_intervals,
-				   keep_migration_events));
-
+                                   keep_migration_events));
+    
     double time = 0.0;
     State state(*arg, callbacks, 
-		i_conf.pop_sizes_begin(), i_conf.pop_sizes_end());
-
+                i_conf.pop_sizes_begin(), i_conf.pop_sizes_end());
+    
     Scheduler scheduler;
     unsigned int pop_no;
     std::vector<Population>::iterator j; 
     for (j = state.populations().begin(), pop_no = 0; 
-	 j != state.populations().end(); ++j, ++pop_no)
-        {
+         j != state.populations().end(); ++j, ++pop_no)
+    {
 	    scheduler.add_event(j->coalescence_event());
 	    if (i_conf.growth() > 0)
 		{
@@ -51,11 +51,11 @@ ARG * Builder::build(BuilderMonitor *callbacks,
 	}
 	
     if (i_conf.rho() > 0)
-	scheduler.add_event(new RecombinationEvent(i_conf.rho()));
+        scheduler.add_event(new RecombinationEvent(i_conf.rho()));
     if (i_conf.gamma() > 0)
-	scheduler.add_event(new GeneConversionEvent(i_conf.gamma(), 
-						    i_conf.Q()));
-
+        scheduler.add_event(new GeneConversionEvent(i_conf.gamma(), 
+                                                    i_conf.Q()));
+    
     std::vector<Event*>::const_iterator i;
     i_conf.sort_events();
     for (i = i_conf.epochs_begin(); i != i_conf.epochs_end(); ++i)
@@ -63,7 +63,7 @@ ARG * Builder::build(BuilderMonitor *callbacks,
 	    Event *e = (*i)->copy();
 	    scheduler.add_event(e);
 	}
-
+    
     while (state.total_population_size() > 1)
 	{
 	    Scheduler::time_event_t e = scheduler.next_event(state, time);
@@ -71,11 +71,11 @@ ARG * Builder::build(BuilderMonitor *callbacks,
 	    e.second->update_state(scheduler, state, e.first);
 	    time = e.first;
 	}
-
+    
     arg->sort_retired_intervals(); // NB! important, since the
-				   // remaining functions rely on the
-				   // retired intervals being sorted!
-
+    // remaining functions rely on the
+    // retired intervals being sorted!
+    
     return arg.release();
 }
 

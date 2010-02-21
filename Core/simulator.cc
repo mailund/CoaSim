@@ -37,14 +37,14 @@ using namespace core;
 
 ARG *
 core::Simulator::simulate(const Configuration &conf,
-			  BuilderMonitor *build_callbacks,
-			  bool keep_empty_intervals,
-			  bool keep_migration_events,
-			  unsigned int random_seed)
+                          BuilderMonitor *build_callbacks,
+                          bool keep_empty_intervals,
+                          bool keep_migration_events,
+                          unsigned int random_seed)
 {
     Builder builder(conf);
     Descender descender(conf);
-
+    
     // set rand seed
     if (!random_seed)
 	{
@@ -54,21 +54,21 @@ core::Simulator::simulate(const Configuration &conf,
 	    random_seed = tv.tv_usec;
 	}
     std::srand(random_seed);
-
-
+    
+    
     ARG *arg = 0;
- retry:
+retry:
     try {
-	std::auto_ptr<ARG> memsafe(builder.build(build_callbacks, 
-						 keep_empty_intervals,
-						 keep_migration_events));
-	descender.evolve(*memsafe.get());
-	arg = memsafe.release();
+        std::auto_ptr<ARG> memsafe(builder.build(build_callbacks, 
+                                                 keep_empty_intervals,
+                                                 keep_migration_events));
+        descender.evolve(*memsafe.get());
+        arg = memsafe.release();
     } catch (Mutator::retry_arg&) {
-	goto retry;
+        goto retry;
     } catch(SimulationMonitor::AbortSimulation&) {
-	return 0;
+        return 0;
     }
-
+    
     return arg;
 }
