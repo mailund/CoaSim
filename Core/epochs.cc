@@ -255,7 +255,7 @@ Migration::nested_event_time(State &s, double current_time)
     unsigned int k = src.size();
     if (k < 1) return std::numeric_limits<double>::max();
     double rate = i_migration_rate*k/2;
-    return Distribution_functions::expdev(rate);
+    return Distribution_functions::expdev(rate) + current_time;
 }
 
 void
