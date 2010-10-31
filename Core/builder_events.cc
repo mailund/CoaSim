@@ -70,7 +70,7 @@ State::random_population()
     for (i = i_populations.begin(); i != i_populations.end(); ++i)
 	{
 	    total += i->size();
-	    if (individual <= total)
+	    if (individual < total)
             return *i;
 	}
     assert(false); // we should not reach this point since we must
