@@ -222,6 +222,10 @@ namespace core {
 
     class LeafNode : public Node
     {
+    public:
+	unsigned int leaf_id() const { return i_id; }
+
+    private:
 	friend LeafNode *ARG::leaf();
 	LeafNode(const Configuration &conf, unsigned int id) 
 	    : Node(conf,0.0), i_id(id)

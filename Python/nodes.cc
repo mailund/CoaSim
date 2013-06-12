@@ -182,12 +182,23 @@ static PyTypeObject NodeType = {
 
 // Leaf nodes --------------------------------------------
 static PyObject *
+leaf_id(NodeObject *self)
+{
+    return Py_BuildValue("i", ((core::LeafNode*)self->core_node)->leaf_id());
+}
+
+
+static PyObject *
 LeafNode_children(NodeObject *self)
 {
     return PyList_New(0);
 }
 
 static PyGetSetDef LeafNode_getseters[] = {
+    {"sampleID", (getter)leaf_id, NULL,
+     "The ID of the sample corresponding to the leaf node (number used to identify the sample in the simulation).",
+     NULL /* no closure */
+    },
     {"children", (getter)LeafNode_children, NULL,
      "The children of this node.",
      NULL /* no closure */
