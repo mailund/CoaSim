@@ -23,6 +23,13 @@
 #endif
 
 static PyObject *
+core_id(NodeObject *self)
+{
+    return Py_BuildValue("l", (long int)self->core_node);
+}
+
+
+static PyObject *
 event_time(NodeObject *self)
 {
     return Py_BuildValue("d", self->core_node->time());
@@ -38,6 +45,12 @@ Node_children(NodeObject *self)
 
 
 static PyGetSetDef Node_getseters[] = {
+    {"coreID", (getter)core_id, NULL,
+     "A unique ID identifying the underlying C++ node object. "
+     "When two Python objects refer to the same node, this can be tested "
+     "with this getter.",
+     NULL /* no closure */
+    },
     {"eventTime", (getter)event_time, NULL,
      "The time of the event represented by the node (measured in units of "
      "2Ne).",
