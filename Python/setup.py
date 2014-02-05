@@ -43,7 +43,7 @@ setup(name="coasim-python",
 
       author="Thomas Mailund",
       author_email="mailund@birc.au.dk",
-      url='http://www.daimi.au.dk/~mailund/CoaSim/',
+      url='http://users-birc.au.dk/mailund/CoaSim/',
       license='GNU General Public License (GPL)',
 
       description='Coalescent-based population genetics simulation program',
