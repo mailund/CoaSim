@@ -23,8 +23,9 @@ namespace core {
     class ARG;
     class Configuration;
 
-    struct BuilderMonitor
+    class BuilderMonitor
     {
+    public:
 	// FIXME: should these be k for each population as well?
 	// Should the population be reported?
 
