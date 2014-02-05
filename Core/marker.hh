@@ -22,6 +22,8 @@
 # define CASSERT_INCLUDED
 #endif
 
+#include <string>
+
 namespace core {
 
     class Configuration;
