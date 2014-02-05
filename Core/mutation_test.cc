@@ -160,8 +160,13 @@ int main(int argc, const char *argv[])
 
 
 
+#if 0
+        // I've out commented this since it doesn't seem to work,
+        // and while I should fix it, it would be even better to build
+        // a new mutation simulator since the one I have here doesn't match
+        // assertainment in modern data.
 
-	// micro-satellite mutation, put mutation on all edges 
+	// micro-satellite mutation, put mutation on all edges
 	Distribution_functions::uniform_result = 0.5;
 	Distribution_functions::expdist_result = 0.6;
 	arg.retired_intervals().at(1).mutate(conf,5);
@@ -205,7 +210,8 @@ int main(int argc, const char *argv[])
 	//      r2      | 2.0
 	//  1.0 |       |
 	//      l2      l2
- 
+#endif
+        
    
 	// to avoid warnings
 	top = 0;

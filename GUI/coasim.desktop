@@ -1,9 +1,0 @@
-[Desktop Entry]
-Encoding=UTF-8
-Name=CoaSim
-Comment=An ancestral recombination graph simulator
-Exec=coasim_gui
-Terminal=false
-Type=Application
-Icon=/usr/local/share/pixmaps/coasim-icon.png
-Categories=Application;BioinformaticsApS
