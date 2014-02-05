@@ -375,15 +375,16 @@ CoalescentNode *ARG::coalescence(double time, Node *left, Node *right)
 }
 
 
-ARG::recomb_node_pair_t ARG::recombination(double time, Node *child,
-					   double cross_over_point)
+ARG::recomb_node_pair_t ARG::recombination(double time, Node *child, double cross_over_point)
 {
     if (child == 0) throw null_child();
 
-    if (cross_over_point <= child->intervals().first_point()) 
-	throw null_event();
-    if (child->intervals().last_point() <= cross_over_point)
-	throw null_event();
+    if (cross_over_point <= child->intervals().first_point()) {
+        throw null_event();
+    }
+    if (child->intervals().last_point() <= cross_over_point) {
+        throw null_event();
+    }
 
     Intervals left  = child->intervals().copy(0.0,cross_over_point);
     if (!i_keep_empty) left  = filter_contains_marker(left, i_conf);
@@ -396,11 +397,10 @@ ARG::recomb_node_pair_t ARG::recombination(double time, Node *child,
     std::cout << "recombination -- right: " << right << std::endl;
 #endif
 
-    RecombinationNode *n1 = new RecombinationNode(i_conf,time,child,left,
-						  cross_over_point, true);
-    RecombinationNode *n2 = new RecombinationNode(i_conf,time,child,right,
-						  cross_over_point, false);
-    i_node_pool.push_back(n1); i_node_pool.push_back(n2);
+    RecombinationNode *n1 = new RecombinationNode(i_conf,time,child,left,cross_over_point, true);
+    RecombinationNode *n2 = new RecombinationNode(i_conf,time,child,right,cross_over_point, false);
+    i_node_pool.push_back(n1);
+    i_node_pool.push_back(n2);
 
     return std::make_pair(n1,n2);
 }

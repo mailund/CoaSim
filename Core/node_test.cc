@@ -43,7 +43,7 @@ int main(int argc, const char *argv[])
         markers.resize(0);
         
         
-        ARG arg(conf);
+        ARG arg(conf, true);
         
         Node *l1 = arg.leaf();
         CHECK(l1 != 0);
@@ -82,25 +82,12 @@ int main(int argc, const char *argv[])
         
         
         
-        ARG::recomb_node_pair_t rp = arg.recombination(0.0,l1,0.0);
-        std::cout << "HEP\n";
-        
-        
-        CHECK(rp.first == l1);
-        CHECK(rp.second == 0);
-        
-        
-        rp = arg.recombination(0.0,l1,1.0);
-        CHECK(rp.first == l1);
-        CHECK(rp.second == 0);
-        
-        rp = arg.recombination(1.0,l1,0.5);
+        ARG::recomb_node_pair_t rp = arg.recombination(1.0,l1,0.5);
         CHECK(rp.first != 0);
         CHECK(rp.second != 0);
         
         Node *r1 = rp.first;
         Node *r2 = rp.second;
-        
         
         
         // current ARG:

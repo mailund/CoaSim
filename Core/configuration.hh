@@ -9,34 +9,14 @@
 #ifndef CORE__CONFIGURATION_HH_INCLUDED
 #define CORE__CONFIGURATION_HH_INCLUDED
 
-#ifndef CORE__MARKER_HH_INCLUDED
-# include "marker.hh"
-#endif
+#include "marker.hh"
 
-#ifndef STDEXCEPT_INCLUDED
-# include <stdexcept>
-# define STDEXCEPT_INCLUDED
-#endif
-#ifndef VECTOR_INCLUDED
-# include <vector>
-# define VECTOR_INCLUDED
-#endif
-#ifndef LIST_INCLUDED
-# include <list>
-# define LIST_INCLUDED
-#endif
-#ifndef CASSERT_INCLUDED
-# include <cassert>
-# define VECTOR_INCLUDED
-#endif
-#ifndef LIMITS_INCLUDED
-# include <limits>
-# define LIMITS_INCLUDED
-#endif
-#ifndef SSTREAM_INCLUDED
-# include <sstream>
-# define SSTREAM_INCLUDED
-#endif
+#include <stdexcept>
+#include <vector>
+#include <list>
+#include <cassert>
+#include <limits>
+#include <sstream>
 
 namespace core {
     class SimulationMonitor;
@@ -126,8 +106,7 @@ namespace core {
 	Configuration(PopSizeItr ps_begin, PopSizeItr ps_end,
 		      MarkerItr  m_begin, MarkerItr  m_end,
 		      EpochItr   e_begin, EpochItr   e_end,
-		      double rho, double Q, double gamma, double growth)
-	    throw(out_of_sequence, non_pos_pop_size, negative_rate);
+		      double rho, double Q, double gamma, double growth);
 	~Configuration();
 
 	typedef std::vector<unsigned int>::const_iterator pop_size_itr_t;
@@ -209,7 +188,6 @@ namespace core {
 				 EpochItr   e_begin,  EpochItr   e_end,
 				 double rho, double Q, double gamma, 
 				 double beta)
-	throw(out_of_sequence, non_pos_pop_size, negative_rate)
 	: i_rho(rho), i_Q(Q), i_gamma(gamma), i_growth(beta)
     {
 	if (rho < 0)   throw negative_rate(rho);
