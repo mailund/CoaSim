@@ -45,19 +45,19 @@ Node_children(NodeObject *self)
 
 
 static PyGetSetDef Node_getseters[] = {
-    {"coreID", (getter)core_id, NULL,
-     "A unique ID identifying the underlying C++ node object. "
+    {(char*)"coreID", (getter)core_id, NULL,
+     (char*)"A unique ID identifying the underlying C++ node object. "
      "When two Python objects refer to the same node, this can be tested "
      "with this getter.",
      NULL /* no closure */
     },
-    {"eventTime", (getter)event_time, NULL,
-     "The time of the event represented by the node (measured in units of "
+    {(char*)"eventTime", (getter)event_time, NULL,
+     (char*)"The time of the event represented by the node (measured in units of "
      "2Ne).",
      NULL /* no closure */
     },
-    {"children", (getter)Node_children, NULL,
-     "The children of this node.",
+    {(char*)"children", (getter)Node_children, NULL,
+     (char*)"The children of this node.",
      NULL /* no closure */
     },
 
@@ -89,8 +89,8 @@ static PyMethodDef Node_methods[] = {
      "isAncetral(p)\n\n"
      "A predicate that tests if point p is ancestral in this node."
     },
-    {"isTrapped", (PyCFunction)is_ancestral, METH_VARARGS,
-     "isTralled(p)\n\n"
+    {"isTrapped", (PyCFunction)is_trapped, METH_VARARGS,
+     "isTrapped(p)\n\n"
      "A predicate that tests if point p is in trapped material in this node."
     },
     {0}  /* Sentinel */
@@ -208,12 +208,12 @@ LeafNode_children(NodeObject *self)
 }
 
 static PyGetSetDef LeafNode_getseters[] = {
-    {"sampleID", (getter)leaf_id, NULL,
-     "The ID of the sample corresponding to the leaf node (number used to identify the sample in the simulation).",
+    {(char*)"sampleID", (getter)leaf_id, NULL,
+     (char*)"The ID of the sample corresponding to the leaf node (number used to identify the sample in the simulation).",
      NULL /* no closure */
     },
-    {"children", (getter)LeafNode_children, NULL,
-     "The children of this node.",
+    {(char*)"children", (getter)LeafNode_children, NULL,
+     (char*)"The children of this node.",
      NULL /* no closure */
     },
 
@@ -284,8 +284,8 @@ CoalescentNode_children(NodeObject *self)
 }
 
 static PyGetSetDef CoalescentNode_getseters[] = {
-    {"children", (getter)CoalescentNode_children, NULL,
-     "The children of this node.",
+    {(char*)"children", (getter)CoalescentNode_children, NULL,
+     (char*)"The children of this node.",
      NULL /* no closure */
     },
     {0}				// sentinel
@@ -363,12 +363,12 @@ recombination_point(NodeObject *self)
 
 
 static PyGetSetDef RecombinationNode_getseters[] = {
-    {"children", (getter)RecombinationNode_children, NULL,
-     "The children of this node.",
+    {(char*)"children", (getter)RecombinationNode_children, NULL,
+     (char*)"The children of this node.",
      NULL /* no closure */
     },
-    {"recombinationPoint", (getter)recombination_point, NULL,
-     "The cross-over point for the recombination.",
+    {(char*)"recombinationPoint", (getter)recombination_point, NULL,
+     (char*)"The cross-over point for the recombination.",
      NULL /* no closure */
     },
     {0}				// sentinel
@@ -445,12 +445,12 @@ gene_conversion_interval(NodeObject *self)
 }
 
 static PyGetSetDef GeneConversionNode_getseters[] = {
-    {"children", (getter)GeneConversionNode_children, NULL,
-     "The children of this node.",
+    {(char*)"children", (getter)GeneConversionNode_children, NULL,
+     (char*)"The children of this node.",
      NULL /* no closure */
     },
-    {"conversionInterval", (getter)gene_conversion_interval, NULL,
-     "The interval where the gene-conversion occured.",
+    {(char*)"conversionInterval", (getter)gene_conversion_interval, NULL,
+     (char*)"The interval where the gene-conversion occured.",
      NULL /* no closure */
     },
     {0}				// sentinel
@@ -538,16 +538,16 @@ MigrationNode_destination_population(NodeObject *self)
 
 
 static PyGetSetDef MigrationNode_getseters[] = {
-    {"children", (getter)MigrationNode_children, NULL,
-     "The children of this node.",
+    {(char*)"children", (getter)MigrationNode_children, NULL,
+     (char*)"The children of this node.",
      NULL /* no closure */
     },
-    {"sourcePopulation", (getter)MigrationNode_source_population, NULL,
-     "The source population of the migration event (backwards in time).",
+    {(char*)"sourcePopulation", (getter)MigrationNode_source_population, NULL,
+     (char*)"The source population of the migration event (backwards in time).",
      NULL /* no closure */
     },
-    {"destinationPopulation", (getter)MigrationNode_destination_population, NULL,
-     "The destination population of the migration event (backwards in time).",
+    {(char*)"destinationPopulation", (getter)MigrationNode_destination_population, NULL,
+     (char*)"The destination population of the migration event (backwards in time).",
      NULL /* no closure */
     },
     {0}				// sentinel

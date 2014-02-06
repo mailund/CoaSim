@@ -5,4 +5,5 @@ project(CoaSim)
 enable_testing()
 
 add_subdirectory(Core)
+add_subdirectory(Python)
 

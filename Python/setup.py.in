@@ -44,7 +44,7 @@ setup(name="CoaSim",
 
       scripts=[],
       
-      package_dir={'':'/Users/mailund/Projects/SoftwareProjects/CoaSim/Python/modules'},
+      package_dir={'':'${CMAKE_CURRENT_SOURCE_DIR}/modules'},
       packages=['CoaSim'],
       py_modules=['CoaSim.randomMarkers'],
       package_data={"": ['CoaSimCore.so']},

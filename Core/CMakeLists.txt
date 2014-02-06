@@ -20,7 +20,7 @@ add_library(Core
 		   )
 
 
-add_executable( interval_test
+add_executable(interval_test
 			  interval.hh interval.cc
 			  interval_test.cc)
 

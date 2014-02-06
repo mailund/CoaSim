@@ -196,16 +196,16 @@ nodes(ARGObject *self)
 
 
 static PyGetSetDef ARG_getseters[] = {
-    {"sequences", (getter)sequences, NULL,
-     "Sequences found in the leaves of the ARG.",
+    {(char*)"sequences", (getter)sequences, NULL,
+     (char*)"Sequences found in the leaves of the ARG.",
      NULL /* no closure */
     },
-    {"intervals", (getter)intervals, NULL,
-     "Intervals sharing the same genealogy in the ARG.",
+    {(char*)"intervals", (getter)intervals, NULL,
+     (char*)"Intervals sharing the same genealogy in the ARG.",
      NULL /* no closure */
     },
-    {"nodes", (getter)nodes, NULL,
-     "An iterator over the nodes in the ARG.",
+    {(char*)"nodes", (getter)nodes, NULL,
+     (char*)"An iterator over the nodes in the ARG.",
      NULL /* no closure */
     },
 
