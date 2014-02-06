@@ -54,20 +54,20 @@ root(TreeObject *self)
 
 
 static PyGetSetDef Tree_getseters[] = {
-    {"interval", (getter)interval, NULL,
-     "The interval the tree is the local genealogy of.",
+    {(char*)"interval", (getter)interval, NULL,
+     (char*)"The interval the tree is the local genealogy of.",
      NULL /* no closure */
     },
-    {"branchLength", (getter)branch_length, NULL,
-     "Total branch length of the local genealogy of.",
+    {(char*)"branchLength", (getter)branch_length, NULL,
+     (char*)"Total branch length of the local genealogy of.",
      NULL /* no closure */
     },
-    {"height", (getter)heigth, NULL,
-     "Height of the local genealogy of (time to the local MRCA).",
+    {(char*)"height", (getter)heigth, NULL,
+     (char*)"Height of the local genealogy of (time to the local MRCA).",
      NULL /* no closure */
     },
-    {"root", (getter)root, NULL,
-     "Root of the local genealogy of (the local MRCA).",
+    {(char*)"root", (getter)root, NULL,
+     (char*)"Root of the local genealogy of (the local MRCA).",
      NULL /* no closure */
     },
 

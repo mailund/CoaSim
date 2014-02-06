@@ -210,7 +210,7 @@ namespace {
 	// fake ARG (which doesn't exist yet) with None
 	PyObject *py_node = wrap_node(n, Py_None);
 	PyObject *py_result = 
-	    PyObject_CallMethod(i_py_callback, "coalescentEvent", "Oi", py_node, k); 
+	    PyObject_CallMethod(i_py_callback, (char*)"coalescentEvent", (char*)"Oi", py_node, k);
 	Py_DECREF(py_node);
 	if (!py_result) throw PyException();
     }
@@ -224,8 +224,8 @@ namespace {
 	PyObject *py_n1 = wrap_node(n1, Py_None);
 	PyObject *py_n2 = wrap_node(n2, Py_None);
 	PyObject *py_result = 
-	    PyObject_CallMethod(i_py_callback, "recombinationEvent", 
-				"OOi", py_n1, py_n2, k); 
+	    PyObject_CallMethod(i_py_callback, (char*)"recombinationEvent",
+				(char*)"OOi", py_n1, py_n2, k);
 	Py_DECREF(py_n1); Py_DECREF(py_n2);
 	if (!py_result) throw PyException();
     }
@@ -239,8 +239,8 @@ namespace {
 	PyObject *py_n1 = wrap_node(n1, Py_None);
 	PyObject *py_n2 = wrap_node(n2, Py_None);
 	PyObject *py_result = 
-	    PyObject_CallMethod(i_py_callback, "geneConversionEvent", 
-				"OOi", py_n1, py_n2, k); 
+	    PyObject_CallMethod(i_py_callback, (char*)"geneConversionEvent",
+				(char*)"OOi", py_n1, py_n2, k);
 	Py_DECREF(py_n1); Py_DECREF(py_n2);
 	if (!py_result) throw PyException();
     }
@@ -250,8 +250,8 @@ namespace {
     {
 	if (!i_has_bottleneck_cb) return;
 	PyObject *py_result = 
-	    PyObject_CallMethod(i_py_callback, "bottleneckEvent", 
-				"iOdi", pop, (entering ? Py_True : Py_False),
+	    PyObject_CallMethod(i_py_callback, (char*)"bottleneckEvent",
+				(char*)"iOdi", pop, (entering ? Py_True : Py_False),
 				time, k);
 	if (!py_result) throw PyException();
     }
@@ -260,8 +260,8 @@ namespace {
     {
 	if (!i_has_growth_cb) return;
 	PyObject *py_result = 
-	    PyObject_CallMethod(i_py_callback, "growthEvent", 
-				"iOdi", pop, (entering ? Py_True : Py_False),
+	    PyObject_CallMethod(i_py_callback, (char*)"growthEvent",
+				(char*)"iOdi", pop, (entering ? Py_True : Py_False),
 				time, k);
 	if (!py_result) throw PyException();
     }
@@ -271,8 +271,8 @@ namespace {
     {
 	if (!i_has_migration_cb) return;
 	PyObject *py_result = 
-	    PyObject_CallMethod(i_py_callback, "migrationEvent", 
-				"iidi", pop1, pop2, time, k);
+	    PyObject_CallMethod(i_py_callback, (char*)"migrationEvent",
+				(char*)"iidi", pop1, pop2, time, k);
 	if (!py_result) throw PyException();
     }
     
@@ -286,8 +286,8 @@ namespace {
 	for (i = 0, itr = pops.begin(); itr != pops.end(); ++itr, ++i)
 	    PyList_SetItem(py_list, i, Py_BuildValue("i", *itr));
 	PyObject *py_result = 
-	    PyObject_CallMethod(i_py_callback, "mergeEvent", 
-				"Odi", py_list, time, k);
+	    PyObject_CallMethod(i_py_callback, (char*)"mergeEvent",
+				(char*)"Odi", py_list, time, k);
 	Py_DECREF(py_list);
 	if (!py_result) throw PyException();
     }
@@ -318,16 +318,21 @@ simulate(PyObject *self, PyObject *args, PyObject *kwds)
     long seed = 0;
 
     char *kwd_list[] = {
-	"markers", "sampleSizes", "events",
-	"rho", "Q", "gamma", "beta", 
-	"callbacks",
-	"keepEmptyIntervals",
-	"keepMigrationEvents",
-	"seed",
-	NULL
+        (char*)"markers",
+        (char*)"sampleSizes",
+        (char*)"events",
+        (char*)"rho",
+        (char*)"Q",
+        (char*)"gamma",
+        (char*)"beta",
+        (char*)"callbacks",
+        (char*)"keepEmptyIntervals",
+        (char*)"keepMigrationEvents",
+        (char*)"seed",
+        NULL
     };
     if (! PyArg_ParseTupleAndKeywords(args, kwds, 
-				      "O!O!O!|ddddOO!O!l", kwd_list,
+				      (char*)"O!O!O!|ddddOO!O!l", kwd_list,
 				      &PyList_Type, &py_markers,
 				      &PyList_Type, &py_sample_sizes,
 				      &PyList_Type, &py_events,

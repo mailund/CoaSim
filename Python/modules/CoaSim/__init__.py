@@ -25,7 +25,7 @@ General Public License.
 Please see http://www.daimi.au.dk/~mailund/CoaSim/index.html for more
 details.'''
 
-from CoaSim.Core import *
+from CoaSimCore import *
 
 
 def simulate(markers, popStructSpec, migrationSpec=[],

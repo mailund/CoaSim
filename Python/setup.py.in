@@ -32,7 +32,7 @@ details."""
 
 
 setup(name="CoaSim",
-      version="1.1",
+      version="2.0",
 
       author="Thomas Mailund",
       author_email="mailund@birc.au.dk",
@@ -44,7 +44,7 @@ setup(name="CoaSim",
 
       scripts=[],
       
-      package_dir={'':'/Users/mailund/Projects/SoftwareProjects/CoaSim/Python/modules'},
+      package_dir={'':'${CMAKE_CURRENT_SOURCE_DIR}/modules'},
       packages=['CoaSim'],
       py_modules=['CoaSim.randomMarkers'],
       package_data={"": ['CoaSimCore.so']},

@@ -35,7 +35,7 @@ Marker_position_get(MarkerObject *self)
 static int
 Marker_position_set(MarkerObject *self, PyObject *arg)
 {
-    double pos;
+    //double pos;
     
     if (!PyFloat_Check(arg))
 	{
@@ -49,8 +49,8 @@ Marker_position_set(MarkerObject *self, PyObject *arg)
 }
 
 static PyGetSetDef Marker_getseters[] = {
-    {"position", (getter)Marker_position_get, (setter)Marker_position_set,
-     "Position of the marker on the genomic region.",
+    {(char*)"position", (getter)Marker_position_get, (setter)Marker_position_set,
+     (char*)"Position of the marker on the genomic region.",
      NULL /* no closure */
     },
 
@@ -152,12 +152,12 @@ SNPMarker_highFreq(SNPMarkerObject *self)
 }
 
 static PyGetSetDef SNPMarker_getseters[] = {
-    {"lowFreq", (getter)SNPMarker_lowFreq, NULL,
-     "Lowest acceptable mutant allele frequency.",
+    {(char*)"lowFreq", (getter)SNPMarker_lowFreq, NULL,
+     (char*)"Lowest acceptable mutant allele frequency.",
      NULL /* no closure */
     },
-    {"highFreq", (getter)SNPMarker_highFreq, NULL,
-     "Highest acceptable mutant allele frequency.",
+    {(char*)"highFreq", (getter)SNPMarker_highFreq, NULL,
+     (char*)"Highest acceptable mutant allele frequency.",
      NULL /* no closure */
     },
 
@@ -313,12 +313,12 @@ TraitMarker_highFreq(TraitMarkerObject *self)
 }
 
 static PyGetSetDef TraitMarker_getseters[] = {
-    {"lowFreq", (getter)TraitMarker_lowFreq, NULL,
-     "Lowest acceptable mutant allele frequency.",
+    {(char*)"lowFreq", (getter)TraitMarker_lowFreq, NULL,
+     (char*)"Lowest acceptable mutant allele frequency.",
      NULL /* no closure */
     },
-    {"highFreq", (getter)TraitMarker_highFreq, NULL,
-     "Highest acceptable mutant allele frequency.",
+    {(char*)"highFreq", (getter)TraitMarker_highFreq, NULL,
+     (char*)"Highest acceptable mutant allele frequency.",
      NULL /* no closure */
     },
 
@@ -474,12 +474,12 @@ MicroSatelliteMarker_K(MicroSatelliteMarkerObject *self)
 }
 
 static PyGetSetDef MicroSatelliteMarker_getseters[] = {
-    {"theta", (getter)MicroSatelliteMarker_theta, NULL,
-     "Mutation rate.",
+    {(char*)"theta", (getter)MicroSatelliteMarker_theta, NULL,
+     (char*)"Mutation rate.",
      NULL /* no closure */
     },
-    {"K", (getter)MicroSatelliteMarker_K, NULL,
-     "Number of alleles.",
+    {(char*)"K", (getter)MicroSatelliteMarker_K, NULL,
+     (char*)"Number of alleles.",
      NULL /* no closure */
     },
     {0}				// sentinel
@@ -687,7 +687,7 @@ namespace {
 
     int PythonMarker::default_value() const
     {
-	PyObject *py_value = PyObject_CallMethod(py_marker, "defaultValue", 0);
+	PyObject *py_value = PyObject_CallMethod(py_marker, (char*)"defaultValue", 0);
 	if (!py_value) throw PyException();
 	if (!PyInt_Check(py_value)) 
 	    {
@@ -708,8 +708,8 @@ namespace {
 			      int parent_allele)
     {
 	double edge_length = parent.time() - child.time();
-	PyObject *py_value = PyObject_CallMethod(i_marker.py_marker, "mutate",
-						 "id", parent_allele, edge_length);
+	PyObject *py_value = PyObject_CallMethod(i_marker.py_marker, (char*)"mutate",
+						 (char*)"id", parent_allele, edge_length);
 	if (!py_value) throw PyException();
 	if (!PyInt_Check(py_value)) 
 	    {

@@ -46,20 +46,20 @@ tree(IntervalObject *self)
 }
 
 static PyGetSetDef Interval_getseters[] = {
-    {"start", (getter)start, NULL,
-     "Start point of the interval.",
+    {(char*)"start", (getter)start, NULL,
+     (char*)"Start point of the interval.",
      NULL /* no closure */
     },
-    {"end", (getter)end, NULL,
-     "End point of the interval.",
+    {(char*)"end", (getter)end, NULL,
+     (char*)"End point of the interval.",
      NULL /* no closure */
     },
-    {"length", (getter)length, NULL,
-     "Length of the interval.",
+    {(char*)"length", (getter)length, NULL,
+     (char*)"Length of the interval.",
      NULL /* no closure */
     },
-    {"tree", (getter)tree, NULL,
-     "The genealogy of the interval.",
+    {(char*)"tree", (getter)tree, NULL,
+     (char*)"The genealogy of the interval.",
      NULL /* no closure */
     },
 
@@ -109,9 +109,7 @@ Interval_str(IntervalObject *i)
 static int
 Interval_print(IntervalObject *i, FILE *fp, int flags)
 {
-    std::ostringstream os; 
-    os << '[' << i->interval->start() << ", " << i->interval->end() << ')';
-    fprintf(fp, os.str().c_str());
+    fprintf(fp, "[%f, %f)", i->interval->start(), i->interval->end());
     return 0;
 }
 

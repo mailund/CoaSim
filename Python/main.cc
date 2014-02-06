@@ -1,28 +1,15 @@
-/* -*- Mode: C++; c-basic-offset: 4; -*- 
- *
+/*
  *  CoaSim/Python -- Python bindings for Coasim
  *
- *  Copyright (C) 2006 by Thomas Mailund <mailund@mailund.dk>
+ *  Copyright (C) 2006, 2014 by Thomas Mailund <mailund@mailund.dk>
  */
 
-#ifndef PYTHON__MARKERS_HH_INCLUDED
-# include "markers.hh"
-#endif
-#ifndef PYTHON__ARG_HH_INCLUDED
-# include "arg.hh"
-#endif
-#ifndef PYTHON__INTERVALS_HH_INCLUDED
-# include "intervals.hh"
-#endif
-#ifndef PYTHON__TREES_HH_INCLUDED
-# include "trees.hh"
-#endif
-#ifndef PYTHON__NODES_HH_INCLUDED
-# include "nodes.hh"
-#endif
-#ifndef PYTHON__SIMULATE_HH_INCLUDED
-# include "simulate.hh"
-#endif
+#include "markers.hh"
+#include "arg.hh"
+#include "intervals.hh"
+#include "trees.hh"
+#include "nodes.hh"
+#include "simulate.hh"
 
 static PyMethodDef coasim_methods[] = {
     {"simulate",
@@ -33,9 +20,9 @@ static PyMethodDef coasim_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-char *doc_string = \
+char *doc_string = (char*)\
 "CoaSim/Python -- Python bindings for Coasim\n" \
-"Copyright (C) 2006 by Thomas Mailund <mailund@mailund.dk>\n" \
+"Copyright (C) 2006, 2014 by Thomas Mailund <mailund@birc.au.dk>\n" \
 "\n" \
 "This is the Core module, binding the Python modules to the C++\n" \
 "simulation core." \
@@ -47,10 +34,9 @@ char *doc_string = \
 #define PyMODINIT_FUNC void
 #endif
 PyMODINIT_FUNC
-//initCoaSim(void) 
-initCore(void) 
+initCoaSimCore(void)
 {
-    PyObject* m = Py_InitModule3("Core", coasim_methods, doc_string);
+    PyObject* m = Py_InitModule3("CoaSimCore", coasim_methods, doc_string);
 
     init_markers(m);
     init_arg(m);
