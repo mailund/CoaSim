@@ -32,7 +32,7 @@ details."""
 
 
 setup(name="CoaSim",
-      version="1.1",
+      version="2.0",
 
       author="Thomas Mailund",
       author_email="mailund@birc.au.dk",
