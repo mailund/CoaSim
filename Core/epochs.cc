@@ -8,32 +8,14 @@
 
 #include "epochs.hh"
 
-#ifndef CORE__BUILDER_HH_INCLUDED
-#  include "builder.hh"
-#endif
-#ifndef CORE__BUILDER_EVENTS_HH_INCLUDED
-# include "builder_events.hh"
-#endif
-#ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
-# include "dist_funcs.hh"
-#endif
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
+#include "builder.hh"
+#include "builder_events.hh"
+#include "dist_funcs.hh"
+#include "node.hh"
 
-
-#ifndef IOSTREAM_INCLUDED
-# include <iostream>
-# define IOSTREAM_INCLUDED
-#endif
-#ifndef LIMITS_INCLUDED
-# include <limits>
-# define LIMITS_INCLUDED
-#endif
-#ifndef CMATH_INCLUDED
-# include <cmath>
-# define CMATH_INCLUDED
-#endif
+#include <iostream>
+#include <limits>
+#include <cmath>
 
 using namespace core;
 

@@ -8,18 +8,10 @@
 
 #include "builder_events.hh"
 
-#ifndef CORE__BUILDER_HH_INCLUDED
-# include "builder.hh"
-#endif
-#ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
-# include "dist_funcs.hh"
-#endif
-#ifndef CORE__MONITOR_HH_INCLUDED
-# include "monitor.hh"
-#endif
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
+#include "builder.hh"
+#include "dist_funcs.hh"
+#include "monitor.hh"
+#include "node.hh"
 
 
 using namespace core;

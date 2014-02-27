@@ -633,3 +633,6 @@ build/lib/CoaSim/diseaseModelling.py
 build/lib/CoaSim/popStructure.py
 build/lib/CoaSim/randomMarkers.py
 install_manifest.txt
+CoaSim.build/Debug/ZERO_CHECK.build/Script-379C4B8C25A74C0AB63535C5.sh
+Python/CoaSim.build/Debug/CoaSimCore.build/Script-BB01BA959DAE4293A8F9E519.sh
+Python/CoaSim.build/Debug/pyCoaSim.build/Script-F96CE0880C034F9F8F08C30B.sh

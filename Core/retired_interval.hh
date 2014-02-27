@@ -9,9 +9,7 @@
 #ifndef CORE__RETIRED_INTERVAL_HH_INCLUDED
 #define CORE__RETIRED_INTERVAL_HH_INCLUDED
 
-#ifndef CORE__INTERVAL_HH_INCLUDED
-# include "interval.hh"
-#endif
+#include "interval.hh"
 
 namespace core {
 

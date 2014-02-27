@@ -8,19 +8,9 @@
 
 #include "interval.hh"
 
-#ifndef VALARRAY_INCLUDED
-# include <valarray>
-# define VALARRAY_INCLUDED
-#endif
-#ifndef ALGORITHM_INCLUDED
-# include <algorithm>
-# define ALGORITHM_INCLUDED
-#endif
-
-#ifndef CASSERT_INCLUDED
-# include <cassert>
-# define CASSERT_INCLUDED
-#endif
+#include <valarray>
+#include <algorithm>
+#include <cassert>
 
 
 using std::min; 

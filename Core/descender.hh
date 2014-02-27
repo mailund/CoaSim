@@ -9,9 +9,7 @@
 #ifndef CORE__DESCENDER_HH_INCLUDED
 #define CORE__DESCENDER_HH_INCLUDED
 
-#ifndef CORE__CONFIGURATION_HH_INCLUDED
-# include "configuration.hh"
-#endif
+#include "configuration.hh"
 
 namespace core {
 

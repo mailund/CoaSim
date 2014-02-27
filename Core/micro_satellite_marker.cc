@@ -8,12 +8,8 @@
 
 #include "micro_satellite_marker.hh"
 
-#ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
-# include "dist_funcs.hh"
-#endif
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
+#include "dist_funcs.hh"
+#include "node.hh"
 
 
 using namespace core;

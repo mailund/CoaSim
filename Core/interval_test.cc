@@ -6,10 +6,7 @@
  *                                    and Thomas Mailund <mailund@mailund.dk>
  */
 
-#ifndef INTERVAL_HH_INCLUDED
-# include "interval.hh"
-#endif
-
+#include "interval.hh"
 #include "testing.hh"
 
 using namespace core;

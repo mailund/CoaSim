@@ -1,17 +1,8 @@
 
-#ifndef CORE__BUILDER_HH_INCLUDED
-# include "builder.hh"
-#endif
-#ifndef CORE__CONFIGURATION_HH_INCLUDED
-# include "configuration.hh"
-#endif
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
-#ifndef CORE__SNP_MARKER_HH_INCLUDED
-# include "snp_marker.hh"
-#endif
-
+#include "builder.hh"
+#include "configuration.hh"
+#include "node.hh"
+#include "snp_marker.hh"
 #include "testing.hh"
 
 using namespace core;

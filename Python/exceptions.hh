@@ -8,10 +8,7 @@
 #ifndef PYTHON__EXCEPTIONS_HH_INCLUDED
 #define PYTHON__EXCEPTIONS_HH_INCLUDED
 
-#ifndef STDEXCEPT_INCLUDED
-# include <stdexcept>
-# define STDEXCEPT_INCLUDED
-#endif
+#include <stdexcept>
 
 // throw this one to propagate a python exception to outside the
 // simulation -- remember to set the correct python exception before

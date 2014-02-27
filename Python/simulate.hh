@@ -9,14 +9,8 @@
 #define PYTHON__SIMULATE_HH_INCLUDED
 
 // must be included before anything else...
-#ifndef PYTHON_H_INCLUDED
-# include <Python.h>
-# define PYTHON_H_INCLUDED
-#endif
-#ifndef STDEXCEPT_INCLUDED
-# include <stdexcept>
-# define STDEXCEPT_INCLUDED
-#endif
+#include <Python.h>
+#include <stdexcept>
 
 
 void init_simulate(PyObject *module);

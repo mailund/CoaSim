@@ -9,10 +9,7 @@
 #ifndef CORE__BUILDER_HH_INCLUDED
 #define CORE__BUILDER_HH_INCLUDED
 
-#ifndef VECTOR_INCLUDED
-# include <vector>
-# define VECTOR_INCLUDED
-#endif
+#include <vector>
 
 
 namespace core {

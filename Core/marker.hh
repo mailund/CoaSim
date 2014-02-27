@@ -9,19 +9,9 @@
 #ifndef CORE__MARKER_HH_INCLUDED
 #define CORE__MARKER_HH_INCLUDED
 
-#ifndef STDEXCEPT_INCLUDED
-# include <stdexcept>
-# define STDEXCEPT_INCLUDED
-#endif
-#ifndef VECTOR_INCLUDED
-# include <vector>
-# define VECTOR_INCLUDED
-#endif
-#ifndef CASSERT_INCLUDED
-# include <cassert>
-# define CASSERT_INCLUDED
-#endif
-
+#include <stdexcept>
+#include <vector>
+#include <cassert>
 #include <string>
 
 namespace core {

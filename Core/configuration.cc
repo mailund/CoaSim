@@ -8,10 +8,8 @@
 
 #include "configuration.hh"
 
-#ifndef ALGORITHM_INCLUDED
-# include <algorithm>
-# define ALGORITHM_INCLUDED
-#endif
+#include <algorithm>
+
 
 
 core::Configuration::~Configuration() 

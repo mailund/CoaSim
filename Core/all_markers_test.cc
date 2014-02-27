@@ -8,9 +8,7 @@
 
 
 #include "testing.hh"
-#ifndef CORE__ALL_MARKERS_HH_INCLUDED
-# include "all_markers.hh"
-#endif
+#include "all_markers.hh"
 
 using namespace core;
 

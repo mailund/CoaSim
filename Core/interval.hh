@@ -9,18 +9,9 @@
 #ifndef CORE__INTERVAL_HH_INCLUDED
 #define CORE__INTERVAL_HH_INCLUDED
 
-#ifndef STDEXCEPT_INCLUDED
-# include <stdexcept>
-# define STDEXCEPT_INCLUDED
-#endif
-#ifndef VECTOR_INCLUDED
-# include <vector>
-# define VECTOR_INCLUDED
-#endif
-#ifndef IOSTREAM_INCLUDED
-# include <iostream>
-# define IOSTREAM_INCLUDED
-#endif
+#include <stdexcept>
+#include <vector>
+#include <iostream>
 
 namespace core {
 

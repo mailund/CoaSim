@@ -8,30 +8,14 @@
 
 #include "simulator.hh"
 
-#ifndef CORE__BUILDER_HH_INCLUDED
-# include "builder.hh"
-#endif
-#ifndef CORE__DESCENDER_HH_INCLUDED
-# include "descender.hh"
-#endif
-#ifndef CORE__MARKER_HH_INCLUDED
-# include "marker.hh"
-#endif
-#ifndef CORE__MONITOR_HH_INCLUDED
-# include "monitor.hh"
-#endif
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
+#include "builder.hh"
+#include "descender.hh"
+#include "marker.hh"
+#include "monitor.hh"
+#include "node.hh"
 
-#ifndef SYS_TIME_H_INCLUDED
-# include <sys/time.h>
-# define SYS_TIME_H_INCLUDED
-#endif
-#ifndef MEMORY_INCLUDED
-# include <memory>
-# define MEMORY_INCLUDED
-#endif
+#include <sys/time.h>
+#include <memory>
 
 using namespace core;
 

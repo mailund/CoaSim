@@ -8,18 +8,10 @@
 
 #include "testing.hh"
 
-#ifndef CORE__CONFIGURATION_HH_INCLUDED
-# include "configuration.hh"
-#endif
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
-#ifndef CORE__ALL_MARKERS_HH_INCLUDED
-# include "all_markers.hh"
-#endif
-#ifndef CORE__TEST_DIST_FUNCS_HH_INCLUDED
-# include "test_dist_funcs.hh"
-#endif
+#include "configuration.hh"
+#include "node.hh"
+#include "all_markers.hh"
+#include "test_dist_funcs.hh"
 
 using namespace core;
 

@@ -8,15 +8,9 @@
 
 #include "retired_interval.hh"
 
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
-#ifndef CORE__CONFIGURATION_HH_INCLUDED
-# include "configuration.hh"
-#endif
-#ifndef CORE__MARKER_HH_INCLUDED
-# include "marker.hh"
-#endif
+#include "node.hh"
+#include "configuration.hh"
+#include "marker.hh"
 
 using namespace core;
 

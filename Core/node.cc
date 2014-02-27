@@ -8,41 +8,15 @@
 
 #include "node.hh"
 
-#ifndef CORE__COMPILE_OPTIONS_HH
-# include "compile_options.hh"
-#endif
+#include "compile_options.hh"
+#include "dist_funcs.hh"
+#include "marker.hh"
 
-#ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
-# include "dist_funcs.hh"
-#endif
-#ifndef CORE__MARKER_HH_INCLUDED
-# include "marker.hh"
-#endif
-
-#ifndef SSTREAM_INCLUDED
-# include <sstream>
-# define SSTREAM_INCLUDED
-#endif
-#ifndef STRING_INCLUDED
-# include <string>
-# define STRING_INCLUDED
-#endif
-
-#ifndef CASSERT_INCLUDED
-# include <cassert>
-# define CASSERT_INCLUDED
-#endif
-#if EXPENSIVE_ASSERTS
-# ifndef FSTREAM_INCLUDED
-#  include <fstream>
-#  define FSTREAM_INCLUDED
-# endif
-#endif
-
-#ifndef CSTDLIB_INCLUDED
-# include <cstdlib>
-# define CSTDLIB_INCLUDED
-#endif
+#include <sstream>
+#include <string>
+#include <cassert>
+#include <fstream>
+#include <cstdlib>
 
 using namespace core;
 

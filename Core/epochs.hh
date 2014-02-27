@@ -11,12 +11,8 @@
 
 // the abstract epoch class is defined in the configuration, since it
 // is a configuration thingy.
-#ifndef CORE__CONFIGURATION_HH_INCLUDED
-# include "configuration.hh"
-#endif
-#ifndef CORE__BUILDER_EVENTS_HH_INCLUDED
-# include "builder_events.hh"
-#endif
+#include "configuration.hh"
+#include "builder_events.hh"
 
 namespace core {
     

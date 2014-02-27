@@ -9,23 +9,11 @@
 #ifndef CORE__BUILDER_EVENTS_HH_INCLUDED
 #define CORE__BUILDER_EVENTS_HH_INCLUDED
 
-#ifndef CORE__CONFIGURATION_HH_INCLUDED
-# include "configuration.hh"
-#endif
+#include "configuration.hh"
 
-
-#ifndef VECTOR_INCLUDED
-# include <vector>
-# define VECTOR_INCLUDED
-#endif
-#ifndef CASSERT_INCLUDED
-# include <cassert>
-# define CASSERT_INCLUDED
-#endif
-#ifndef STDEXCEPT_INCLUDED
-# include <stdexcept>
-# define STDEXCEPT_INCLUDED
-#endif
+#include <vector>
+#include <cassert>
+#include <stdexcept>
 
 namespace core {
     

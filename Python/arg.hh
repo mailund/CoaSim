@@ -9,10 +9,7 @@
 #define PYTHON__ARG_HH_INCLUDED
 
 // must be included before anything else...
-#ifndef PYTHON_H_INCLUDED
-# include <Python.h>
-# define PYTHON_H_INCLUDED
-#endif
+#include <Python.h>
 
 namespace core {
     class ARG;

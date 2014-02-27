@@ -8,10 +8,7 @@
 
 #include "marker.hh"
 
-#ifndef IOSTREAM_INCLUDED
-# include <iostream>
-# define IOSTREAM_INCLUDED
-#endif
+#include <iostream>
 
 core::Marker::Marker(const Marker &other)
     : i_position(other.i_position), i_values(other.i_values)

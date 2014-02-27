@@ -8,15 +8,9 @@
 
 #include "testing.hh"
 
-#ifndef CORE__CONFIGURATION_HH_INCLUDED
-# include "configuration.hh"
-#endif
-#ifndef CORE__TRAIT_MARKER_HH_INCLUDED
-# include "trait_marker.hh"
-#endif
-#ifndef CORE__SNP_MARKER_HH_INCLUDED
-# include "snp_marker.hh"
-#endif
+#include "configuration.hh"
+#include "trait_marker.hh"
+#include "snp_marker.hh"
 
 using namespace core;
 

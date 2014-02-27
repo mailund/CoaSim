@@ -6,19 +6,10 @@
  *                                    and Thomas Mailund <mailund@mailund.dk>
  */
 
-#ifndef CORE__DESCENDER_HH_INCLUDED
-# include "descender.hh"
-#endif
-#ifndef CORE__CONFIGUTAION_HH_INCLUDED
-# include "configuration.hh"
-#endif
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
-#ifndef CORE__ALL_MARKERS_HH_INCLUDED
-# include "all_markers.hh"
-#endif
-
+#include "descender.hh"
+#include "configuration.hh"
+#include "node.hh"
+#include "all_markers.hh"
 #include "testing.hh"
 
 using namespace core;

@@ -8,15 +8,9 @@
 
 #include "snp_marker.hh"
 
-#ifndef CORE__DIST_FUNCTIONS_HH_INCLUDED
-# include "dist_funcs.hh"
-#endif
-#ifndef CORE__RETIRED_INTERVAL_HH_INCLUDED
-# include "retired_interval.hh"
-#endif
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
+#include "dist_funcs.hh"
+#include "retired_interval.hh"
+#include "node.hh"
 
 using namespace core;
 

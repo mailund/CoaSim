@@ -9,14 +9,8 @@
 #ifndef CORE__SNP_MARKER_HH_INCLUDED
 #define CORE__SNP_MARKER_HH_INCLUDED
 
-#ifndef CORE__MARKER_HH_INCLUDED
-# include "marker.hh"
-#endif
-
-#ifndef SSTREAM_INCLUDED
-# include <sstream>
-# define SSTREAM_INCLUDED
-#endif
+#include "marker.hh"
+#include <sstream>
 
 namespace core {
 

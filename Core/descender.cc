@@ -8,12 +8,8 @@
 
 #include "descender.hh"
 
-#ifndef CORE__NODE_HH_INCLUDED
-# include "node.hh"
-#endif
-#ifndef CORE__MARKER_HH_INCLUDED
-# include "marker.hh"
-#endif
+#include "node.hh"
+#include "marker.hh"
 
 using namespace core;
 
