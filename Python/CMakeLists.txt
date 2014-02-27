@@ -4,33 +4,36 @@ find_package(PythonLibs   REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS} "../")
 
 add_library(CoaSimCore SHARED
-	        arg.hh
-		    arg.cc
-	    	intervals.hh
-		    intervals.cc
-		    nodes.hh
-		    nodes.cc
- 		    trees.hh
-		    trees.cc
-		    exceptions.hh
-		    markers.hh
-		    markers.cc
-		    simulate.hh
-		    simulate.cc
-		    main.cc
-		   )
+	    arg.hh
+	    arg.cc
+	    intervals.hh
+	    intervals.cc
+	    nodes.hh
+	    nodes.cc
+	    trees.hh
+	    trees.cc
+	    exceptions.hh
+	    markers.hh
+	    markers.cc
+	    simulate.hh
+	    simulate.cc
+	    main.cc
+	   )
 
 target_link_libraries(CoaSimCore ${PYTHON_LIBRARIES})
 target_link_libraries(CoaSimCore Core)
 
 
 
-execute_process ( COMMAND ${PYTHON} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+message( STATUS "PYTHON: " ${PYTHON_EXECUTABLE} )
+execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
 message( STATUS "PYTHON_SITE_PACKAGES: " ${PYTHON_SITE_PACKAGES} )
 
 set_target_properties(CoaSimCore PROPERTIES OUTPUT_NAME CoaSimCore PREFIX "" SUFFIX .so)
 INSTALL(TARGETS CoaSimCore
-        LIBRARY DESTINATION ${PYTHON_SITE_PACKAGES}
+	LIBRARY DESTINATION ${PYTHON_SITE_PACKAGES}
+	ARCHIVE DESTINATION ${PYTHON_SITE_PACKAGES}
+	COMPONENT library
 )
 
 
@@ -46,8 +49,8 @@ set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
 configure_file(${SETUP_PY_IN} ${SETUP_PY})
 
 add_custom_command(OUTPUT ${OUTPUT}
-                   COMMAND ${PYTHON} ${SETUP_PY} build
-                   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-                   DEPENDS ${DEPS})
+		   COMMAND ${PYTHON} ${SETUP_PY} build
+		   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+		   DEPENDS ${DEPS})
 add_custom_target(pyCoaSim ALL DEPENDS CoaSimCore ${OUTPUT})
 install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
